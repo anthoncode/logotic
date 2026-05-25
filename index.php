@@ -1,0 +1,248 @@
+<?php
+ini_set('display_errors', 0);
+ini_set('display_startup_errors', 0);
+error_reporting(E_ALL);
+
+$metaRobots = "<meta name='robots' content='index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1' />
+";
+$pageTitle = 'Free Vector Logos, Icons and Templates';
+require_once 'system/config-global.php';
+require_once 'system/assets/header.php';
+
+$featuredp = $product->getFeaturedProducts();
+$newp      = $product->getNewProducts();
+$popp      = $product->getPopularProducts();
+$allProd   = $product->getAllProducts();
+
+//$free      = $product->getFreeProducts();
+?>
+
+<section class="hero">
+  <div class="container">
+    <div class="hero-icon mx-auto"><i class="bi bi-lightning-fill" style="color:#0d0f1c"></i></div>
+    <h1><?php echo $setting['homepage_header']; ?> <br><span class="gradient-text">Brand Logos Instantly</span></h1>
+    <p><?php echo $setting['homepage_subheader']; ?></p>
+    <div class="hero-search position-relative">
+      <i class="fa-regular fa-search"></i>
+      <form action="search.php" method="GET" class="">
+      <input type="text" id="heroSearch" placeholder="<?php echo $l['searchplaceholder'] ?> — e.g. Google, Apple, Nike…" autocomplete="off" name="key" minlength="3" pattern=".{3,}" required="" />
+      <button class="btn-search" onclick="handleSearch()"><i class="bi bi-search me-1 fa-regular fa-facebook"></i><?php echo $l['search'] ?></button>
+      </form>
+      <div class="search-suggestions" id="searchSuggestions">
+        <div class="suggestion-item" onclick="selectSuggestion('Google')"><div class="suggestion-icon">🔍</div>Google</div>
+        <div class="suggestion-item" onclick="selectSuggestion('Apple')"><div class="suggestion-icon">🍎</div>Apple</div>
+        <div class="suggestion-item" onclick="selectSuggestion('Nike')"><div class="suggestion-icon">👟</div>Nike</div>
+        <div class="suggestion-item" onclick="selectSuggestion('Twitter / X')"><div class="suggestion-icon">🐦</div>Twitter / X</div>
+        <div class="suggestion-item" onclick="selectSuggestion('Discord')"><div class="suggestion-icon">💬</div>Discord</div>
+      </div>
+    </div>
+    <p class="hero-hint mt-3">Popular:
+      <span onclick="selectSuggestion('Twitter')">Twitter</span>
+      <span onclick="selectSuggestion('Reddit')">Reddit</span>
+      <span onclick="selectSuggestion('Samsung')">Samsung</span>
+      <span onclick="selectSuggestion('Google')">Google</span>
+      <span onclick="selectSuggestion('Amazon')">Amazon</span>
+      <span onclick="selectSuggestion('ChatGPT')">ChatGPT</span>
+    </p>
+    <div class="stats-bar">
+      <div class="stat-item"><div class="stat-num" id="stat-0">0<span class="stat-suffix">+</span></div><div class="stat-label">Logos available</div></div>
+      <div class="stat-item"><div class="stat-num" id="stat-1">0<span class="stat-suffix">+</span></div><div class="stat-label">Brands covered</div></div>
+      <div class="stat-item"><div class="stat-num" id="stat-2">0<span class="stat-suffix">%</span></div><div class="stat-label">High-res quality</div></div>
+      <div class="stat-item"><div class="stat-num" id="stat-3">0<span class="stat-suffix">k+</span></div><div class="stat-label">Downloads/month</div></div>
+    </div>
+  </div>
+</section>
+
+<main class="main-wrapper">
+  <div class="container">
+    <div class="filter-chips" id="filterChips">
+      <div class="chip active" data-cat="all">All</div>
+      <div class="chip" data-cat="tech">Tech</div>
+      <div class="chip" data-cat="social">Social Media</div>
+      <div class="chip" data-cat="finance">Finance</div>
+      <div class="chip" data-cat="gaming">Gaming</div>
+      <div class="chip" data-cat="food">Food &amp; Drink</div>
+      <div class="chip" data-cat="crypto">Crypto</div>
+      <div class="chip" data-cat="media">Media</div>
+    </div>
+
+    <div class="section-header">
+      <h2><span class="section-dot"></span> Featured Items</h2>
+      <a href="#" class="btn-see-all">See all <i class="bi bi-arrow-right"></i></a>
+    </div>
+
+
+
+<div class="container-logo" id="">
+
+  <!-- featured items-->
+    
+      <?php
+      foreach ($featuredp as $row) {
+        $str = Product::formatName($row['name']);
+        $urlLocal = $setting['website_url'];
+        $urlId = $row['id'];
+        $urlSlug = $row['slug_lg'];
+      ?>
+
+    <div class="logo-row mb-3">
+      <div class="cont-img">
+        <a href="<?php echo $urlLocal .'/item/'. $urlId .'/'. $urlSlug .'/'?>">
+          <img class="card-logotic-logo" style="background:#fff;" width="100" height="100" title="<?php echo $row['name'] ?>" src="<?php echo $setting['website_url']; ?>/system/assets/uploads/vector-files/<?php echo $row['icon_img'] ?>" alt="<?php echo $row['name'] ?>">
+          <!-- <?php //if ($row['views_off'] == '0') {?>
+          <div class="post-view">
+            <span class="ps-icon fa-light fa-eye"></span>
+            <span><?php //echo $row['views']; ?></span>      
+          </div>
+          <?php //} else { }?> -->
+
+          <div class="badge-download-pill">
+            <span class="fa-regular fa-download"></span>
+            <span>
+              <?php $ip_item = $row['id'];
+                  $download  = $product->downloadCount($ip_item);
+                   echo $product->formatCount($download['doCount']);
+              ?>
+            </span>     
+          </div>
+
+          <?php if ($row['featured'] == 1) { ?>
+   
+            <a class="badge-star-circle" href="#" title="Featured">
+              <span class="circle circ-yellow">
+                <i class="fa-regular fa-star"></i>
+              </span>
+            </a>
+
+           <?php } else if ($row['views'] > 999){ ?>
+
+            <a class="badge-star-circle" href="#" title="Trending +1000">
+              <span class="circle circ-green">
+                <i class="fa-solid fa-arrow-trend-up"></i>
+              </span>
+            </a>
+
+          <?php } ?>
+        </a>
+      </div>
+    </div>
+      <?php } ?>
+</div>
+
+    <div class="section-divider"></div>
+
+    <div class="section-header">
+      <h2><span class="section-dot"></span> <?php echo $l['popular_items'] ?></h2>
+      <a href="#" class="btn-see-all">See all <i class="bi bi-arrow-right"></i></a>
+    </div>
+    <!-- <div id="popularGrid"></div> -->
+      <div class="container-logo">
+      <?php
+      foreach ($popp as $row) {
+        $str = Product::formatName($row['name']);
+        $urlLocal = $setting['website_url'];
+        $urlId = $row['id'];
+        $urlSlug = $row['slug_lg'];
+      ?>
+
+          <div class="logo-row mb-3">
+            <div class="cont-img">
+              <a href="<?php echo $urlLocal .'/item/'. $urlId .'/'. $urlSlug .'/'?>">
+                <img class="card-logotic-logo" style="background:#fff;" width="100" height="100" src="<?php echo $setting['website_url']; ?>/system/assets/uploads/vector-files/<?php echo $row['icon_img'] ?>" alt="<?php echo $row['name'] ?>">
+
+
+                <div class="badge-download-pill">
+                    <span class="fa-regular fa-download"></span>
+                    <span>
+                      <?php $ip_item = $row['id'];
+                        $download   = $product->downloadCount($ip_item);
+                        echo $product->formatCount($download['doCount']); ?>
+                    </span>     
+                </div>
+
+
+                  <a class="badge-fire-circle" href="#" title="Trending">
+                    <span class="circle circ-yellow">
+                      <i class="fa-solid fa-fire"></i>
+                    </span>
+                  </a>
+       
+
+              </a>
+            </div>
+          </div>
+
+
+      <?php } ?>
+    </div>
+   
+    <div class="section-header">
+      <h2><span class="section-dot"></span> <?php echo $l['new_items'] ?></h2>
+      <a href="#" class="btn-see-all">See all <i class="bi bi-arrow-right"></i></a>
+    </div>
+
+    <div id="dynamic-posts2"></div>
+        <div id="ajax-loader">
+          <p>Please wait..!</p>
+      </div>
+      
+      <div class="col-md-12 text-center">
+        <button id="load-more" class="btn-load-more btn-sm mb-5">Load more</buttonc c>
+      </div>
+
+
+
+    <div class="section-divider"></div>
+
+    <div class="section-header">
+      <h2><span class="section-dot" style="background:#ff6b35;box-shadow:0 0 8px rgba(255,107,53,.6)"></span> Browse Categories</h2>
+    </div>
+    <div class="row g-3" id="categoryGrid"></div>
+  </div>
+</main>
+
+
+
+
+<?php
+//XML
+$xml = '<?xml version="1.0" encoding="UTF-8"?>
+    <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+
+foreach ($allProd as $row) {
+  $str = Product::formatName($row['name']);
+  //$cleanSlug = preg_replace('([^A-Za-z0-9 \.\-@])', '-', strtolower($fontN));
+  //$font_Slug_End = str_replace(' ', '-', $cleanSlug);
+  $cleanDate = date('c', time());
+
+  $urlLocal = $setting['website_url'];
+  $urlId = $row['id'];
+  $urlSlug = $row['slug_lg'];
+
+  $xml .= '
+        <url>
+            <loc>' . $setting['website_url'] . '/item/' . $urlId . '/' . $urlSlug . '/' . '</loc>
+            <lastmod>' . $cleanDate . '</lastmod>
+            <changefreq>monthly</changefreq>
+            <priority> 0.8 </priority>
+        </url>';
+}
+$xml .= '</urlset>';
+
+$path = $_SERVER['DOCUMENT_ROOT'].'/sitemap.xml';
+//$path = $_SERVER['DOCUMENT_ROOT'] . '/digiclass/' . 'sitemap.xml';
+$modo = 'w+';
+
+if ($fp = fopen($path, $modo)) {
+  fwrite($fp, $xml);
+  //echo '<p>El archivo sitemap se ha creado <strong>correctamente</strong></p>';
+} else {
+  //echo '<p>Ha ocurrio <strong>un error</strong> al crear sitemap</p>';
+}
+//END XML
+
+?>
+
+<?php
+require_once 'system/assets/footer.php';
+?>

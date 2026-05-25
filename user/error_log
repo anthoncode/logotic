@@ -1,0 +1,21 @@
+[06-Dec-2022 08:56:34 America/New_York] PHP Notice:  Undefined variable: eemail in /home/oxrhbvwz/logotic.me/user/upload-logo.php on line 134
+[06-Dec-2022 09:27:12 America/New_York] PHP Notice:  Undefined variable: eemail in /home/oxrhbvwz/logotic.me/user/upload-logo.php on line 134
+[06-Dec-2022 09:27:12 America/New_York] PHP Fatal error:  Uncaught ArgumentCountError: Too few arguments to function Customer::newLogo(), 1 passed in /home/oxrhbvwz/logotic.me/user/upload-logo.php on line 134 and exactly 2 expected in /home/oxrhbvwz/logotic.me/system/classes/class.customer.php:396
+Stack trace:
+#0 /home/oxrhbvwz/logotic.me/user/upload-logo.php(134): Customer->newLogo(NULL)
+#1 {main}
+  thrown in /home/oxrhbvwz/logotic.me/system/classes/class.customer.php on line 396
+[06-Dec-2022 09:27:19 America/New_York] PHP Notice:  Undefined variable: eemail in /home/oxrhbvwz/logotic.me/user/upload-logo.php on line 134
+[06-Dec-2022 09:27:19 America/New_York] PHP Fatal error:  Uncaught ArgumentCountError: Too few arguments to function Customer::newLogo(), 1 passed in /home/oxrhbvwz/logotic.me/user/upload-logo.php on line 134 and exactly 2 expected in /home/oxrhbvwz/logotic.me/system/classes/class.customer.php:396
+Stack trace:
+#0 /home/oxrhbvwz/logotic.me/user/upload-logo.php(134): Customer->newLogo(NULL)
+#1 {main}
+  thrown in /home/oxrhbvwz/logotic.me/system/classes/class.customer.php on line 396
+[06-Dec-2022 09:28:04 America/New_York] PHP Notice:  Undefined variable: eemail in /home/oxrhbvwz/logotic.me/user/upload-logo.php on line 134
+[06-Dec-2022 09:28:04 America/New_York] PHP Fatal error:  Uncaught ArgumentCountError: Too few arguments to function Customer::newLogo(), 1 passed in /home/oxrhbvwz/logotic.me/user/upload-logo.php on line 134 and exactly 2 expected in /home/oxrhbvwz/logotic.me/system/classes/class.customer.php:396
+Stack trace:
+#0 /home/oxrhbvwz/logotic.me/user/upload-logo.php(134): Customer->newLogo(NULL)
+#1 {main}
+  thrown in /home/oxrhbvwz/logotic.me/system/classes/class.customer.php on line 396
+[20-Jun-2023 14:08:23 America/New_York] PHP Notice:  Only variables should be passed by reference in /home/oxrhbvwz/logotic.me/user/account.php on line 211
+[20-Jun-2023 14:08:23 America/New_York] PHP Warning:  Cannot modify header information - headers already sent by (output started at /home/oxrhbvwz/logotic.me/user/includes/header.php:1) in /home/oxrhbvwz/logotic.me/user/account.php on line 225

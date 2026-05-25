@@ -1,0 +1,117 @@
+/*var i = 0;
+                        i++;
+                       var cargar = $('<li id="'+i+'">').load('ajax-update-item.php');
+                        $('ol').append(cargar);*/
+
+                        
+
+
+                        /*for(var i=0; i < item2 ; i++){
+                          //var cargar = $('<li>').load('ajax-update-item.php');
+                                  $('ol').append($('<li id="'+item2+'">').load('ajax-update-item.php'));
+                                }
+*/
+
+                        /*function addDiv() {
+                            $('ol').append($('<li>').load('ajax-update-item.php'));
+                        }
+
+                        for (i = 1; i < divCounter; i++){
+                            addDiv();
+                        }
+*/
+
+                        /*$(document).ready(function(){
+                          
+                            $('#list-group-item').ready(function(){
+
+                              $('ol').append($('<li>').load('ajax-update-item.php'));
+                            });
+                        });*/
+
+                        //$("#aqui").prepend($("#list-group-item").load('ajax-update-item.php'));
+
+                        //$('#list-group-item').append($('<li>').load('ajax-update-item.php'));
+
+
+                        /*$('ol').append($('<li>').load('ajax-update-item.php'));
+                        return true;*/
+
+                        /*var content;
+                        $.get('ajax-update-item.php', function(data){
+                            content= data;
+                            $('ol').append(content);
+                        });
+                        return;*/
+
+                      /*  $.post('ajax-update-item.php', function(data) {
+                          $('ol').append(data); 
+           
+                        });*/
+
+
+                        /*$.ajax({
+                            url: 'ajax-update-item.php'
+                        }).done(function(data) {
+                            $('ol').append(data);
+                        });*/
+
+
+                        /*$.ajax({
+                                        url:"ajax-update-item.php",
+                                        dataType:"html",
+                                        type:'POST', 
+
+                                        beforeSend: function(){
+                                        },
+                                        success:function(result){
+                                              $("ol").append(result);
+                                         },
+
+                                });*/
+
+                        /*$(document).ready(function(){
+                          
+                            $('#list-group-item').ready(function(){
+
+                              $('ol').append($('<li>').load('ajax-update-item.php'));
+                            });
+                        });*/
+
+/*                        $(document).each(function(){
+                             $('ol').append($('<li>').load('ajax-update-item.php'));
+                        });*/
+
+                        /*$.ajax({
+                               url: 'ajax-update-item.php',
+                               success: function(html) {
+                                  $("ol").append(html);
+                               }
+                            });*/
+
+
+
+
+
+
+
+                                           /* success : function(file, response){
+                  $("#list-group-item").append($('<li>').load('ajax-update-item.php'), file.name);*/
+                    /*var cargar = $('<li>').load('ajax-update-item.php');
+                        $('ol').append(cargar);
+                     */
+                /*}*/
+
+
+               /* sending: function (file, xhr, formData) {*/
+                        //$("#list-group-item").append($('<li>').load('ajax-update-item.php'));
+                    /*var cargar = $('<li>').load('ajax-update-item.php');
+                        $('ol').append(cargar);*/
+                   /* $('ol').append($('<li>').load('ajax-update-item.php'));       */              
+                  /*  }*/
+
+
+success : function(file){
+            //$(".dz-error-message").prepend(response);
+            $('ol').prepend($('<li>').load('ajax-update-item.php'));
+    }

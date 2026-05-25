@@ -1,0 +1,53 @@
+[19-Nov-2022 19:56:20 America/New_York] PHP Notice:  Trying to access array offset on value of type bool in /home/oxrhbvwz/logotic.me/system/download.php on line 65
+[19-Nov-2022 19:56:20 America/New_York] PHP Notice:  readfile(): read of 8192 bytes failed with errno=21 Is a directory in /home/oxrhbvwz/logotic.me/system/download.php on line 78
+[20-Nov-2022 23:11:32 America/New_York] PHP Notice:  Trying to access array offset on value of type bool in /home/oxrhbvwz/logotic.me/system/download.php on line 65
+[20-Nov-2022 23:11:32 America/New_York] PHP Notice:  readfile(): read of 8192 bytes failed with errno=21 Is a directory in /home/oxrhbvwz/logotic.me/system/download.php on line 78
+[07-Dec-2022 16:28:40 America/New_York] PHP Notice:  Trying to access array offset on value of type bool in /home/oxrhbvwz/logotic.me/system/download.php on line 65
+[07-Dec-2022 16:28:40 America/New_York] PHP Notice:  readfile(): read of 8192 bytes failed with errno=21 Is a directory in /home/oxrhbvwz/logotic.me/system/download.php on line 78
+[03-Mar-2023 03:05:47 America/New_York] PHP Notice:  Trying to access array offset on value of type bool in /home/oxrhbvwz/logotic.me/system/download.php on line 65
+[03-Mar-2023 03:05:47 America/New_York] PHP Notice:  readfile(): read of 8192 bytes failed with errno=21 Is a directory in /home/oxrhbvwz/logotic.me/system/download.php on line 78
+[05-Mar-2023 14:37:28 America/New_York] PHP Notice:  Trying to access array offset on value of type bool in /home/oxrhbvwz/logotic.me/system/download.php on line 65
+[05-Mar-2023 14:37:28 America/New_York] PHP Notice:  readfile(): read of 8192 bytes failed with errno=21 Is a directory in /home/oxrhbvwz/logotic.me/system/download.php on line 78
+[05-Mar-2023 22:02:23 America/New_York] PHP Notice:  Trying to access array offset on value of type bool in /home/oxrhbvwz/logotic.me/system/download.php on line 65
+[05-Mar-2023 22:02:23 America/New_York] PHP Notice:  readfile(): read of 8192 bytes failed with errno=21 Is a directory in /home/oxrhbvwz/logotic.me/system/download.php on line 78
+[06-Mar-2023 02:44:36 America/New_York] PHP Notice:  Trying to access array offset on value of type bool in /home/oxrhbvwz/logotic.me/system/download.php on line 65
+[06-Mar-2023 02:44:36 America/New_York] PHP Notice:  readfile(): read of 8192 bytes failed with errno=21 Is a directory in /home/oxrhbvwz/logotic.me/system/download.php on line 78
+[06-Mar-2023 06:03:38 America/New_York] PHP Notice:  Trying to access array offset on value of type bool in /home/oxrhbvwz/logotic.me/system/download.php on line 65
+[06-Mar-2023 06:03:38 America/New_York] PHP Notice:  readfile(): read of 8192 bytes failed with errno=21 Is a directory in /home/oxrhbvwz/logotic.me/system/download.php on line 78
+[06-Mar-2023 18:37:34 America/New_York] PHP Notice:  Trying to access array offset on value of type bool in /home/oxrhbvwz/logotic.me/system/download.php on line 65
+[06-Mar-2023 18:37:34 America/New_York] PHP Notice:  readfile(): read of 8192 bytes failed with errno=21 Is a directory in /home/oxrhbvwz/logotic.me/system/download.php on line 78
+[06-Mar-2023 19:09:12 America/New_York] PHP Notice:  Trying to access array offset on value of type bool in /home/oxrhbvwz/logotic.me/system/download.php on line 65
+[06-Mar-2023 19:09:12 America/New_York] PHP Notice:  readfile(): read of 8192 bytes failed with errno=21 Is a directory in /home/oxrhbvwz/logotic.me/system/download.php on line 78
+[06-Mar-2023 22:15:11 America/New_York] PHP Notice:  Trying to access array offset on value of type bool in /home/oxrhbvwz/logotic.me/system/download.php on line 65
+[06-Mar-2023 22:15:11 America/New_York] PHP Notice:  readfile(): read of 8192 bytes failed with errno=21 Is a directory in /home/oxrhbvwz/logotic.me/system/download.php on line 78
+[07-Mar-2023 05:40:19 America/New_York] PHP Notice:  Trying to access array offset on value of type bool in /home/oxrhbvwz/logotic.me/system/download.php on line 65
+[07-Mar-2023 05:40:19 America/New_York] PHP Notice:  readfile(): read of 8192 bytes failed with errno=21 Is a directory in /home/oxrhbvwz/logotic.me/system/download.php on line 78
+[07-Mar-2023 06:17:56 America/New_York] PHP Notice:  Trying to access array offset on value of type bool in /home/oxrhbvwz/logotic.me/system/download.php on line 65
+[07-Mar-2023 06:17:56 America/New_York] PHP Notice:  readfile(): read of 8192 bytes failed with errno=21 Is a directory in /home/oxrhbvwz/logotic.me/system/download.php on line 78
+[09-Mar-2023 05:29:43 America/New_York] PHP Notice:  Trying to access array offset on value of type bool in /home/oxrhbvwz/logotic.me/system/download.php on line 65
+[09-Mar-2023 05:29:43 America/New_York] PHP Notice:  readfile(): read of 8192 bytes failed with errno=21 Is a directory in /home/oxrhbvwz/logotic.me/system/download.php on line 78
+[17-Mar-2023 18:13:38 America/New_York] PHP Notice:  Trying to access array offset on value of type bool in /home/oxrhbvwz/logotic.me/system/download.php on line 65
+[17-Mar-2023 18:13:38 America/New_York] PHP Notice:  readfile(): read of 8192 bytes failed with errno=21 Is a directory in /home/oxrhbvwz/logotic.me/system/download.php on line 78
+[20-Mar-2023 08:01:46 America/New_York] PHP Notice:  Trying to access array offset on value of type bool in /home/oxrhbvwz/logotic.me/system/download.php on line 65
+[20-Mar-2023 08:01:46 America/New_York] PHP Notice:  readfile(): read of 8192 bytes failed with errno=21 Is a directory in /home/oxrhbvwz/logotic.me/system/download.php on line 78
+[20-Mar-2023 16:24:07 America/New_York] PHP Notice:  Trying to access array offset on value of type bool in /home/oxrhbvwz/logotic.me/system/download.php on line 65
+[20-Mar-2023 16:24:07 America/New_York] PHP Notice:  readfile(): read of 8192 bytes failed with errno=21 Is a directory in /home/oxrhbvwz/logotic.me/system/download.php on line 78
+[20-Mar-2023 23:22:01 America/New_York] PHP Notice:  Trying to access array offset on value of type bool in /home/oxrhbvwz/logotic.me/system/download.php on line 65
+[20-Mar-2023 23:22:01 America/New_York] PHP Notice:  readfile(): read of 8192 bytes failed with errno=21 Is a directory in /home/oxrhbvwz/logotic.me/system/download.php on line 78
+[02-Apr-2023 10:43:02 America/New_York] PHP Notice:  Trying to access array offset on value of type bool in /home/oxrhbvwz/logotic.me/system/download.php on line 65
+[02-Apr-2023 10:43:02 America/New_York] PHP Notice:  readfile(): read of 8192 bytes failed with errno=21 Is a directory in /home/oxrhbvwz/logotic.me/system/download.php on line 78
+[06-Jun-2023 01:40:40 America/New_York] PHP Warning:  readfile(../system/assets/uploads/vector-files/privatbank-1669918074-logotic-brand.svg): failed to open stream: No such file or directory in /home/oxrhbvwz/logotic.me/system/download.php on line 78
+[07-Jun-2023 01:06:44 America/New_York] PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY000] [2002] No such file or directory in /home/oxrhbvwz/logotic.me/system/download.php:21
+Stack trace:
+#0 /home/oxrhbvwz/logotic.me/system/download.php(21): PDO->__construct('mysql:host=loca...', 'oxrhbvwz', '7mSb57NQqlM8')
+#1 {main}
+  thrown in /home/oxrhbvwz/logotic.me/system/download.php on line 21
+[21-Jun-2023 00:13:13 America/New_York] PHP Notice:  Trying to access array offset on value of type bool in /home/oxrhbvwz/logotic.me/system/download.php on line 65
+[21-Jun-2023 00:13:13 America/New_York] PHP Notice:  readfile(): read of 8192 bytes failed with errno=21 Is a directory in /home/oxrhbvwz/logotic.me/system/download.php on line 78
+[21-Jun-2023 09:22:23 America/New_York] PHP Notice:  Trying to access array offset on value of type bool in /home/oxrhbvwz/logotic.me/system/download.php on line 65
+[21-Jun-2023 09:22:23 America/New_York] PHP Notice:  readfile(): read of 8192 bytes failed with errno=21 Is a directory in /home/oxrhbvwz/logotic.me/system/download.php on line 78
+[24-Jun-2023 12:42:59 America/New_York] PHP Notice:  Trying to access array offset on value of type bool in /home/oxrhbvwz/logotic.me/system/download.php on line 65
+[24-Jun-2023 12:42:59 America/New_York] PHP Notice:  readfile(): read of 8192 bytes failed with errno=21 Is a directory in /home/oxrhbvwz/logotic.me/system/download.php on line 78
+[29-Jun-2023 10:45:54 America/New_York] PHP Notice:  Trying to access array offset on value of type bool in /home/oxrhbvwz/logotic.me/system/download.php on line 65
+[29-Jun-2023 10:45:54 America/New_York] PHP Notice:  readfile(): read of 8192 bytes failed with errno=21 Is a directory in /home/oxrhbvwz/logotic.me/system/download.php on line 78
+[05-Jul-2023 02:31:11 America/New_York] PHP Warning:  readfile(../system/assets/uploads/vector-files/privatbank-1669918074-logotic-brand.svg): failed to open stream: No such file or directory in /home/oxrhbvwz/logotic.me/system/download.php on line 78

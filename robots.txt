@@ -1,0 +1,6 @@
+User-agent: *
+Disallow:
+
+sitemap: https://logotic.me/sitemap.xml
+
+
