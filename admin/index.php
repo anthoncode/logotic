@@ -33,6 +33,33 @@ require_once('includes/header1.php');
 <div class="content">
    <div class="btn-controls">
       <div class="row my-3">
+
+      <div class="col-xl-3 col-sm-6 mb-3">
+    <div class="card text-white bg-primary o-hidden h-100">
+        <div class="card-body">
+            <div class="card-body-icon">
+                <i class="fa-solid fa-sitemap fa-fw"></i>
+            </div>
+            <div class="mr-5">
+                <strong>Sitemap</strong><br>
+                <?php
+                $sitemapPath = $_SERVER['DOCUMENT_ROOT'] . '/sitemap.xml';
+                if (file_exists($sitemapPath)) {
+                    echo 'Last: ' . date('d M Y H:i', filemtime($sitemapPath));
+                } else {
+                    echo 'Not generated yet';
+                }
+                ?>
+            </div>
+        </div>
+        <a class="card-footer text-white clearfix small z-1"
+           href="<?php echo $setting['website_url']; ?>/admin/generate-sitemap.php">
+            <span class="float-left">Generate Sitemap</span>
+            <span class="float-right"><i class="fa fa-angle-right"></i></span>
+        </a>
+    </div>
+</div>
+
          <div class="col-xl-3 col-sm-6">
             <div class="card text-white bg-primary o-hidden h-100">
                <div class="card-body">

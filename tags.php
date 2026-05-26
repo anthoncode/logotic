@@ -14,7 +14,7 @@ if (isset($_GET['id'])) {
   //$details = $pages->details($id);
 
   $tagPro = $product->getTProducts(null, $_GET['id']);
-  $catname = $product->tagdetailsCate();
+  //$catname = $product->tagdetailsCate();
   //$catname = $product->catdetails($_GET['id']);
   //echo $tags;
   //$pageTitle = $tagPro['tags'];
@@ -22,10 +22,9 @@ if (isset($_GET['id'])) {
 ";
   $UperTag = strtoupper($tags_free);
   $pageTitle = $UperTag . " logo versions and variants" . " - PNG & SVG";
-  $pageMeta = "Multiple " .$UperTag. " logo designs, download old and new versions of " .$UperTag. " icons and logos with transparent background";
+  $pageMeta = "Multiple " . $UperTag . " logo designs, download old and new versions of " . $UperTag . " icons and logos with transparent background";
   require_once('system/assets/header.php');
   if ($tag_w_slash) {
-
   } else {
     display_post_not_found($tags);
     exit();
@@ -48,58 +47,125 @@ if (isset($_GET['id'])) {
     <div class="container">
       <div class="row p-15">
         <?php require_once 'system/assets/sidebar.php'; ?>
-        
+
 
         <script type="text/javascript">
           $(document).ready(function() {
-              var page_num = 1;
-              load_page_4(page_num, false);
+            var page_num = 1;
+            var loading = false;
+            var no_more = false;
 
-              var lastScrollTop = 0;
-              $(window).scroll(function(event){
-                 var st = $(this).scrollTop();
-                 if (st > lastScrollTop){
-                     // downscroll code
-                      page_num++;
-                      load_page_4(page_num, false)
-                 } else {
-                    // upscroll code
-                 }
-                 lastScrollTop = st;
+            load_page_4(page_num);
+
+            $(document).on('click', '#load-more-tag', function() {
+              if (loading || no_more) return;
+              page_num++;
+              load_page_4(page_num);
+            });
+
+            function load_page_4(page_num) {
+              loading = true;
+              $('#load-more-tag').hide();
+              $('#ajax-loader-tag').show();
+
+              $.ajax({
+                url: "<?php echo $setting['website_url']; ?>/tag-logos.php?id=<?php echo $tags; ?>",
+                type: "post",
+                data: {
+                  page_num: page_num
+                }
+              }).done(function(data) {
+                loading = false;
+                $('#ajax-loader-tag').hide();
+
+                if ($.trim(data) === '') {
+                  no_more = true;
+                  $('#load-more-tag').hide();
+                } else {
+                  $("#dynamic-posts3").append(data);
+                  $('#load-more-tag').show();
+                }
+              }).fail(function() {
+                loading = false;
+                $('#ajax-loader-tag').hide();
+                $('#load-more-tag').show();
               });
-
+            }
           });
-
-          function load_page_4(page_num, loading) {
-              if (loading == false) {
-                  loading = true;
-                  $.ajax({
-                      url: "<?php echo $setting['website_url']; ?>" + "/tag-logos.php?id=" + "<?php echo $tags; ?>", //url de paginación infinita
-                      type: "post",
-                      data: {
-                          page_num: page_num
-                      },
-                      beforeSend: function() {
-                          $('#ajax-loader-tag').show();
-                          //alert(window.location.href + 'logo-post.php');
-                          return;
-                      }
-                  }).done(function(data) {
-                      $('#ajax-loader-tag').hide();
-                      loading = false;
-                      $("#dynamic-posts3").append(data);
-                      //alert('http://localhost/digiclass/tag-logos.php?id=' + '<?php echo $tags;?>');
-                  }).fail(function(jqXHR, ajaxOptions, thrownError) {
-                      $('#ajax-loader-tag').hide();
-                  });
-              }
-          }
         </script>
-        
+
         <div class="col-lg-9">
           <div id="dynamic-posts3"></div>
           <div id="ajax-loader-tag">
-            <img src="<?php echo $setting['website_url'] . "/system/assets/uploads/img/loader.gif"?>" width="30px" style="display: block; margin: 0px auto;">
+            <img src="<?php echo $setting['website_url'] . "/system/assets/uploads/img/loader.gif" ?>" width="30px" style="display: block; margin: 0px auto;">
+          </div>
+          <div style="text-align: center; margin: 1.5rem 0;">
+            <button id="load-more-tag" class="btn-upload" style="display:none; margin: 0 auto;">
+              <i class="fa-regular fa-arrow-down"></i> Load more
+            </button>
+          </div>
+        </div>
+        <script type="text/javascript">
+          $(document).ready(function() {
+            var page_num = 1;
+            var loading = false;
+            var no_more = false;
+
+            load_page_4(page_num);
+
+            $(document).on('click', '#load-more-tag', function() {
+              if (loading || no_more) return;
+              page_num++;
+              load_page_4(page_num);
+            });
+
+            function load_page_4(page_num) {
+              loading = true;
+              $('#load-more-tag').hide();
+              $('#ajax-loader-tag').show();
+
+              $.ajax({
+                url: "<?php echo $setting['website_url']; ?>/tag-logos.php?id=<?php echo $tags; ?>",
+                type: "post",
+                data: {
+                  page_num: page_num
+                }
+              }).done(function(data) {
+                loading = false;
+                $('#ajax-loader-tag').hide();
+
+                if ($.trim(data) === '') {
+                  no_more = true;
+                  $('#load-more-tag').hide();
+                } else {
+                  $("#dynamic-posts3").append(data);
+                  $('#load-more-tag').show();
+                }
+              }).fail(function() {
+                loading = false;
+                $('#ajax-loader-tag').hide();
+                $('#load-more-tag').show();
+              });
+            }
+          });
+        </script>
+
+        <div class="col-lg-9">
+          <div id="dynamic-posts3"></div>
+          <div id="ajax-loader-tag" style="display:none;">
+            <img src="<?php echo $setting['website_url'] . "/system/assets/uploads/img/loader.gif" ?>" width="30px" style="display: block; margin: 0px auto;">
+          </div>
+          <div style="text-align: center; margin: 1.5rem 0;">
+            <button id="load-more-tag" class="btn-upload" style="display:none; margin: 0 auto;">
+              <i class="fa-regular fa-arrow-down"></i> Load more
+            </button>
+          </div>
+        </div>
+
+        <div class="col-lg-9">
+          <div id="dynamic-posts3"></div>
+          <div id="ajax-loader-tag">
+            <img src="<?php echo $setting['website_url'] . "/system/assets/uploads/img/loader.gif" ?>" width="30px" style="display: block; margin: 0px auto;">
           </div>
         </div>
 

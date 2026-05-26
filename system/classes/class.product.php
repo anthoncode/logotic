@@ -313,7 +313,7 @@ class Product
 	/*infinite scroll para subcategorías*/
 	public function subcateLogos($page_num, $id = null, $sub_id = null) {
 
-    $Per_Page = 48; //número de columnas para mostrar logotipos
+    $Per_Page = 49; //número de columnas para mostrar logotipos
     if (isset($page_num)) {
         $page_num = $page_num;
     } else {
@@ -333,7 +333,7 @@ class Product
 
 	/*infinite scroll para categorías*/
 	public function cateLogos($page_num, $id = null, $cat_id = null) {
-    $Per_Page = 48;
+    $Per_Page = 49;
     if (isset($page_num)) {
         $page_num = $page_num;
     } else {
@@ -353,7 +353,7 @@ class Product
 
 		/*infinite scroll para tags*/
 		public function tagLogos($page_num, $tags = null) {
-	    $Per_Page = 48;
+	    $Per_Page = 49;
 	    if (isset($page_num)) {
 	        $page_num = $page_num;
 	    } else {
@@ -516,21 +516,20 @@ ON " . PFX . "products.id = " . PFX . "downloads.products_id WHERE active = 1 GR
 		}
 	}
 
-	public function tagdetailsCate()
-	{
+	// public function tagdetailsCate()
+	// {
 		//products WHERE tags LIKE '%$tags%' AND active = 1
-		$result = $this->db->prepare("SELECT * FROM  " . PFX . "categories");
-		$result->bindParam(':id', $id);
-		$result->execute();
+	// 	$result = $this->db->prepare("SELECT * FROM  " . PFX . "categories");
+	// 	$result->bindParam(':id', $id);
+	// 	$result->execute();
 
-		while ($result = $result->fetch(PDO::FETCH_ASSOC)) {
-			return $result;
-		}
-	}
+	// 	while ($result = $result->fetch(PDO::FETCH_ASSOC)) {
+	// 		return $result;
+	// 	}
+	// }
 
 	public function scatdetails($id)
 	{
-
 		$result = $this->db->prepare("SELECT * FROM  " . PFX . "subcat WHERE id = :id");
 		$result->bindParam(':id', $id);
 		$result->execute();

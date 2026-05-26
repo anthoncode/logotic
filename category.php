@@ -2,7 +2,7 @@
 ini_set('display_errors', 0);
 ini_set('display_startup_errors', 0);
 error_reporting(E_ALL);
-ob_start();//para que redireccione header location
+ob_start(); //para que redireccione header location
 require_once('system/config-global.php');
 
 
@@ -10,8 +10,8 @@ if (isset($_GET['id'])) {
   $id = $_GET['id'];
 
   $catpro = $product->getCProducts(null, $_GET['id']);
-  $catname = $product->catdetails($_GET['id']);//obtiene el array de categoria
-  
+  $catname = $product->catdetails($_GET['id']); //obtiene el array de categoria
+
   $metaRobots = "<meta name='robots' content='index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1' />
 ";
   $pageTitle = "Download " . $catname['name'] . " PNG and SVG";
@@ -19,15 +19,15 @@ if (isset($_GET['id'])) {
   require_once('system/assets/header.php');
 
 
-  //redireccionar a categor��a
-  if(is_array($catname)){
-  $idcat = $catname['id'];
-  $nmcat = Product::formatName($catname['name']);
-  $slug_item = $setting['website_url'] . '/category/' . $idcat . '/' . $nmcat ."/";
+  //redireccionar a categor��a
+  if (is_array($catname)) {
+    $idcat = $catname['id'];
+    $nmcat = Product::formatName($catname['name']);
+    $slug_item = $setting['website_url'] . '/category/' . $idcat . '/' . $nmcat . "/";
   }
 
   if (isset($catname['name'])) {
-    $link = $idcat . '/' . $nmcat."/"; // id/slug
+    $link = $idcat . '/' . $nmcat . "/"; // id/slug
     $idd = $id . "/";
     if ($idd != $link) {
       header("Location: $slug_item");
@@ -62,54 +62,70 @@ if (isset($_GET['id'])) {
         <!-- /.col-lg-3 -->
         <script type="text/javascript">
           $(document).ready(function() {
-              var page_num = 1;
-              load_page_3(page_num, false);
+            var page_num = 1;
+            var loading = false;
+            var no_more = false;
 
-              var lastScrollTop = 0;
-              $(window).scroll(function(event){
-                 var st = $(this).scrollTop();
-                 if (st > lastScrollTop){
-                     // downscroll code
-                      page_num++;
-                      load_page_3(page_num, false)
-                 } else {
-                    // upscroll code
-                 }
-                 lastScrollTop = st;
+            load_page_3(page_num); // carga la primera página automáticamente
+
+            $(document).on('click', '#load-more-cat', function() {
+              if (loading || no_more) return;
+              page_num++;
+              load_page_3(page_num);
+            });
+
+            function load_page_3(page_num) {
+              loading = true;
+              $('#load-more-cat').hide();
+              $('#ajax-loader-cat').show();
+
+              $.ajax({
+                url: "<?php echo $setting['website_url']; ?>/cat-logos.php?id=<?php echo $id; ?>",
+                type: "post",
+                data: {
+                  page_num: page_num
+                }
+              }).done(function(data) {
+                loading = false;
+                $('#ajax-loader-cat').hide();
+
+                if ($.trim(data) === '') {
+                  no_more = true;
+                  $('#load-more-cat').hide(); // no hay más, oculta el botón
+                } else {
+                  $("#dynamic-posts3").append(data);
+                  $('#load-more-cat').show(); // hay más, muestra el botón
+                }
+              }).fail(function() {
+                loading = false;
+                $('#ajax-loader-cat').hide();
+                $('#load-more-cat').show();
               });
-
+            }
           });
-
-          function load_page_3(page_num, loading) {
-              if (loading == false) {
-                  loading = true;
-                  $.ajax({
-                      url: "<?php echo $setting['website_url']; ?>" + "/cat-logos.php?id=" + "<?php echo $id; ?>", //url de paginaci��n infinita
-                      type: "post",
-                      data: {
-                          page_num: page_num
-                      },
-                      beforeSend: function() {
-                          $('#ajax-loader-cat').show();
-                          //alert(window.location.href + 'logo-post.php');
-                          return;
-                      }
-                  }).done(function(data) {
-                      $('#ajax-loader-cat').hide();
-                      loading = false;
-                      $("#dynamic-posts3").append(data);
-                      //alert($("#dynamic-posts2").append(data));
-                  }).fail(function(jqXHR, ajaxOptions, thrownError) {
-                      $('#ajax-loader-cat').hide();
-                  });
-              }
-          }
         </script>
-        
+
         <div class="col-lg-9">
           <div id="dynamic-posts3"></div>
           <div id="ajax-loader-cat">
-            <img src="<?php echo $setting['website_url'] . "/system/assets/uploads/img/loader.gif"?>" width="30px" style="display: block; margin: 0px auto;">
+            <img src="<?php echo $setting['website_url'] . "/system/assets/uploads/img/loader.gif" ?>" width="30px" style="display: block; margin: 0px auto;">
+          </div>
+          <div style="text-align: center; margin: 1.5rem 0;">
+            <button id="load-more-cat" class="btn-upload" style="display:none; margin: 0 auto;">
+              <i class="fa-regular fa-arrow-down"></i> Load more
+            </button>
+          </div>
+        </div>
+
+        <div class="col-lg-9">
+          <div id="dynamic-posts3"></div>
+          <div id="ajax-loader-cat" style="display:none;">
+            <img src="<?php echo $setting['website_url'] . "/system/assets/uploads/img/loader.gif" ?>" width="30px" style="display: block; margin: 0px auto;">
+          </div>
+          <div style="text-align: center; margin: 1.5rem 0;">
+            <button id="load-more-cat" class="btn-upload" style="display:none; margin: 0 auto;">
+              <i class="fa-regular fa-arrow-down"></i> Load more
+            </button>
           </div>
         </div>
         <!-- /.col-lg-9 -->

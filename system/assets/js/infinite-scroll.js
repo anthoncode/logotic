@@ -1,39 +1,41 @@
-// Asigna el evento clic al bot¨®n por su identificador
 $(document).ready(function() {
     var loading = false;
+    var no_more = false;
     var page_num = 1;
-    load_page(page_num, false);
 
+    // carga pÃ¡gina 1 automÃ¡ticamente al entrar
+    load_page(page_num);
 
     $("#load-more").on("click", function() {
-        // Llama a la funci¨®n load_page solo si no est¨¢ en proceso de carga
+        if (loading || no_more) return;
         page_num++;
-        load_page(page_num, false)
+        load_page(page_num);
     });
-});
 
-function load_page(page_num, loading) {
-    if (loading == false) {
+    function load_page(num) {
         loading = true;
+        $('#load-more').hide();
+        $('#ajax-loader').show();
+
         $.ajax({
-            url: window.location.href + 'logo-post.php', //url de paginaci¨®n infinita
+            url: window.SITE_URL + '/logo-post.php',
             type: "post",
-            data: {
-                page_num: page_num
-            },
-            beforeSend: function() {
-                $('#ajax-loader').show();
-                //alert(window.location.href + 'logo-post.php');
-                return;
-            }
+            data: { page_num: num }
         }).done(function(data) {
-            $('#ajax-loader').hide();
             loading = false;
-            $("#dynamic-posts2").append(data);
-        }).fail(function(jqXHR, ajaxOptions, thrownError) {
             $('#ajax-loader').hide();
+
+            if ($.trim(data) === '') {
+                no_more = true;
+                $('#load-more').hide(); // no hay mÃ¡s, oculta definitivamente
+            } else {
+                $("#dynamic-posts2").append(data);
+                $('#load-more').show(); // hay mÃ¡s, muestra el botÃ³n
+            }
+        }).fail(function() {
+            loading = false;
+            $('#ajax-loader').hide();
+            $('#load-more').show();
         });
-
     }
-
-}
+});

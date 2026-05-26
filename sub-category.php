@@ -2,7 +2,7 @@
 ini_set('display_errors', 0);
 ini_set('display_startup_errors', 0);
 error_reporting(E_ALL);
-ob_start();//para que redireccione header location
+ob_start(); //para que redireccione header location
 require_once('system/config-global.php');
 
 
@@ -15,24 +15,24 @@ if (isset($_GET['id'])) {
 
   $metaRobots = "<meta name='robots' content='index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1' />
 ";
-  $pageTitle = "Download " . $scatname['name'] ." ".$catname['name'];
+  $pageTitle = "Download " . $scatname['name'] . " " . $catname['name'];
   $pageMeta = "Get " . $scatname['name'] . " logos in PNG and SVG, they are high quality images with a transparent background";
   require_once('system/assets/header.php');
 
-  //redireccionar a subcategor¨ªa
-  if(is_array($scatname)){
-  $idsubcat = $scatname['id'];
-  $nmsubcat = Product::formatName($scatname['name']);
-  $slug_item_sub = $setting['website_url'] . '/subcat/' . $idsubcat . '/' . $nmsubcat ."/";
+  //redireccionar a subcategorï¿½ï¿½a
+  if (is_array($scatname)) {
+    $idsubcat = $scatname['id'];
+    $nmsubcat = Product::formatName($scatname['name']);
+    $slug_item_sub = $setting['website_url'] . '/subcat/' . $idsubcat . '/' . $nmsubcat . "/";
   }
 
   if (isset($scatname['name'])) {
-    $linkSub = $idsubcat . '/' . $nmsubcat."/"; // id/slug
+    $linkSub = $idsubcat . '/' . $nmsubcat . "/"; // id/slug
     $iddSub = $id . "/";
     if ($iddSub != $linkSub) {
       header("Location: $slug_item_sub");
       //header("Location: http://www.google.es");
-      echo $slug_item_sub. "</br>";
+      echo $slug_item_sub . "</br>";
     }
   }
 
@@ -64,66 +64,61 @@ if (isset($_GET['id'])) {
 
         <script type="text/javascript">
           $(document).ready(function() {
-              var page_num = 1;
-              load_page_2(page_num, false);
+            var page_num = 1;
+            var loading = false;
+            var no_more = false;
 
-              /*$(window).scroll(function() {
-                  if ($(window).scrollTop() + $(window).height() > $(document).height() ) {
-                      page_num++;
-                      load_page_2(page_num, false)
-                  }
+            load_page_2(page_num);
 
-              });*/
+            $(document).on('click', '#load-more-sub', function() {
+              if (loading || no_more) return;
+              page_num++;
+              load_page_2(page_num);
+            });
 
-              var lastScrollTop = 0;
-              $(window).scroll(function(event){
-                 var st = $(this).scrollTop();
-                 if (st > lastScrollTop){
-                     // downscroll code
-                  page_num++;
-                      load_page_2(page_num, false)
-                 } else {
-                    // upscroll code
-                 }
-                 lastScrollTop = st;
+            function load_page_2(page_num) {
+              loading = true;
+              $('#load-more-sub').hide();
+              $('#ajax-loader-sub').show();
+
+              $.ajax({
+                url: "<?php echo $setting['website_url']; ?>/subcat-logos.php?id=<?php echo $id; ?>",
+                type: "post",
+                data: {
+                  page_num: page_num
+                }
+              }).done(function(data) {
+                loading = false;
+                $('#ajax-loader-sub').hide();
+
+                if ($.trim(data) === '') {
+                  no_more = true;
+                  $('#load-more-sub').hide();
+                } else {
+                  $("#dynamic-posts3").append(data);
+                  $('#load-more-sub').show();
+                }
+              }).fail(function() {
+                loading = false;
+                $('#ajax-loader-sub').hide();
+                $('#load-more-sub').show();
               });
-
+            }
           });
-
-          function load_page_2(page_num, loading) {
-              if (loading == false) {
-                  loading = true;
-                  $.ajax({
-                      url: "<?php echo $setting['website_url']; ?>" + "/subcat-logos.php?id=" + "<?php echo $id; ?>", //url de paginaci¨®n infinita
-                      type: "post",
-                      data: {
-                          page_num: page_num
-                      },
-                      beforeSend: function() {
-                          $('#ajax-loader-sub').show();
-                          //alert(window.location.href + 'logo-post.php');
-                          return;
-                      }
-                  }).done(function(data) {
-                      $('#ajax-loader-sub').hide();
-                      loading = false;
-                      $("#dynamic-posts3").append(data);
-                      //alert($("#dynamic-posts2").append(data));
-                  }).fail(function(jqXHR, ajaxOptions, thrownError) {
-                      $('#ajax-loader-sub').hide();
-                  });
-              }
-          }
         </script>
-        
+
         <div class="col-md-9">
           <div id="dynamic-posts3"></div>
-          <div id="ajax-loader-sub">
-            <!-- <p>Please wait..!</p> -->
-            <img src="<?php echo $setting['website_url'] . "/system/assets/uploads/img/loader.gif"?>" width="30px" style="display: block; margin: 0px auto;">
+          <div id="ajax-loader-sub" style="display:none;">
+            <img src="<?php echo $setting['website_url'] . "/system/assets/uploads/img/loader.gif" ?>" width="30px" style="display: block; margin: 0px auto;">
+          </div>
+          <div style="text-align: center; margin: 1.5rem 0;">
+            <button id="load-more-sub" class="btn-upload" style="display:none; margin: 0 auto;">
+              <i class="fa-regular fa-arrow-down"></i> Load more
+            </button>
           </div>
         </div>
-  
+
       </div>
     </div>
 
