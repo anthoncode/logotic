@@ -36,6 +36,7 @@ RewriteRule subcat/(.*)/ sub-category.php?id=$1
 
 #RewriteRule tags/(.*)/ tags.php
 RewriteRule tags/(.*)$ tags.php?id=$1
+RewriteRule color/(.*)$ color.php?id=$1
 RewriteRule ^page/([^/]*)/(.*)$ custom-page.php?id=$1 [L]
 #RewriteRule ^free(.*)$ free.php [L]
 

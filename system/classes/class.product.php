@@ -222,7 +222,7 @@ class Product
 
 	public function getFeaturedProducts()
 	{
-		$result = $this->db->prepare("SELECT * FROM  " . PFX . "products WHERE active = 1 AND featured = 1 ORDER BY `id` LIMIT 18");
+		$result = $this->db->prepare("SELECT * FROM  " . PFX . "products WHERE active = 1 AND featured = 1 ORDER BY `id` LIMIT 20");
 		$result->execute();
 		$products = array();
 		while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
@@ -233,7 +233,7 @@ class Product
 
 	/*most downloaded - mas descargados*/
 	/*most downloaded - mas descargados*/
-	public function getPopularProducts($limit = 18, $offset = 0)
+	public function getPopularProducts($limit = 20, $offset = 0)
 	{
     $query = "
         SELECT p.*, COUNT(d.products_id) AS totalDescargas
@@ -291,7 +291,7 @@ class Product
 
 	/*funcion para inifinite scroll en inicio*/
 	public function posts($page_num) {
-    $Per_Page = 18;
+    $Per_Page = 20;
     if (isset($page_num)) {
         $page_num = $page_num;
     } else {
@@ -1030,6 +1030,21 @@ ON " . PFX . "products.id = " . PFX . "downloads.products_id WHERE active = 1 GR
 		return false;
 	}
 
+	public function getByColor($color, $page = 1) {
+    $Per_Page = 48;
+    $start = ($page - 1) * $Per_Page;
+    $result = $this->db->prepare("
+        SELECT * FROM " . PFX . "products 
+        WHERE dominant_color = :color AND active = 1 
+        ORDER BY views DESC 
+        LIMIT :start, :per_page
+    ");
+    $result->bindParam(':color', $color);
+    $result->bindParam(':start', $start, PDO::PARAM_INT);
+    $result->bindParam(':per_page', $Per_Page, PDO::PARAM_INT);
+    $result->execute();
+    return $result->fetchAll(PDO::FETCH_ASSOC);
+}
 
 /*	public function add_download($userID,$productID){
 	global $crypt;
