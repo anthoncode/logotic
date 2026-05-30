@@ -1,13 +1,13 @@
 <?php
 ini_set('display_errors', 0);
 ini_set('display_startup_errors', 0);
-ob_start();//para que redireccione header location
+ob_start(); //para que redireccione header location
 
 error_reporting(E_ALL);
 require_once 'system/config-global.php';
 $id         = $_GET['id']; //id y nombre de slug enviado por get
 $details    = $product->details($id);
-if(is_array($details)){
+if (is_array($details)) {
   $str_name   = $details['slug_lg']; //url amigable de archivos
 }
 
@@ -17,7 +17,7 @@ $views = explode("/", $po);
 $viewsOne = $views[1];
 $productid = intval($views[0]); // ✅ solo el número
 
-if(is_array($details)){ // is_array solo para php7 o superior, necesita verificar array
+if (is_array($details)) { // is_array solo para php7 o superior, necesita verificar array
   $idItem = $details['id'];
   $slugItem = $details['slug_lg'];
   $slug_item = $setting['website_url'] . '/item/' . $idItem . '/' . $slugItem;
@@ -32,7 +32,7 @@ if (isset($details['name'])) {
     header("Location: $slug_item");
     //die();
   }
-/*  else{
+  /*  else{
     echo "NO son iguales";
   }*/
 }
@@ -70,13 +70,13 @@ if (isset($_GET['id'])) {
 ";
   $pageTitle = $details['name'] . ' Logo Free Download [SVG - PNG]';
 
-    $metaDescItem = 'Download <strong>' . $details['name'] . '</strong> logo in vector SVG and transparent PNG formats for free to use in personal and commercial projects. Downloading vector logos with transparent backgrounds is incredibly simple at Logotic. All you need to do is browse through our collection, select the logo that suits your needs, and with a single click, initiate the download. This hassle-free process ensures that you can effortlessly access the resources you require for your projects, saving you time and effort while maintaining the quality and transparency you desire.';
+  $metaDescItem = 'Download <strong>' . $details['name'] . '</strong> logo in vector SVG and transparent PNG formats for free to use in personal and commercial projects. Downloading vector logos with transparent backgrounds is incredibly simple at Logotic. All you need to do is browse through our collection, select the logo that suits your needs, and with a single click, initiate the download. This hassle-free process ensures that you can effortlessly access the resources you require for your projects, saving you time and effort while maintaining the quality and transparency you desire.';
 
-  
+
   //$pageContent = strip_tags($details['short_desc']); // striptag limpia sintaxis html
   $pageContent = $metaDescItem;
 
-  $canonical = $setting['website_url'] . '/item/' . $details['id'] .'/'. $slugItem . '/';
+  $canonical = $setting['website_url'] . '/item/' . $details['id'] . '/' . $slugItem . '/';
 
   require_once 'system/assets/header.php';
 
@@ -87,7 +87,7 @@ if (isset($_GET['id'])) {
   /*share button*/
   $n_url = $details['name'];
   $urlShare = $setting['website_url'] . '/item/' . $id . '/';
-//$slugPic = $setting['website_url'] . '/system/assets/uploads/products/' . $details['preview_img'];
+  //$slugPic = $setting['website_url'] . '/system/assets/uploads/products/' . $details['preview_img'];
 
 
 ?>
@@ -95,166 +95,166 @@ if (isset($_GET['id'])) {
 
 
 
- <!-- ─── DOWNLOAD TOAST ─── -->
-    <div id="downloadToast">
-        <div class="toast-ring-wrap">
-            <svg viewBox="0 0 46 46">
-                <circle class="ring-track"    cx="23" cy="23" r="20"/>
-                <circle class="ring-progress" cx="23" cy="23" r="20" id="ringProgress"/>
-            </svg>
-            <div class="toast-icon-center">
-                <i class="fa-solid fa-arrow-down" id="toastIcon"></i>
-            </div>
-        </div>
-        <div class="toast-body">
-            <div class="toast-title" id="toastTitle">Downloading</div>
-            <div class="toast-percent" id="toastPercent">0%</div>
-            <div class="toast-sub" id="toastSub">Preparing file…</div>
-        </div>
-        <button class="toast-close" id="toastClose" title="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+  <!-- ─── DOWNLOAD TOAST ─── -->
+  <div id="downloadToast">
+    <div class="toast-ring-wrap">
+      <svg viewBox="0 0 46 46">
+        <circle class="ring-track" cx="23" cy="23" r="20" />
+        <circle class="ring-progress" cx="23" cy="23" r="20" id="ringProgress" />
+      </svg>
+      <div class="toast-icon-center">
+        <i class="fa-solid fa-arrow-down" id="toastIcon"></i>
+      </div>
     </div>
+    <div class="toast-body">
+      <div class="toast-title" id="toastTitle">Downloading</div>
+      <div class="toast-percent" id="toastPercent">0%</div>
+      <div class="toast-sub" id="toastSub">Preparing file…</div>
+    </div>
+    <button class="toast-close" id="toastClose" title="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+  </div>
 
-    <div class="container py-5">
+  <div class="container py-5">
 
-        <!-- ═══════════════════════════════════════
+    <!-- ═══════════════════════════════════════
              ROW 1: Image + Info side by side
         ════════════════════════════════════════ -->
-        <div class="row justify-content-center align-items-start g-4 mb-4">
+    <div class="row justify-content-center align-items-start g-4 mb-4">
 
-            <!-- Image Column -->
-            <div class="col-lg-6 col-md-12">
-                <div class="image-container">
+      <!-- Image Column -->
+      <div class="col-lg-6 col-md-12">
+        <div class="image-container">
 
-                    <div class="action-buttons">
+          <div class="action-buttons">
 
-                        <!-- Share -->
-                        <div class="share-wrapper" id="shareWrapper">
-                            <button class="action-btn btn-share" id="shareBtn" title="Compartir">
-                                <i class="fa-solid fa-share-nodes"></i>
-                            </button>
-                            <div class="social-crescent">
-                                <button class="social-btn reddit"    onclick="shareOn('reddit')">   <i class="fa-brands fa-reddit-alien"></i></button>
-                                <button class="social-btn twitter"   onclick="shareOn('twitter')">  <i class="fa-brands fa-x-twitter"></i></button>
-                                <button class="social-btn pinterest" onclick="shareOn('pinterest')"><i class="fa-brands fa-pinterest-p"></i></button>
-                            </div>
-                        </div>
-
-                        <!-- Copy link -->
-                        <button class="action-btn btn-copy-link" id="copyLinkBtn" title="Copiar enlace">
-                            <i class="fa-solid fa-link"></i>
-                            <span class="copy-toast-inline">¡Enlace copiado!</span>
-                        </button>
-
-                        <!-- Bookmark / Save -->
-                        <button class="action-btn btn-bookmark" id="bookmarkBtn" title="Guardar">
-                            <i class="fa-regular fa-bookmark"></i>
-                        </button>
-
-                    </div>
-
-                    <div class="image-wrapper">
-                        <img id="output" class="logo-render card-img-top" alt="<?php echo $details['name']; ?> transparent PNG and vector free" title="Download <?php echo $details['name'] ?>">
-                    </div>
-                </div>
+            <!-- Share -->
+            <div class="share-wrapper" id="shareWrapper">
+              <button class="action-btn btn-share" id="shareBtn" title="Compartir">
+                <i class="fa-solid fa-share-nodes"></i>
+              </button>
+              <div class="social-crescent">
+                <button class="social-btn reddit" onclick="shareOn('reddit')"> <i class="fa-brands fa-reddit-alien"></i></button>
+                <button class="social-btn twitter" onclick="shareOn('twitter')"> <i class="fa-brands fa-x-twitter"></i></button>
+                <button class="social-btn pinterest" onclick="shareOn('pinterest')"><i class="fa-brands fa-pinterest-p"></i></button>
+              </div>
             </div>
-            
-            <!-- Info Column -->
-            <div class="col-lg-6 col-md-12">
-                <div class="info-section px-lg-4">
-                    <h1 class="nft-title"><?php echo $details['name'] . " logo PNG and Vector"; ?></h1>
-                    
-                    <div class="stats">
-                        <div class="stat-item">
-                            <i class="fa-regular fa-eye"></i>
-                            <span class="stat-value"><?php echo $row['views']; ?></span>
-                        </div>
-                        <div class="stat-item" id="downloadCount">
-                            <i class="fa-solid fa-download"></i>
-                            <span class="stat-value" id="dlCountVal"> <?php $downloaded = $download['doCount'];
-                      echo $product->formatCount($download['doCount']); ?></span>
-                        </div>
-                    </div>
-                    
-          
-                        <p class="description"><?php echo $details['description']; ?></p>
-                        <p class="description" id="itemDescription"><?php echo $pageContent; ?></p>
-                
-                    
-                    <div class="owner-card">
-                        <div class="owner-avatar">🌸</div>
-                        <div class="owner-info">
-                            <div class="owner-label">Owned By</div>
-                            <div class="owner-name">
-                              <?php if ($details['submit_user_id'] == 0) {
-                              echo "Logotic";
-                            } else {
-                              $uploader = $author['username'];
-                              echo $uploader;
-                            } ?>
-                      </div>
-                        </div>
-                    </div>
-                    
-                    <div class="download-buttons">
-                      <button class="btn-download btn-svg" onclick="simulateDownload('SVG', '<?php echo $setting['website_url'] . '/system/download.php?pid=' . $productid ?>')">
-                            <span>SVG</span>
-                        </button>
-                        <button class="btn-download btn-png" onclick="simulateDownload('PNG')"><span>PNG</span></button>
-                    </div>
-                    
-                    <div class="url-display">
-                        <div class="url-main-row">
-                            <span class="url-cdn-badge"><i class="fa-solid fa-bolt"></i> CDN</span>
-                            <span class="url-px-label">px:</span>
-                            <div class="url-input-wrap">
-                                <button class="url-stepper" id="sizeDown" title="Decrease"><i class="fa-solid fa-minus"></i></button>
-                                <input type="number" id="sizeInput" class="url-size-input" min="10" max="1000" value="50">
-                                <button class="url-stepper" id="sizeUp" title="Increase"><i class="fa-solid fa-plus"></i></button>
-                            </div>
-                            <div class="url-code-wrap">
-                                <code class="url-text" id="urlText"></code>
-                            </div>
-                            <button class="url-copy-btn" id="urlCopyBtn" title="Copiar">
-                                <i class="fa-regular fa-copy"></i>
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="tags-section">
-                        <span class="tags-label">Tags:</span>
-                        <div class="tags">
-                            <?php
-                          if ($details['tags']) {
-                          $links = array();
-                          $tags_key = explode(',', $details['tags']);
-                          $count_tags = count($tags_key);
-                          //echo $count_tags;
-                          for ($i = 0; $i < $count_tags; $i++) {
-                            $links[] = "<a class='tag' href=" . $setting['website_url'] . '/tags/' .  product::formatName($tags_key[$i]) . "> $tags_key[$i]</a>";
-                          }
-                          echo implode(" ", $links);
-                          }
-                          ?>
-                        </div>
-                    </div>
-                </div>
-            </div>
+
+            <!-- Copy link -->
+            <button class="action-btn btn-copy-link" id="copyLinkBtn" title="Copiar enlace">
+              <i class="fa-solid fa-link"></i>
+              <span class="copy-toast-inline">¡Enlace copiado!</span>
+            </button>
+
+            <!-- Bookmark / Save -->
+            <button class="action-btn btn-bookmark" id="bookmarkBtn" title="Guardar">
+              <i class="fa-regular fa-bookmark"></i>
+            </button>
+
+          </div>
+
+          <div class="image-wrapper">
+            <img id="output" class="logo-render card-img-top" alt="<?php echo $details['name']; ?> transparent PNG and vector free" title="Download <?php echo $details['name'] ?>">
+          </div>
         </div>
+      </div>
 
-        <!-- ═══════════════════════════════════════
+      <!-- Info Column -->
+      <div class="col-lg-6 col-md-12">
+        <div class="info-section px-lg-4">
+          <h1 class="nft-title"><?php echo $details['name'] . " logo PNG and Vector"; ?></h1>
+
+          <div class="stats">
+            <div class="stat-item">
+              <i class="fa-regular fa-eye"></i>
+              <span class="stat-value"><?php echo $row['views']; ?></span>
+            </div>
+            <div class="stat-item" id="downloadCount">
+              <i class="fa-solid fa-download"></i>
+              <span class="stat-value" id="dlCountVal"> <?php $downloaded = $download['doCount'];
+                                                        echo $product->formatCount($download['doCount']); ?></span>
+            </div>
+          </div>
+
+
+          <p class="description"><?php echo $details['description']; ?></p>
+          <p class="description" id="itemDescription"><?php echo $pageContent; ?></p>
+
+
+          <div class="owner-card">
+            <div class="owner-avatar">🌸</div>
+            <div class="owner-info">
+              <div class="owner-label">Owned By</div>
+              <div class="owner-name">
+                <?php if ($details['submit_user_id'] == 0) {
+                  echo "Logotic";
+                } else {
+                  $uploader = $author['username'];
+                  echo $uploader;
+                } ?>
+              </div>
+            </div>
+          </div>
+
+          <div class="download-buttons">
+            <button class="btn-download btn-svg" onclick="simulateDownload('SVG', '<?php echo $setting['website_url'] . '/system/download.php?pid=' . $productid ?>')">
+              <span>SVG</span>
+            </button>
+            <button class="btn-download btn-png" onclick="simulateDownload('PNG')"><span>PNG</span></button>
+          </div>
+
+          <div class="url-display">
+            <div class="url-main-row">
+              <span class="url-cdn-badge"><i class="fa-solid fa-bolt"></i> CDN</span>
+              <span class="url-px-label">px:</span>
+              <div class="url-input-wrap">
+                <button class="url-stepper" id="sizeDown" title="Decrease"><i class="fa-solid fa-minus"></i></button>
+                <input type="number" id="sizeInput" class="url-size-input" min="10" max="1000" value="50">
+                <button class="url-stepper" id="sizeUp" title="Increase"><i class="fa-solid fa-plus"></i></button>
+              </div>
+              <div class="url-code-wrap">
+                <code class="url-text" id="urlText"></code>
+              </div>
+              <button class="url-copy-btn" id="urlCopyBtn" title="Copiar">
+                <i class="fa-regular fa-copy"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="tags-section">
+            <span class="tags-label">Tags:</span>
+            <div class="tags">
+              <?php
+              if ($details['tags']) {
+                $links = array();
+                $tags_key = explode(',', $details['tags']);
+                $count_tags = count($tags_key);
+                //echo $count_tags;
+                for ($i = 0; $i < $count_tags; $i++) {
+                  $links[] = "<a class='tag' href=" . $setting['website_url'] . '/tags/' .  product::formatName($tags_key[$i]) . "> $tags_key[$i]</a>";
+                }
+                echo implode(" ", $links);
+              }
+              ?>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════
              ROW 2: Tabs full width below both cols
         ════════════════════════════════════════ -->
-        <div class="row justify-content-center">
-            <div class="col-lg-12 col-md-12">
-                <div class="bottom-tabs-section">
-                    
-                    <div class="custom-tabs">
-                        <!-- <button class="custom-tab active" data-tab="bid-history">Related logos</button> -->
-                        <button class="custom-tab active" data-tab="info">Info</button>
-                    </div>
-                    
-                    <!-- Bid History Tab -->
-                    <!-- <div class="tab-content" id="bid-history-content">
+    <div class="row justify-content-center">
+      <div class="col-lg-12 col-md-12">
+        <div class="bottom-tabs-section">
+
+          <div class="custom-tabs">
+            <!-- <button class="custom-tab active" data-tab="bid-history">Related logos</button> -->
+            <button class="custom-tab active" data-tab="info">Info</button>
+          </div>
+
+          <!-- Bid History Tab -->
+          <!-- <div class="tab-content" id="bid-history-content">
                         <div class="bid-history-wrap">
                             <div class="bid-item">
                                 <div class="bid-avatar">👤</div>
@@ -281,62 +281,62 @@ if (isset($_GET['id'])) {
                             </div>
                         </div>
                     </div> -->
-                    
-                    <!-- Info Tab -->
-                    <div class="tab-content" id="info-content"> <!-- style="display:none;" -->
-                        <div class="info-grid">
-                            <div class="info-row">
-                                <div class="info-label"> <?php echo 'Downloaded'; ?></div>
-                                <div class="info-value"><?php echo $downloaded = $product->formatCount($download['doCount']); ?></div>
 
-         
-                            </div>
-                            <div class="info-row">
-                                <div class="info-label"><?php echo $l['category']; ?></div>
-                                <div class="info-value"><a href="<?php echo $setting['website_url'] . "/category/" . $cat2 . "/" . $cate . "/"?>" title=""><?php echo $cat1; ?> </a></div>
-                            </div>
-                            <div class="info-row">
-                                <div class="info-label"><?php echo 'File'; ?></div>
-                                <div class="info-value"><?php
-                                //$setting['website_url'] . '/system/download.php?pid=' . $productid
-                                $file = $setting['website_url'] . '/system/assets/uploads/' . $productid . $details['icon_img'];
-                                $extension = pathinfo($file, PATHINFO_EXTENSION);
-                                $format = strtoupper($extension);
-                                echo "<span class='badge badge-success'>.$format</span>";
-                                ?></div>
-                            </div>
-                            <div class="info-row">
-                                <div class="info-label"><?php echo $l['first_release']; ?></div>
-                                <div class="info-value"><?php
-                                $created = $details['created'];
-                                $date    = new DateTime($created);
-                                echo $date->format('j F Y'); ?></div>
-                            </div>
-                            <div class="info-row">
-                                <div class="info-label"><?php echo 'Uploader'; ?></div>
-                                <div class="info-value"> <?php if ($details['submit_user_id'] == 0) {
-                                                        echo "Logotic";
-                                                      } else {
-                                                        $uploader = $author['username'];
-                                                        echo $uploader;
-                                                      } ?></div>
-                            </div>
-                            <div class="info-row">
-                                <div class="info-label"><?php echo $l['last_updated']; ?></div>
-                                <div class="info-value"><?php
+          <!-- Info Tab -->
+          <div class="tab-content" id="info-content"> <!-- style="display:none;" -->
+            <div class="info-grid">
+              <div class="info-row">
+                <div class="info-label"> <?php echo 'Downloaded'; ?></div>
+                <div class="info-value"><?php echo $downloaded = $product->formatCount($download['doCount']); ?></div>
 
-                              $modified = $details['modified'];
-                              $date     = new DateTime($modified);
-                              echo $date->format('j F Y'); ?></div>
-                            </div>
-                        </div>
-                    </div>
 
-                </div>
+              </div>
+              <div class="info-row">
+                <div class="info-label"><?php echo $l['category']; ?></div>
+                <div class="info-value"><a href="<?php echo $setting['website_url'] . "/category/" . $cat2 . "/" . $cate . "/" ?>" title=""><?php echo $cat1; ?> </a></div>
+              </div>
+              <div class="info-row">
+                <div class="info-label"><?php echo 'File'; ?></div>
+                <div class="info-value"><?php
+                                        //$setting['website_url'] . '/system/download.php?pid=' . $productid
+                                        $file = $setting['website_url'] . '/system/assets/uploads/' . $productid . $details['icon_img'];
+                                        $extension = pathinfo($file, PATHINFO_EXTENSION);
+                                        $format = strtoupper($extension);
+                                        echo "<span class='badge badge-success'>.$format</span>";
+                                        ?></div>
+              </div>
+              <div class="info-row">
+                <div class="info-label"><?php echo $l['first_release']; ?></div>
+                <div class="info-value"><?php
+                                        $created = $details['created'];
+                                        $date    = new DateTime($created);
+                                        echo $date->format('j F Y'); ?></div>
+              </div>
+              <div class="info-row">
+                <div class="info-label"><?php echo 'Uploader'; ?></div>
+                <div class="info-value"> <?php if ($details['submit_user_id'] == 0) {
+                                            echo "Logotic";
+                                          } else {
+                                            $uploader = $author['username'];
+                                            echo $uploader;
+                                          } ?></div>
+              </div>
+              <div class="info-row">
+                <div class="info-label"><?php echo $l['last_updated']; ?></div>
+                <div class="info-value"><?php
+
+                                        $modified = $details['modified'];
+                                        $date     = new DateTime($modified);
+                                        echo $date->format('j F Y'); ?></div>
+              </div>
             </div>
-        </div>
+          </div>
 
-    </div><!-- /container-fluid -->
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /container-fluid -->
 
 
 
@@ -348,7 +348,7 @@ if (isset($_GET['id'])) {
       if ($purchases->is_purchased($_SESSION['uid'], $id)) {
         echo '<div class="alert alert-danger mb-0" role="alert">' . $l['youalreadypurch'] . '</div>';
       }
-    }*/?>
+    }*/ ?>
     <?php echo ($details['active'] == '2' ? '<div class="alert alert-danger mb-0" role="alert">' . $l['item_paused'] . '</div>' : ''); ?>
 
 
@@ -356,15 +356,17 @@ if (isset($_GET['id'])) {
     </div>
 
     <div id="svg"></div>
-    <?php 
-    $svg_icon_url = $setting['website_url'] . '/system/assets/uploads/vector-files/' . $details['icon_img'];    
+    <?php
+    $svg_icon_url = $setting['website_url'] . '/system/assets/uploads/vector-files/' . $details['icon_img'];
     //Use file_get_contents() to retrieve the content of the svg
     $svg_icon_content = file_get_contents($svg_icon_url); ?>
 
-    <!-- src="<?php //echo $setting['website_url']; ?>/system/assets/uploads/products/<?php //echo $details['preview_img']; ?>"
+    <!-- src="<?php //echo $setting['website_url']; 
+              ?>/system/assets/uploads/products/<?php //echo $details['preview_img']; 
+                                                                                      ?>"
      -->
 
-    
+
 
     <!--Similar Products-->
     <div class="container mt-5">
@@ -381,7 +383,7 @@ if (isset($_GET['id'])) {
 
         ?>
         <?php
-        $similar = $product->getSimilarProducts($allTags);//antes $linksTag
+        $similar = $product->getSimilarProducts($allTags); //antes $linksTag
         foreach ($similar as $row) {
           $str = Product::formatName($row['name']);
           $urlLocal = $setting['website_url'];
@@ -395,46 +397,49 @@ if (isset($_GET['id'])) {
 
 
           <div class="logo-row mb-3">
-      <div class="cont-img">
-        <a href="<?php echo $urlLocal .'/item/'. $urlId .'/'. $urlSlug .'/'?>">
-          <img class="card-logotic-logo" style="background:#fff;" width="100" height="100" title="<?php echo $row['name'] ?>" src="<?php echo $setting['website_url']; ?>/system/assets/uploads/vector-files/<?php echo $row['icon_img'] ?>" alt="<?php echo $row['name'] ?>">
-          <!-- <?php //if ($row['views_off'] == '0') {?>
+            <div class="cont-img">
+              <a href="<?php echo $urlLocal . '/item/' . $urlId . '/' . $urlSlug . '/' ?>">
+                <img class="card-logotic-logo" style="background:#fff;" width="100" height="100" title="<?php echo $row['name'] ?>" src="<?php echo $setting['website_url']; ?>/system/assets/uploads/vector-files/<?php echo $row['icon_img'] ?>" alt="<?php echo $row['name'] ?>">
+                <!-- <?php //if ($row['views_off'] == '0') {
+                      ?>
           <div class="post-view">
             <span class="ps-icon fa-light fa-eye"></span>
-            <span><?php //echo $row['views']; ?></span>      
+            <span><?php //echo $row['views']; 
+                  ?></span>      
           </div>
-          <?php //} else { }?> -->
+          <?php //} else { }
+          ?> -->
 
-          <div class="badge-download-pill">
-            <span class="fa-regular fa-download"></span>
-            <span>
-              <?php $ip_item = $row['id'];
-                  $download  = $product->downloadCount($ip_item);
-                   echo $product->formatCount($download['doCount']);
-              ?>
-            </span>     
+                <div class="badge-download-pill">
+                  <span class="fa-regular fa-download"></span>
+                  <span>
+                    <?php $ip_item = $row['id'];
+                    $download  = $product->downloadCount($ip_item);
+                    echo $product->formatCount($download['doCount']);
+                    ?>
+                  </span>
+                </div>
+
+                <?php if ($row['featured'] == 1) { ?>
+
+                  <a class="badge-star-circle" href="#" title="Featured">
+                    <span class="circle circ-yellow">
+                      <i class="fa-regular fa-star"></i>
+                    </span>
+                  </a>
+
+                <?php } else if ($row['views'] > 999) { ?>
+
+                  <a class="badge-star-circle" href="#" title="Trending +1000">
+                    <span class="circle circ-green">
+                      <i class="fa-solid fa-arrow-trend-up"></i>
+                    </span>
+                  </a>
+
+                <?php } ?>
+              </a>
+            </div>
           </div>
-
-          <?php if ($row['featured'] == 1) { ?>
-   
-            <a class="badge-star-circle" href="#" title="Featured">
-              <span class="circle circ-yellow">
-                <i class="fa-regular fa-star"></i>
-              </span>
-            </a>
-
-           <?php } else if ($row['views'] > 999){ ?>
-
-            <a class="badge-star-circle" href="#" title="Trending +1000">
-              <span class="circle circ-green">
-                <i class="fa-solid fa-arrow-trend-up"></i>
-              </span>
-            </a>
-
-          <?php } ?>
-        </a>
-      </div>
-    </div>
 
         <?php } ?>
       </div>
@@ -453,50 +458,50 @@ if (isset($_GET['id'])) {
 
     //$(document).ready(function()
     document.addEventListener('DOMContentLoaded', function()
-    //document.addEventListener('DOMContentLoaded', async() =>
-    //document.getElementById("generate").addEventListener("click", function()
-    {
-      //alert('document is ready. I can sleep now');
-      // 1. Convert SVG String to DataURL
-      let dataURL = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(document.getElementById("svg").value);
-      
-      let newWidth = 1000;
-      let newHeight = 1000;
-      
-      //let mimetype = document.getElementById("output-format").value;
-      let mimetype = "image/png";
+      //document.addEventListener('DOMContentLoaded', async() =>
+      //document.getElementById("generate").addEventListener("click", function()
+      {
+        //alert('document is ready. I can sleep now');
+        // 1. Convert SVG String to DataURL
+        let dataURL = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(document.getElementById("svg").value);
 
-      GenerateImageBlobFromSVG(dataURL, newWidth, newHeight, mimetype).then(function(blob){
+        let newWidth = 1000;
+        let newHeight = 1000;
+
+        //let mimetype = document.getElementById("output-format").value;
+        let mimetype = "image/png";
+
+        GenerateImageBlobFromSVG(dataURL, newWidth, newHeight, mimetype).then(function(blob) {
           let fileURL = window.URL.createObjectURL(blob);
           document.getElementById("output").src = fileURL;
 
 
 
-      /*- genera un enlace pero no funciona en firefox
-      const pngImage = document.getElementById('output');
-      pngImage.src = fileURL;
+          /*- genera un enlace pero no funciona en firefox
+          const pngImage = document.getElementById('output');
+          pngImage.src = fileURL;
 
-      // Proporcionar un enlace para descargar la imagen PNG
-      const downloadLink = document.createElement('a');
-      downloadLink.href = fileURL;
-      downloadLink.download = 'generated.png';
-      downloadLink.innerText = 'Descargar PNG';
-      document.body.appendChild(downloadLink);-*/
+          // Proporcionar un enlace para descargar la imagen PNG
+          const downloadLink = document.createElement('a');
+          downloadLink.href = fileURL;
+          downloadLink.download = 'generated.png';
+          downloadLink.innerText = 'Descargar PNG';
+          document.body.appendChild(downloadLink);-*/
 
 
 
-      }).catch(function(err){
+        }).catch(function(err) {
           //alert("An error ocurred 5000");
           //en caso de no cargar el rederizado mostrar el svg (original)
           //en firefox algunos archivos no rederizan a png
           var image = document.getElementById("output");
           image.src = `<?php echo $svg_icon_url ?>`;
           //esconde boton si no renderiza en png
-          document.getElementById("btn-logo-png").style.display = "none"; 
+          document.getElementById("btn-logo-png").style.display = "none";
 
-      });
-        
-    }, false);
+        });
+
+      }, false);
 
 
     /**
@@ -508,60 +513,59 @@ if (isset($_GET['id'])) {
      * @param quality 
      * @returns Promise
      */
-    function GenerateImageBlobFromSVG(SVGDataURL, newWidth, newHeight, mimeType, quality){
-        quality = quality || 1;
+    function GenerateImageBlobFromSVG(SVGDataURL, newWidth, newHeight, mimeType, quality) {
+      quality = quality || 1;
 
-        return new Promise(function(resolve, reject){
-            // 1. Create an abstract canvas
-            let canvas = document.createElement('canvas');
-            let ctx = canvas.getContext("2d");
+      return new Promise(function(resolve, reject) {
+        // 1. Create an abstract canvas
+        let canvas = document.createElement('canvas');
+        let ctx = canvas.getContext("2d");
 
-            // 2. Create an image element to load the SVG
-            let img = new Image();
+        // 2. Create an image element to load the SVG
+        let img = new Image();
 
-            // 3. Manipulate
-            img.onload = function() {
-                // Declare initial dimensions of the image
-                let originalWidth = img.width;
-                let originalHeight = img.height;
+        // 3. Manipulate
+        img.onload = function() {
+          // Declare initial dimensions of the image
+          let originalWidth = img.width;
+          let originalHeight = img.height;
 
-                // Declare the new width of the image
-                // And calculate the new height to preserve the aspect ratio
-                img.width = newWidth;
-                img.height = (originalHeight / originalWidth) * newWidth;
+          // Declare the new width of the image
+          // And calculate the new height to preserve the aspect ratio
+          img.width = newWidth;
+          img.height = (originalHeight / originalWidth) * newWidth;
 
-                // Set the dimensions of the canvas to the new dimensions of the image
-                canvas.width = img.width;
-                canvas.height = img.height;
+          // Set the dimensions of the canvas to the new dimensions of the image
+          canvas.width = img.width;
+          canvas.height = img.height;
 
-                // Render image in Canvas
-                ctx.drawImage(img, 0, 0, img.width, img.height);
-                //ctx.drawImage(img, 0, 0, img.width, img.height);
+          // Render image in Canvas
+          ctx.drawImage(img, 0, 0, img.width, img.height);
+          //ctx.drawImage(img, 0, 0, img.width, img.height);
 
-                // Export the canvas to blob
-                // You may modify this to export it as a base64 data URL
-                canvas.toBlob(function(blob){
-                    resolve(blob);
-                }, mimeType, quality);
-            };
+          // Export the canvas to blob
+          // You may modify this to export it as a base64 data URL
+          canvas.toBlob(function(blob) {
+            resolve(blob);
+          }, mimeType, quality);
+        };
 
-              document.getElementById('btn-logo-png').onclick = function(){
-                  canvas.toBlob(function(blob) {
-                  saveAs(blob, "<?php echo $str_name . "-" . strtolower($setting['site_name']); ?>.png");
-                });
-              }
+        document.getElementById('btn-logo-png').onclick = function() {
+          canvas.toBlob(function(blob) {
+            saveAs(blob, "<?php echo $str_name . "-" . strtolower($setting['site_name']); ?>.png");
+          });
+        }
 
 
-            // Load the DataURL of the SVG
-            img.src = SVGDataURL;
+        // Load the DataURL of the SVG
+        img.src = SVGDataURL;
 
-        }); 
+      });
     }
-
   </script>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.0/FileSaver.min.js"></script>
-  
+
   <script>
     window.onload = function(id) { //contador de visitas
       $.ajax({
@@ -576,18 +580,18 @@ if (isset($_GET['id'])) {
       })
     }
   </script>
-  
-  
+
+
   <?php require_once 'system/assets/footer.php'; ?>
 
-  <?php
-  } else {
-    header('Location:index.php');
-  }
+<?php
+} else {
+  header('Location:index.php');
+}
 
-  function display_post_not_found($id)
-  {
+function display_post_not_found($id)
+{
 
-    echo "<h1 class='no-item'> Product with ID: $id does not exist! </h1>";
-    //header("Location: 404.php");
-  }
+  echo "<h1 class='no-item'> Product with ID: $id does not exist! </h1>";
+  //header("Location: 404.php");
+}

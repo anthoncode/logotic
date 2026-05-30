@@ -11,12 +11,12 @@
       </div>
       <div class="col-6 col-lg-2">
         <div class="footer-heading">Explore</div>
-        <a href="#" class="footer-link">All Logos</a><a href="#" class="footer-link">Featured</a>
-        <a href="#" class="footer-link">New Arrivals</a><a href="#" class="footer-link">Popular</a>
+        <a href="<?php echo $setting['website_url']; ?>/most-downloaded/" class="footer-link">Most downloaded</a>
+        <a href="<?php echo $setting['website_url']; ?>/recently-added/" class="footer-link">Recently added</a>
       </div>
       <div class="col-6 col-lg-2">
         <div class="footer-heading">Categories</div>
-        <a href="<?php  echo $setting['website_url']; ?>/category/1/" class="footer-link">Brand Logo</a><a href="<?php  echo $setting['website_url']; ?>/category/2/" class="footer-link">Logo Template</a>
+        <a href="<?php  echo $setting['website_url']; ?>/category/1/brand-logo/" class="footer-link">Brand Logo</a><a href="<?php  echo $setting['website_url']; ?>/category/2/logo-template/" class="footer-link">Logo Template</a>
       </div>
       <div class="col-6 col-lg-2">
         <div class="footer-heading">Company</div>
@@ -31,7 +31,7 @@
     </div>
     <div class="footer-bottom">
       <span>© <?php echo date("Y"); ?> <a class="footer-link-sitemap" href="<?php echo $setting['website_url']; ?>/sitemap.xml"><?php echo $setting['site_name']; ?></a> . All rights reserved.</span>
-      <span>Made with <i class="bi bi-heart-fill text-danger" style="font-size:.75rem"></i> for designers</span>
+      <span>Made with <i class="bi bi-heart-fill text-danger" style="font-size:.75rem"></i> for <a class="footer-link-designer" href="https://anthoncode.com" target="_blank">anthoncode.com</a></span>
     </div>
   </div>
 </footer>

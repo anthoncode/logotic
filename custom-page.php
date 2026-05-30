@@ -24,7 +24,7 @@ if (isset($_GET['id'])) {
   <main role="main">
 
 
-    <header class="bg-light text-dark text-left mb-3 mt-0 p-4 rounded-0 box-shadow">
+    <header class="bg-dark text-light text-left mb-3 mt-0 p-4 rounded-0 box-shadow">
 
       <div class="overlay rounded-0 box-shadow"></div>
       <div class="container">

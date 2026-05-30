@@ -313,7 +313,7 @@ class Product
 	/*infinite scroll para subcategorías*/
 	public function subcateLogos($page_num, $id = null, $sub_id = null) {
 
-    $Per_Page = 49; //número de columnas para mostrar logotipos
+    $Per_Page = 48; //número de columnas para mostrar logotipos
     if (isset($page_num)) {
         $page_num = $page_num;
     } else {
@@ -333,7 +333,7 @@ class Product
 
 	/*infinite scroll para categorías*/
 	public function cateLogos($page_num, $id = null, $cat_id = null) {
-    $Per_Page = 49;
+    $Per_Page = 48;
     if (isset($page_num)) {
         $page_num = $page_num;
     } else {
@@ -1046,6 +1046,45 @@ ON " . PFX . "products.id = " . PFX . "downloads.products_id WHERE active = 1 GR
     return $result->fetchAll(PDO::FETCH_ASSOC);
 }
 
+public function popularLogos($offset) {
+    $Per_Page = 24;
+    
+    $query = "
+        SELECT * FROM (
+            SELECT p.*, COUNT(d.id) AS totalDescargas
+            FROM " . PFX . "products p
+            INNER JOIN " . PFX . "downloads d ON p.id = d.products_id
+            WHERE p.active = 1
+            GROUP BY p.id
+            ORDER BY totalDescargas DESC
+            LIMIT 100
+        ) AS top100
+        LIMIT :start, :per_page
+    ";
+
+    $result = $this->db->prepare($query);
+    $result->bindValue(':start', (int)$offset, PDO::PARAM_INT);
+    $result->bindValue(':per_page', (int)$Per_Page, PDO::PARAM_INT);
+    $result->execute();
+    return $result->fetchAll(PDO::FETCH_ASSOC);
+}
+
+public function recentLogos($page_num) {
+    $Per_Page = 24;
+    $Page_Start = ($page_num - 1) * $Per_Page;
+
+    $result = $this->db->prepare("
+        SELECT * FROM " . PFX . "products 
+        WHERE active = 1 
+        ORDER BY id DESC 
+        LIMIT :start, :per_page
+    ");
+    $result->bindValue(':start', (int)$Page_Start, PDO::PARAM_INT);
+    $result->bindValue(':per_page', (int)$Per_Page, PDO::PARAM_INT);
+    $result->execute();
+    return $result->fetchAll(PDO::FETCH_ASSOC);
+}
+
 /*	public function add_download($userID,$productID){
 	global $crypt;
 	global $user;
@@ -1064,3 +1103,4 @@ ON " . PFX . "products.id = " . PFX . "downloads.products_id WHERE active = 1 GR
 		
 	}*/
 }
+
