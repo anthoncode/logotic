@@ -8,6 +8,7 @@
         <script src="<?php echo $setting['website_url']; ?>/admin/css/jquery.min.js"></script>
         <script type="text/javascript" src="<?php echo $setting['website_url']; ?>/admin/css/dropzone.min.js"></script>
         <script type="text/javascript" src="<?php echo $setting['website_url']; ?>/admin/css/app-zone.js"></script>
+        <link rel="stylesheet" href="<?php echo $setting['website_url']; ?>/admin/css/logotic.admin.css">
         <link href="<?php echo $setting['website_url']; ?>/system/assets/css/bootstrap.min.css" rel="stylesheet" type="text/css">
 
         <link href="<?php echo $setting['website_url']; ?>/admin/css/sweetalert2.min.css" rel="stylesheet" type="text/css">

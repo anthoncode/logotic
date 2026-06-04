@@ -155,41 +155,7 @@ require_once('includes/header1.php');
          </div> -->
       </div>
       <!--/.module-->
-      <div class="module hide">
-         <div class="module-head">
-            <h3>
-               Recent New Customers</h3>
-         </div>
-         <div class="module-body">
-            <div class="table">
-               <table class="table table-hover table-striped table-bordered">
-                  <thead>
-                     <tr>
-                        <th>User ID</th>
-                        <th>User Email</th>
 
-                        <th class="hidden-phone">Purchases</th>
-                        <th class="hidden-phone">Credits</th>
-                        <th>Actions</th>
-                     </tr>
-                  </thead>
-                  <tbody>
-                     <?php foreach ($top as $topUser) { ?>
-                        <tr>
-                           <td><?php echo $topUser['id']; ?></td>
-                           <td><?php echo $topUser['email']; ?></td>
-                           <td class="hidden-phone"><?php echo $topUser['purchases']; ?></td>
-                           <td class="hidden-phone"><?php echo $setting['currency_sym'] . " " . $topUser['balance']; ?></td>
-                           <td>
-                              <div class="btn-group btn-group-sm" role="group" aria-label="AActions"><a href="user-purchases.php?id=<?php echo $topUser['id']; ?>" class="btn btn-outline-primary">View User Purchases</a><a href="add-funds.php?id=<?php echo $topUser['id']; ?>" class="btn btn-outline-primary">Add Credits</a><a href="ban-user.php?id=<?php echo $topUser['id']; ?>" class="btn btn-outline-primary">Ban User</a></div>
-                           </td>
-                        </tr>
-                     <?php } ?>
-                  </tbody>
-               </table>
-            </div>
-         </div>
-      </div>
 
    </div>
    <!--/.content-->
