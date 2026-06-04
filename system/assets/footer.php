@@ -21,7 +21,6 @@
       <div class="col-6 col-lg-2">
         <div class="footer-heading">Company</div>
         <a href="<?php  echo $setting['website_url']; ?>/page/4/about-us/" class="footer-link">About</a><a href="#" class="footer-link">Blog</a>
-        <a href="#" class="footer-link">Careers</a><a href="<?php  echo $setting['website_url']; ?>" class="footer-link">Contact</a>
       </div>
       <div class="col-6 col-lg-2">
         <div class="footer-heading">Legal</div>

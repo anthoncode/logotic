@@ -92,14 +92,7 @@
                                     <li><a href="<?php echo $setting['website_url']; ?>/admin/send-mail.php"><i class="icon-inbox"></i>Send Newsletter</a></li>
                                 </ul>
                             </li>
-                            <li><a class="collapsed" data-toggle="collapse" href="#toggleCoupons"><i class="menu-icon"></i>Coupons</a>
-                                <ul id="toggleCoupons" class="collapse unstyled">
-                                    <li><a href="<?php echo $setting['website_url']; ?>/admin/coupons.php"><i class="icon-inbox"></i>All Coupons</a></li>
-                                    <li><a href="<?php echo $setting['website_url']; ?>/admin/add-coupon.php"><i class="icon-inbox"></i>Add Coupon</a></li>
-                                    <li><a href="<?php echo $setting['website_url']; ?>/admin/deleted-coupons.php"><i class="icon-inbox"></i>Deleted Coupons</a></li>
-                                </ul>
-                            </li>
-                            <li><a href="<?php echo $setting['website_url']; ?>/admin/transactions.php"><i class="menu-icon icon-signout"></i>Transactions</a></li>
+
                         </ul>
                         <!--/.widget-nav-->
 
@@ -126,30 +119,14 @@
                                     <li><a href="<?php echo $setting['website_url']; ?>/admin/deleted-news.php"><i class="icon-inbox"></i>Deleted News</a></li>
                                 </ul>
                             </li>
-                            <li><a class="collapsed" data-toggle="collapse" href="#toggleSupport"><i class="menu-icon"></i>Support <b class="label bg-primary pull-right text-white">
-                                        Soon!</b></a>
-                                <ul id="toggleSupport" class="collapse unstyled">
-                                    <li><a href="<?php echo $setting['website_url']; ?>/admin/all-tickets.php"><i class="icon-inbox"></i>All Tickets</a></li>
-                                    <li><a href="<?php echo $setting['website_url']; ?>/admin/open-tickets.php"><i class="icon-inbox"></i>Open Tickets</a></li>
-                                    <li><a href="<?php echo $setting['website_url']; ?>/admin/closed-tickets.php"><i class="icon-inbox"></i>Closed Tickets</a></li>
+                            
+                            <li><a class="collapsed" data-toggle="collapse" href="#toggleNews"><i class="menu-icon"></i>-Blog</a>
+                                <ul id="toggleNews" class="collapse unstyled">
+                                    <li><a href="<?php echo $setting['website_url']; ?>/admin/news.php"><i class="icon-inbox"></i>All post</a></li>
+                                    <li><a href="<?php echo $setting['website_url']; ?>/admin/add-news.php"><i class="icon-inbox"></i>Add post</a></li>
                                 </ul>
                             </li>
-                            <li><a class="collapsed" data-toggle="collapse" href="#toggleForum"><i class="menu-icon"></i>Forum <b class="label bg-primary pull-right text-white">
-                                        Soon!</b></a>
-                                <ul id="toggleForum" class="collapse unstyled">
-                                    <li><a href="#"><i class="icon-inbox"></i>Visit Forum</a></li>
-                                    <li><a href="#"><i class="icon-inbox"></i>Forum Admin</a></li>
-                                </ul>
-                            </li>
-                            <li><a class="collapsed" data-toggle="collapse" href="#toggleBlog"><i class="menu-icon"></i>Blog <b class="label bg-primary pull-right text-white">
-                                        Soon!</b></a>
-                                <ul id="toggleBlog" class="collapse unstyled">
-                                    <li><a href="#"><i class="icon-inbox"></i>Visit Blog</a></li>
-                                    <li><a href="#"><i class="icon-inbox"></i>All Posts</a></li>
-                                    <li><a href="#"><i class="icon-inbox"></i>Add Post</a></li>
-                                    <li><a href="#"><i class="icon-inbox"></i>Deleted Posts</a></li>
-                                </ul>
-                            </li>
+
                             <!--  <li><a class="collapsed" data-toggle="collapse" href="#toggleComments"><i class="menu-icon"></i>Comments <b class="label bg-primary pull-right text-white">
                                     Soon!</b></a>
                                     <ul id="toggleComments" class="collapse unstyled">
@@ -171,11 +148,7 @@
 
                 <div class="col-sm-9">
 
-                    <div class="jumbotron p-3 p-md-5 my-3 text-white rounded bg-dark box-shadow">
-                        <div class="col-md-12 px-0">
-                            <h1 class="display-4 text-white text-center"><?php echo $pageTitle; ?></h1>
-                        </div>
-                    </div>
+
                     <?php
 if (isset($success)) {
         echo "<div class=\"alert alert-success\" style=\"display:block;\">" . $success . "<button type=\"button\" class=\"close\" data-dismiss=\"alert\">&times;</button></div><br>";

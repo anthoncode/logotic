@@ -14,40 +14,58 @@ if (isset($_REQUEST['error'])) {
 	$user->error = $_REQUEST['error'];
 }
 
+
 if ($_POST && isset($_REQUEST['signup'])) {
 
-	$name = $_POST['new_name'];
-	$username = $_POST['new_username'];
-	$email = $_POST['new_email'];
-	$npwd = $_POST['new_pwd'];
-	$npwd2 = $_POST['new_pwd2'];
+	// Honeypot — si el campo website tiene valor es un bot
+	if (!empty($_POST['website'])) {
+		exit();
+	}
 
-	if (!$validate->email($email)) {
-		$user->error  = 'Please enter a valid email address!';
-	} else {
-
-		if ($user->is_new_user($email, $username)) {
-			if ($npwd == $npwd2 && !$error) {
-				$result = $user->add($name, $username, $email, $npwd);
-				if ($result == true) {
-					$result = $user->login($email, $npwd);
-					if (!isset($_REQUEST['ajax'])) {
-						echo ("<script> top.location.href='index.php'</script>");
-					}
-				}
-			} else {
-				$user->error  = 'Passwords do not match!';
-			}
-		} else {
-
-			$user->error  = 'User already exists.';
+	// Validar captcha
+	if ($setting['captcha'] == '1') {
+		$verify = file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret=" . $setting['secret_key_captcha'] . "&response=" . ($_POST['g-recaptcha-response'] ?? ''));
+		$captcha_result = json_decode($verify);
+		if (!$captcha_result->success) {
+			$user->error = 'Please complete the captcha verification.';
 		}
 	}
+
+	if (!$user->error) {
+		$name     = $_POST['new_name'];
+		$username = $_POST['new_username'];
+		$email    = $_POST['new_email'];
+		$npwd     = $_POST['new_pwd'];
+		$npwd2    = $_POST['new_pwd2'];
+
+		if (!$validate->email($email)) {
+			$user->error = 'Please enter a valid email address!';
+		} else {
+			if ($user->is_new_user($email, $username)) {
+				if ($npwd == $npwd2 && !$error) {
+					$result = $user->add($name, $username, $email, $npwd);
+					if ($result == true) {
+						$result = $user->login($email, $npwd);
+						if (!isset($_REQUEST['ajax'])) {
+							echo ("<script> top.location.href='index.php'</script>");
+						}
+					}
+				} else {
+					$user->error = 'Passwords do not match!';
+				}
+			} else {
+				$user->error = 'User already exists.';
+			}
+		}
+	}
+
 	if (isset($_REQUEST['ajax'])) {
 		echo ($user->error ? $user->error : "success");
 		exit;
 	}
-} ?>
+}
+
+?>
 <!DOCTYPE html>
 <html>
 
@@ -62,6 +80,7 @@ if ($_POST && isset($_REQUEST['signup'])) {
 	<link href="<?php echo $setting['website_url']; ?>/system/assets/css/bootstrap.min.css" rel="stylesheet" type="text/css">
 	<script type="text/javascript" src="<?php echo $setting['website_url']; ?>/system/assets/js/bootstrap.bundle.min.js"></script>
 	<link rel="stylesheet" type="text/css" href="<?php echo $setting['website_url']; ?>/system/assets/css/my-login.css">
+	<script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 
 <body class="my-login-page">
@@ -80,7 +99,7 @@ if ($_POST && isset($_REQUEST['signup'])) {
 
 
 							<h4 class="card-title text-center">Create an account</h4>
-							<form action"register.php" method="POST">
+							<form action="register.php" method="POST">
 
 								<?php
 
@@ -121,6 +140,15 @@ if ($_POST && isset($_REQUEST['signup'])) {
 										<input name="aggree" value="1" type="checkbox" required> I agree to the Terms and Conditions
 									</label>
 								</div>
+
+								<!-- Campo trampa para bots, antes del botón submit -->
+								<input type="text" name="website" style="display:none;" tabindex="-1" autocomplete="off">
+
+								<?php if ($setting['captcha'] == '1') { ?>
+									<div class="mb-3">
+										<div class="g-recaptcha" data-sitekey="<?php echo $setting['site_key_captcha']; ?>"></div>
+									</div>
+								<?php } ?>
 								<input class="form-control" type="hidden" name="signup" value="true">
 								<div class="form-group no-margin">
 									<button type="submit" name="submit" class="btn btn-primary btn-block">
