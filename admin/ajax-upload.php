@@ -1,94 +1,68 @@
 <?php
-if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
-  error_reporting(E_ALL);
-  ini_set('display_errors', 0);
-  require_once('../system/config-admin.php');
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
-  //$productDetails = $product->details($_REQUEST['id']);
-  $output = array('error' => false);
+require_once('../system/config-admin.php');
 
+$output = array('error' => false);
 
-  //recorre todos los archivos cargados
-  if (isset($_FILES['file'])) {
+if (isset($_FILES['file'])) {
 
-    $vector = $_FILES['file']['name']; //título del archivo vector
-    $tmp_name   = $_FILES['file']['tmp_name'];
-    $vect_name = Product::getFileExtension($vector);  //explode, separa nombre de extensión (nom - png)
+    $vector    = $_FILES['file']['name'];
+    $tmp_name  = $_FILES['file']['tmp_name'];
+    $vect_name = Product::getFileExtension($vector);
     $clean_name = Product::formatName($vect_name[0]);
-    $slug_vect = $clean_name . '-' . time() . '-' . 'logotic'; //slug (nombre + tiempo + logotic)
-    $join_name_vec = $slug_vect . '-brand' . '.' . end($vect_name); //une slug con extensión 1[png]
-    $imgn = $join_name_vec; //slug completo
-
+    $slug_vect  = $clean_name . '-' . time() . '-' . 'logotic';
+    $join_name_vec = $slug_vect . '-brand' . '.' . end($vect_name);
+    $imgn = $join_name_vec;
     $template_vect = $slug_vect . '-tmpl' . '.' . end($vect_name);
-
     $new_image_name1 = $imgn;
 
-    $categ = $_POST['cat_id'];
-    if ($categ == 1) {
-      //brand logo
-      move_uploaded_file($tmp_name, '../system/assets/uploads/vector-files/' . $new_image_name1 . '');
-    }else{
-      //logo template
-      move_uploaded_file($tmp_name, '../system/assets/uploads/vector-files/' . $template_vect . '');
-    }
-    
+    $categ = $_POST['cat_id'] ?? '';
 
-    /*obtiene el nombre del archivo*/
+    if ($categ == 1) {
+        move_uploaded_file($tmp_name, '../system/assets/uploads/vector-files/' . $new_image_name1);
+    } else {
+        move_uploaded_file($tmp_name, '../system/assets/uploads/vector-files/' . $template_vect);
+    }
+
     $origen_name = $_FILES['file']['name'];
-    $filename = pathinfo($origen_name, PATHINFO_FILENAME);
-    $clean_file = preg_replace("/[^a-zA-Z0-9áéíóúüñÁÉÍÓÚÜÑ.\']/", " ", $filename);
-    $strlower = mb_strtolower($clean_file,'UTF-8');
-    $final_name = ucwords($strlower);
+    $filename    = pathinfo($origen_name, PATHINFO_FILENAME);
+    $clean_file  = preg_replace("/[^a-zA-Z0-9áéíóúüñÁÉÍÓÚÜÑ.\']/", " ", $filename);
+    $strlower    = mb_strtolower($clean_file, 'UTF-8');
+    $final_name  = ucwords($strlower);
 
-    $id_admin = 0; //admin
+    $id_admin    = 0;
     $filename_tl = $final_name;
-    $slug = Product::formatName($filename_tl) . "-logo";//slug del item
-    $cat_id = $_POST['cat_id'];
-    $scat_id = (isset($_POST['subcat']) ? $_POST['subcat'] : null);
-    $date = date("Y-m-d");
+    $slug        = Product::formatName($filename_tl) . "-logo";
+    $cat_id      = $_POST['cat_id'] ?? null;
+    $scat_id     = !empty($_POST['subcat']) ? $_POST['subcat'] : null;
+    $date        = date("Y-m-d");
 
-    $sql_upload = $DB_con->prepare("INSERT INTO " . PFX . "products (submit_user_id, slug_lg, name, cat_id, subc_id, icon_img, created, modified, active) VALUES (:id_admin, :slug, :name2, :cat_id, :scat_id, :icon_img, :created, :modified, '1')");
+$tags = ''; // vacío por ahora, se actualiza después con ajax-update-logo.php
 
-    $sql_upload->bindparam(":id_admin", $id_admin);
-    $sql_upload->bindparam(":slug", $slug);
-    $sql_upload->bindparam(":name2", $filename_tl);
-    //$sql_upload->bindparam(":description", $description);
-    $sql_upload->bindparam(":cat_id", $cat_id);
-    $sql_upload->bindparam(":scat_id", $scat_id);
+$sql_upload = $DB_con->prepare("INSERT INTO " . PFX . "products (submit_user_id, slug_lg, name, cat_id, subc_id, icon_img, tags, created, modified, active) VALUES (:id_admin, :slug, :name2, :cat_id, :scat_id, :icon_img, :tags, :created, :modified, '1')");
 
-    if ($categ == 1) {
-      $sql_upload->bindparam(":icon_img", $new_image_name1);
-    }else{
-      $sql_upload->bindparam(":icon_img", $template_vect);
-    }
-
-    //$sql_upload->bindparam(":tags", $tags);
-    $sql_upload->bindparam(":created", $date);
-    $sql_upload->bindparam(":modified", $date);
-
+$sql_upload->bindParam(":id_admin", $id_admin);
+$sql_upload->bindParam(":slug",     $slug);
+$sql_upload->bindParam(":name2",    $filename_tl);
+$sql_upload->bindParam(":cat_id",   $cat_id);
+$sql_upload->bindParam(":scat_id",  $scat_id);
+$icon_img = ($categ == 1) ? $new_image_name1 : $template_vect;
+$sql_upload->bindParam(":icon_img", $icon_img);
+$sql_upload->bindParam(":tags",     $tags); // ← agrega esto
+$sql_upload->bindParam(":created",  $date);
+$sql_upload->bindParam(":modified", $date);
 
     if ($sql_upload->execute()) {
-
-      $post_data = $_POST;
-      $post_file = $_FILES;
-      $id['id'] = $DB_con->lastInsertId();
-      $data = array_merge($id, $post_file, $post_data );
-      //sleep(3);
-      echo json_encode($data);
-
-      //agregar un update
-      //obtener ultimo lastid de insert
-      //actualizar gen_id
+        $id['id'] = $DB_con->lastInsertId();
+        $data = array_merge($id, $_POST);
+        echo json_encode($data);
     } else {
-      echo "Error: " . $sql_upload->error;
-      //$output['error'] = true;
-      //$output['message'] = 'Cannot update member';
+        echo json_encode(['error' => true, 'message' => 'Database error']);
     }
 
-  //}
-}
-
-
 } else {
-  header('location: ../index.php');
+    echo json_encode(['error' => true, 'message' => 'No file received']);
 }

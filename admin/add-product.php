@@ -1,273 +1,444 @@
 <?php
-
 $pageTitle = "Add Logo";
 require_once '../system/config-admin.php';
-
 $category = $product->get_categories();
-//$category1 = $product->get_subcategories();
 require_once 'includes/header1.php';
 ?>
-<!-- <script type="text/javascript" src="<?php echo $setting['website_url']; ?>/admin/css/tinymce.min.js"></script>
--->
+
 <script src="//cdnjs.cloudflare.com/ajax/libs/tinymce/4.6.5/tinymce.min.js"></script>
-<div class="content">
 
-  <nav class="navbar navbar-expand-lg navbar-dark text-white rounded bg-primary box-shadow">
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExample08" aria-controls="navbarsExample08" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
+<div class="adm-wrap">
 
-    <div class="collapse navbar-collapse justify-content-md-center" id="navbarsExample08">
-      <ul class="navbar-nav">
-        <li class="nav-item">
-          <a class="nav-link" href="<?php echo $setting['website_url']; ?>/admin/products.php">All Logos</a>
-        </li>
-        <li class="nav-item active">
-          <a class="nav-link" href="<?php echo $setting['website_url']; ?>/admin/add-product.php">Add Logo</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="<?php echo $setting['website_url']; ?>/admin/best-selling-products.php">Top</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="<?php echo $setting['website_url']; ?>/admin/products.php">All logos</a>
-        </li>
-      </ul>
+    <!-- Page Header -->
+    <div class="adm-page-header">
+        <div class="adm-page-icon">
+            <i class="fa-regular fa-plus" style="color:var(--adm-accent);"></i>
+        </div>
+        <div>
+            <h1 class="adm-page-title">Add Logo</h1>
+            <p class="adm-page-sub">Upload SVG files in bulk — up to 200 at once</p>
+        </div>
+        <div style="margin-left:auto;display:flex;gap:.5rem;">
+            <a href="<?php echo $setting['website_url']; ?>/admin/all-logos.php" class="adm-topbar-btn">
+                <i class="fa-regular fa-list"></i> All Logos
+            </a>
+            <a href="<?php echo $setting['website_url']; ?>/admin/best-selling-products.php" class="adm-topbar-btn">
+                <i class="fa-solid fa-fire"></i> Top Downloads
+            </a>
+        </div>
     </div>
-  </nav>
 
-  <div class="my-3 p-3 bg-white rounded box-shadow">
-    <form id="my-awesome-dropzone" class="form-horizontal dropzone">
-       <div class="form-group"> <label>Category:</label>
-          <div class="input-group mb-3">
-            <select class="custom-select" name="cat_id" id="cat_id" required>
-              <option value="">Select Category...</option>
-              <?php foreach ($category as $cat) {
-              ?>
-                <option value="<?php echo $cat['id']; ?>"><?php echo $cat['name']; ?></option>
-              <?php } ?>
-            </select>
-          </div>
+    <!-- Category selectors -->
+    <div class="adm-card" style="margin-bottom:1rem;">
+        <div class="adm-card-title">
+            <i class="fa-regular fa-folder"></i> Classification
         </div>
-        <div class="form-group"> <label>Subcategory:</label>
-          <div class="input-group mb-3">
-            <select class="custom-select" name="subcat" id="subcat">
-              <option value="">Select Subcategory...</option>
+        <div class="adm-grid-2">
+            <div class="adm-field">
+                <label class="adm-label">Category *</label>
+                <select class="adm-input" name="cat_id" id="cat_id" required>
+                    <option value="">Select Category...</option>
+                    <?php foreach ($category as $cat): ?>
+                        <option value="<?php echo $cat['id']; ?>"><?php echo $cat['name']; ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="adm-field">
+                <label class="adm-label">Subcategory</label>
+                <select class="adm-input" name="subcat" id="subcat">
+                    <option value="">Select Subcategory...</option>
+                </select>
+            </div>
+        </div>
+        <p style="font-size:.75rem;color:var(--adm-muted);margin:0;">
+            <i class="fa-regular fa-circle-info"></i> Select the category first — subcategories load automatically.
+            The category applies to all logos uploaded in this session.
+        </p>
+    </div>
 
-            </select>
-          </div>
+    <!-- Dropzone -->
+    <div class="adm-card">
+        <div class="adm-card-title">
+            <i class="fa-regular fa-cloud-arrow-up"></i> Upload SVG Files
+            <span style="margin-left:auto;font-size:.72rem;font-weight:400;color:var(--adm-muted);">
+                Max 200 files · SVG only · 1GB per file
+            </span>
         </div>
- 
-        <script type="text/javascript">
-          $(function() {
-            $("#cat_id").bind("change", function() {
-              $.ajax({
+
+        <form id="my-awesome-dropzone" class="dropzone" style="
+            background: rgba(212,255,0,.03);
+            border: 2px dashed rgba(212,255,0,.25);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            transition: border-color .2s;
+            min-height: 160px;
+            cursor: pointer;
+        ">
+            <div class="dz-message" style="color:var(--adm-muted);">
+                <i class="fa-regular fa-cloud-arrow-up" style="font-size:2.5rem;color:var(--adm-accent);display:block;margin-bottom:.75rem;"></i>
+                <div style="font-size:.95rem;font-weight:600;color:var(--adm-text);">Drop SVG files here or click to browse</div>
+                <div style="font-size:.78rem;margin-top:.35rem;">Only .svg files accepted — up to 200 files at once</div>
+            </div>
+        </form>
+        <div class="dz-lock-msg visible">
+    <i class="fa-regular fa-lock"></i> Please select a category and subcategory first
+</div>
+    </div>
+
+
+
+
+    <!-- Logo list (populated dynamically) -->
+    <div class="adm-card" id="logo-list-wrap" style="display:none;">
+        <div class="adm-card-title">
+            <i class="fa-regular fa-list"></i> Uploaded Logos
+            <span id="logo-count" style="margin-left:.5rem;font-size:.72rem;font-weight:400;color:var(--adm-muted);"></span>
+        </div>
+
+        <div style="
+            display:grid;
+            grid-template-columns: 60px 1fr 1fr auto;
+            gap:.5rem;
+            padding:.5rem .75rem;
+            border-bottom:1px solid var(--adm-border);
+            font-size:.7rem;
+            font-weight:700;
+            text-transform:uppercase;
+            letter-spacing:.08em;
+            color:var(--adm-muted);
+        ">
+            <div></div>
+            <div>Name</div>
+            <div>Tags</div>
+            <div>Save</div>
+        </div>
+
+        <ul class="list-group" id="logo-list" style="list-style:none;padding:0;margin:0;"></ul>
+    </div>
+
+</div>
+
+<style>
+
+  /* ── Dropzone previews — VISIBLES ── */
+#my-awesome-dropzone .dz-preview {
+    display: flex !important;  /* ← antes era none, ahora visible */
+    align-items: center;
+    gap: .75rem;
+    padding: .5rem .75rem;
+    border: 0.5px solid var(--adm-border);
+    border-radius: 8px;
+    margin-top: .5rem;
+    background: rgba(255,255,255,.03);
+    position: relative;
+}
+
+#my-awesome-dropzone .dz-preview .dz-image { display: none; }
+
+#my-awesome-dropzone .dz-preview .dz-filename span {
+    font-size: .78rem;
+    color: var(--adm-text);
+}
+
+#my-awesome-dropzone .dz-preview .dz-progress {
+    width: 120px;
+    height: 4px;
+    background: var(--adm-border);
+    border-radius: 99px;
+    overflow: hidden;
+    margin-left: auto;
+}
+
+#my-awesome-dropzone .dz-preview .dz-upload {
+    display: block;
+    height: 100%;
+    background: var(--adm-accent);
+    border-radius: 99px;
+    transition: width .3s;
+}
+
+#my-awesome-dropzone .dz-preview .dz-success-mark,
+#my-awesome-dropzone .dz-preview .dz-error-mark {
+    position: static;
+    opacity: 1;
+    animation: none;
+    font-size: .75rem;
+    margin-left: .5rem;
+}
+
+#my-awesome-dropzone .dz-preview.dz-success .dz-success-mark { color: var(--adm-success); }
+#my-awesome-dropzone .dz-preview.dz-error  .dz-error-mark   { color: var(--adm-danger); }
+#my-awesome-dropzone .dz-preview .dz-size  { display: none; }
+#my-awesome-dropzone .dz-preview .dz-details { display: flex; align-items: center; gap: .5rem; flex: 1; }
+
+/* Dropzone bloqueado */
+#my-awesome-dropzone.dz-locked {
+    opacity: .5;
+    cursor: not-allowed !important;
+    pointer-events: none;
+}
+
+.dz-lock-msg {
+    text-align: center;
+    font-size: .78rem;
+    color: var(--adm-warning);
+    margin-top: .75rem;
+    display: none;
+}
+
+.dz-lock-msg.visible { display: block; }
+
+
+/* ── Dropzone hover ── */
+#my-awesome-dropzone:hover,
+#my-awesome-dropzone.dz-drag-hover {
+    border-color: var(--adm-accent) !important;
+    background: rgba(212,255,0,.06) !important;
+}
+
+/* ── Dropzone previews (thumbnails) ── */
+#my-awesome-dropzone .dz-preview {
+    display: none !important; /* las previews van al logo-list, no aquí */
+}
+
+/* ── Logo list rows ── */
+.logo-row-item {
+    display: grid;
+    grid-template-columns: 60px 1fr 1fr auto;
+    gap: .5rem;
+    align-items: center;
+    padding: .6rem .75rem;
+    border-bottom: 1px solid var(--adm-border);
+    transition: background .15s;
+}
+
+.logo-row-item:hover { background: rgba(212,255,0,.03); }
+.logo-row-item:last-child { border-bottom: none; }
+
+.logo-row-item img {
+    width: 48px; height: 48px;
+    border-radius: 8px;
+    background: #fff;
+    object-fit: contain;
+    padding: 3px;
+}
+
+.logo-row-item input {
+    background: rgba(255,255,255,.04);
+    border: 1px solid var(--adm-border);
+    border-radius: 8px;
+    color: var(--adm-text);
+    font-size: .82rem;
+    padding: .4rem .75rem;
+    width: 100%;
+    font-family: inherit;
+    outline: none;
+    transition: border-color .2s;
+}
+
+.logo-row-item input:focus { border-color: var(--adm-accent); }
+.logo-row-item input::placeholder { color: var(--adm-muted); }
+
+.logo-save-btn {
+    background: rgba(212,255,0,.1);
+    border: 1px solid rgba(212,255,0,.3);
+    color: var(--adm-accent);
+    border-radius: 8px;
+    padding: .4rem .85rem;
+    font-size: .75rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all .2s;
+    white-space: nowrap;
+}
+
+.logo-save-btn:hover { background: var(--adm-accent); color: #0d0f1c; }
+
+.logo-save-btn.saved {
+    background: rgba(45,198,83,.15);
+    border-color: rgba(45,198,83,.3);
+    color: var(--adm-success);
+    cursor: default;
+}
+</style>
+
+<script>
+// ── Ajax subcategories ──
+$(function() {
+    $("#cat_id").on("change", function() {
+        var catVal = $(this).val();
+        if (catVal) {
+            $.ajax({
                 type: "GET",
                 url: "ajax-category.php",
-                data: "cat_id=" + $("#cat_id").val(),
+                data: "cat_id=" + catVal,
                 success: function(html) {
-                  $("#subcat").html(html);
+                    $("#subcat").html(html).prop('disabled', false);
+                    checkDropzone(); // re-evaluar estado
                 }
-              });
             });
-          });
-        </script>
+        } else {
+            $("#subcat").html('<option value="">Select subcategory...</option>').prop('disabled', true);
+        }
+        checkDropzone();
+    });
 
-        <style>
-          .list-group {
-            display: -ms-flexbox;
-            display: flex;
-            -ms-flex-direction: column;
-            flex-direction: column;
-            padding-left: 0;
-            margin-bottom: 0;
-            border-radius: .25rem;
-          }
-        </style>
+    $("#subcat").on("change", function() {
+        checkDropzone();
+    });
+});
 
-       <script>
-        //Disabling autoDiscover
-        Dropzone.autoDiscover = false; 
+// ── Verificar si el dropzone debe estar activo ──
+function checkDropzone() {
+    var cat = $("#cat_id").val();
+    var sub = $("#subcat").val();
+    var dz  = $("#my-awesome-dropzone");
+    var msg = $(".dz-lock-msg");
 
-        $(function() {
-            //Dropzone class
-            var myDropzone = new Dropzone(".dropzone", {
-                url: "<?php echo $setting['website_url']; ?>/admin/ajax-upload.php",
-                paramName: "file",
-                maxFilesize: 1024,
-                maxFiles: 200,
-                autoProcessQueue: true,
-                acceptedFiles: "image/svg+xml",
-                dataType: "json",
+    if (cat && sub) {
+        dz.removeClass("dz-locked");
+        msg.removeClass("visible");
+    } else if (cat && !sub) {
+        dz.addClass("dz-locked");
+        msg.text("Please select a subcategory to enable upload").addClass("visible");
+    } else {
+        dz.addClass("dz-locked");
+        msg.text("Please select a category and subcategory first").addClass("visible");
+    }
+}
 
-                init: function(){
-                  this.on('sending', function(file, formData, xhr){
-                     toastr.options = {
-                            "closeButton": true,
-                            "debug": false,
-                            "newestOnTop": false,
-                            "progressBar": true,
-                            "positionClass": "toast-top-left",
-                            "preventDuplicates": false,
-                            "onclick": null,
-                            "showDuration": "500",
-                            "hideDuration": "500",
-                            "timeOut": "5000",
-                            "extendedTimeOut": "1000",
-                            "showEasing": "swing",
-                            "hideEasing": "linear",
-                            "showMethod": "fadeIn",
-                            "hideMethod": "fadeOut"
-                        }                    
-                        Command: toastr["success"](file.name)       
-                  },);
+// ── Dropzone ──
+Dropzone.autoDiscover = false;
 
-                  this.on('error', function(file, errormessage, xhr){
-                     toastr.options = {
-                           "closeButton": true,
-                           "debug": false,
-                           "newestOnTop": false,
-                           "progressBar": true,
-                           "positionClass": "toast-top-left",
-                           "preventDuplicates": false,
-                           "onclick": null,
-                           "showDuration": "500",
-                           "hideDuration": "500",
-                           "timeOut": "5000",
-                           "extendedTimeOut": "1000",
-                           "showEasing": "swing",
-                           "hideEasing": "linear",
-                           "showMethod": "fadeIn",
-                           "hideMethod": "fadeOut"
-                     }
-                        Command: toastr["error"](file.name)
-                  },);
+$(function() {
+    var uploadedCount = 0;
 
-                },
-                success: function(response, data, file) {
-                    
-                    function uppercase(str)//Pone en mayúscula cada palabra
-                    {
-                      var array1 = str.split(' ');
-                      var newarray1 = [];
-                        
-                      for(var x = 0; x < array1.length; x++){
-                          newarray1.push(array1[x].charAt(0).toUpperCase()+array1[x].slice(1));
-                      }
-                      return newarray1.join(' ');
+    // Bloquear al inicio
+    $("#my-awesome-dropzone").addClass("dz-locked");
+
+    var myDropzone = new Dropzone("#my-awesome-dropzone", {
+        url: "<?php echo $setting['website_url']; ?>/admin/ajax-upload.php",
+        paramName: "file",
+        maxFilesize: 1024,
+        maxFiles: 200,
+        autoProcessQueue: true,
+        acceptedFiles: "image/svg+xml",
+        dataType: "json",
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+
+        params: function() {
+            return {
+                cat_id: $("#cat_id").val(),
+                subcat: $("#subcat").val()
+            };
+        },
+
+        init: function() {
+            var dz = this;
+
+            // Bloquear upload si no hay categoría o subcategoría
+            dz.on('addedfile', function(file) {
+                var cat = $("#cat_id").val();
+                var sub = $("#subcat").val();
+
+                if (!cat || !sub) {
+                    dz.removeFile(file);
+                    toastr.options = { closeButton: true, progressBar: true, positionClass: "toast-top-right", timeOut: "3000" };
+                    if (!cat) {
+                        toastr["warning"]("Please select a category first", "Required");
+                    } else {
+                        toastr["warning"]("Please select a subcategory first", "Required");
                     }
-                    
-                    //alert(name);
-                    //convierte en objeto el texto array - {"id":"1"} a objeto 
-                    json = JSON.parse(data); 
-                    //console.log(json.id);
-                    //console.log(json.file.name);
-
-                    var title_vect = response.name;
-                    var iddd = response.id;
-                    remove_ext = title_vect.split("/").slice(-1).join().split(".").shift();
-                    clean_str = remove_ext.replace(/[&\/\-\#,+()$~_%.'":*?<>@{}]/g, " ");
-                    finalTitle = uppercase(clean_str);
-
-                    var name_in = $("input[name='name_lg']").val();
-                    $txt = '<form id="'+json.id+'" class="form_logo" ><li class="list-group-item d-flex justify-content-between align-items-center"><div class="form-group col-md-1 mx-sm-3 mb-2"><img style="border-radius:5px" width="50" height="50" src="'+response.dataURL+'"></div><div class="form-group col-md-4 mx-sm-3 mb-2"><input class="name form-control mt-2" name="name_val '+json.id+'" maxlength="99" required value="'+finalTitle+'"></div><div class="form-group col-md-4 mx-sm-3 mb-2"><input class="form-control mt-2" name="tags_val '+json.id+'" placeholder="Tags" required></div><a id="'+json.id+'" onclick="upload_logo(this.id);" type="submit" class="btn-login btn btn-success btn-block text-white ml-1 mt-0 quick-post-rename"><i class="fas fa-pen"></i> </a></div></li></form>';
-
-
-                    //$miscript =  $.get("css/script.js"); ;
-                    $('#logo-list').append($txt);
-                    //$('#logo-list').append($txt, $miscript);
                     return;
-                },
-            });
-        });
-
-
-        </script>
-
-        <script>
-          function upload_logo(clicked_id) { //clicked_id es una variable que captura el id
-            event.preventDefault()//evita redirigir después del get
-            //alert(clicked_id)
-            var id = clicked_id;
-            var name = $("input[name='name_val "+clicked_id+"']").val(); //obtiene el atributo de name
-            //var description = $("input[name='desc_val "+clicked_id+"']").val();
-            var tags = $("input[name='tags_val "+clicked_id+"']").val();
-            $.post("ajax-update-logo.php", { id: id, name: name, tags: tags},
-            function(data) {
-              //$('#results').html(data);
-              if(data == 'error') {
-                  toastr["error"]("Error")
-                  toastr.options = {
-                    "closeButton": true,
-                    "debug": false,
-                    "newestOnTop": false,
-                    "progressBar": true,
-                    "positionClass": "toast-bottom-right",
-                    "preventDuplicates": false,
-                    "onclick": null,
-                    "showDuration": "300",
-                    "hideDuration": "1000",
-                    "timeOut": "5000",
-                    "extendedTimeOut": "1000",
-                    "showEasing": "swing",
-                    "hideEasing": "linear",
-                    "showMethod": "fadeIn",
-                    "hideMethod": "fadeOut"
-                  }
-
-              } else {
-                  //toastr["success"]("Success")
-                  Command: toastr["success"](name)
-                  toastr.options = {
-                  "closeButton": true,
-                  "debug": false,
-                  "newestOnTop": false,
-                  "progressBar": true,
-                  "positionClass": "toast-bottom-right",
-                  "preventDuplicates": false,
-                  "onclick": null,
-                  "showDuration": "300",
-                  "hideDuration": "1000",
-                  "timeOut": "5000",
-                  "extendedTimeOut": "1000",
-                  "showEasing": "swing",
-                  "hideEasing": "linear",
-                  "showMethod": "fadeIn",
-                  "hideMethod": "fadeOut"
                 }
-              }
             });
-            return
-          }
-        </script>
-    </form>
 
-    <!-- formulario para actualizar -->
-    <div class="col-md-12 mt-5">
-        <ul class="list-group" id="logo-list"></ul>
-    </div>
-    <div id="results">
-    <br>
+            dz.on('sending', function(file) {
+                toastr.options = { closeButton: true, progressBar: true, positionClass: "toast-top-right", timeOut: "2000" };
+                toastr["info"](file.name, "Uploading...");
+            });
 
-    <script>
-      $('.custom-file-input').on('change', function() {
-        let fileName = $(this).val().split('\\').pop();
-        $(this).next('.custom-file-label').addClass("selected").html(fileName);
-      });
-    </script>
+            dz.on('error', function(file, errormessage) {
+                toastr.options = { closeButton: true, progressBar: true, positionClass: "toast-top-right", timeOut: "4000" };
+                toastr["error"](file.name, "Upload failed");
+            });
+        },
 
-    <script type="text/javascript">
-      tinymce.init({
-        selector: "textarea",
-        themes: "modern",
-        branding: false,
-        plugins: [
-          'advlist autolink lists link image charmap preview',
-          'visualblocks code',
-          'insertdatetime media contextmenu paste code'
-        ],
-        toolbar: 'bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image code'
-      });
-    </script>
-    <?php
-    require_once 'includes/footer.php';
-    ?>
+        success: function(response, data) {
+            function uppercase(str) {
+                return str.split(' ').map(function(w) {
+                    return w.charAt(0).toUpperCase() + w.slice(1);
+                }).join(' ');
+            }
+
+            var json = JSON.parse(data);
+            var title_vect = response.name;
+            var remove_ext = title_vect.split("/").slice(-1).join().split(".").shift();
+            var clean_str  = remove_ext.replace(/[&\/\-\#,+()$~_%.'":*?<>@{}]/g, " ");
+            var finalTitle = uppercase(clean_str);
+
+            uploadedCount++;
+            $('#logo-list-wrap').show();
+            $('#logo-count').text(uploadedCount + ' logo' + (uploadedCount !== 1 ? 's' : '') + ' ready to save');
+
+            var row = `
+                <li class="logo-row-item" id="row-${json.id}">
+                    <img src="${response.dataURL}" alt="${finalTitle}">
+                    <input class="name" name="name_val ${json.id}" maxlength="99" value="${finalTitle}" placeholder="Logo name">
+                    <input name="tags_val ${json.id}" placeholder="Tags (comma separated)">
+                    <button class="logo-save-btn" id="btn-${json.id}" onclick="upload_logo('${json.id}'); return false;">
+                        <i class="fa-regular fa-floppy-disk"></i> Save
+                    </button>
+                </li>`;
+
+            $('#logo-list').append(row);
+
+            toastr.options = { closeButton: true, progressBar: true, positionClass: "toast-bottom-right", timeOut: "2000" };
+            toastr["success"](finalTitle, "Uploaded");
+        }
+    });
+});
+
+// ── Save individual logo ──
+function upload_logo(clicked_id) {
+    event.preventDefault();
+
+    var name = $("input[name='name_val " + clicked_id + "']").val();
+    var tags = $("input[name='tags_val " + clicked_id + "']").val();
+    var btn  = $("#btn-" + clicked_id);
+
+    if (!name.trim()) {
+        toastr["warning"]("Please enter a name before saving", "Missing name");
+        return;
+    }
+
+    btn.html('<i class="fa-regular fa-spinner fa-spin"></i> Saving...').prop('disabled', true);
+
+    $.post("ajax-update-logo.php", { id: clicked_id, name: name, tags: tags },
+        function(data) {
+            if (data == 'error') {
+                toastr["error"](name, "Error saving");
+                btn.html('<i class="fa-regular fa-floppy-disk"></i> Save').prop('disabled', false);
+            } else {
+                btn.html('<i class="fa-solid fa-circle-check"></i> Saved')
+                   .addClass('saved')
+                   .prop('disabled', true);
+                toastr.options = { closeButton: true, progressBar: true, positionClass: "toast-bottom-right", timeOut: "2000" };
+                toastr["success"](name, "Saved!");
+            }
+        }
+    );
+}
+
+// ── TinyMCE ──
+tinymce.init({
+    selector: "textarea",
+    themes: "modern",
+    branding: false,
+    plugins: ['advlist autolink lists link image charmap preview', 'visualblocks code', 'insertdatetime media contextmenu paste code'],
+    toolbar: 'bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image code'
+});
+</script>
+
+<?php require_once 'includes/footer.php'; ?>

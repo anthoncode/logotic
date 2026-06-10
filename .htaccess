@@ -36,6 +36,11 @@ RewriteRule products/item/(.*)/ item.php?id=$1
 RewriteRule category/(.*)/ category.php?id=$1
 RewriteRule subcat/(.*)/ sub-category.php?id=$1
 
+
+RewriteRule ^blog/$ blog.php [L]
+RewriteRule ^blog/([^/]+)/$ post.php?slug=$1 [L]
+RewriteRule ^blog/category/([^/]+)/$ blog.php?cat=$1 [L]
+
 #RewriteRule tags/(.*)/ tags.php
 RewriteRule tags/(.*)$ tags.php?id=$1
 RewriteRule color/(.*)$ color.php?id=$1

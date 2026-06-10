@@ -10,17 +10,57 @@
 \pard\pardeftab720\sa240\partightenfactor0
 
 \f0\b\fs24 \cf0 \expnd0\expndtw0\kerning0
-\outl0\strokewidth0 \strokec2 Paso 1 \'97 Agregar la columna en la DB
+Paso 1 \'97 Agregar la columna en la DB
 \f1\b0 \
 Ejecuta esto en phpMyAdmin o desde terminal:\
 \pard\pardeftab720\qc\partightenfactor0
 
-\f2\fs22 \cf3 \strokec3 \
+\f2\fs22 \cf3 \
 \
 \pard\pardeftab720\partightenfactor0
 
-\f1\fs24 \cf0 \strokec2 sql\
+\f1\fs24 \cf0 sql\
 \pard\pardeftab720\partightenfactor0
-\cf4 \strokec4 ALTER\cf5 \strokec5  \cf4 \strokec4 TABLE\cf5 \strokec5  logotic_products \
-\cf4 \strokec4 ADD\cf5 \strokec5  \cf4 \strokec4 COLUMN\cf5 \strokec5  dominant_color \cf4 \strokec4 VARCHAR\cf6 \strokec6 (\cf7 \strokec7 7\cf6 \strokec6 )\cf5 \strokec5  \cf4 \strokec4 DEFAULT\cf5 \strokec5  \cf7 \strokec7 NULL\cf5 \strokec5  \cf4 \strokec4 COMMENT\cf5 \strokec5  \cf8 \strokec8 'Hex color dominante del SVG'\cf6 \strokec6 ;\cf5 \strokec5 \
+\cf4 ALTER\cf5  \cf4 TABLE\cf5  logotic_products \
+\cf4 ADD\cf5  \cf4 COLUMN\cf5  dominant_color \cf4 VARCHAR\cf6 (\cf7 7\cf6 )\cf5  \cf4 DEFAULT\cf5  \cf7 NULL\cf5  \cf4 COMMENT\cf5  \cf8 'Hex color dominante del SVG'\cf6 ;\
+\
+\
+\
+\
+\
+CREATE TABLE `logotic_posts` (\
+  `id` int(11) NOT NULL AUTO_INCREMENT,\
+  `title` varchar(255) NOT NULL,\
+  `slug` varchar(255) NOT NULL,\
+  `content` longtext DEFAULT NULL,\
+  `excerpt` text DEFAULT NULL,\
+  `cover_img` varchar(255) DEFAULT NULL,\
+  `author` varchar(100) NOT NULL DEFAULT 'Admin',\
+  `category_id` int(11) DEFAULT NULL,\
+  `status` enum('draft','published') NOT NULL DEFAULT 'draft',\
+  `meta_title` varchar(255) DEFAULT NULL,\
+  `meta_desc` varchar(255) DEFAULT NULL,\
+  `meta_keywords` varchar(255) DEFAULT NULL,\
+  `views` int(11) NOT NULL DEFAULT 0,\
+  `created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,\
+  `modified` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,\
+  PRIMARY KEY (`id`),\
+  UNIQUE KEY `slug` (`slug`)\
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;\
+\
+CREATE TABLE `logotic_post_categories` (\
+  `id` int(11) NOT NULL AUTO_INCREMENT,\
+  `name` varchar(100) NOT NULL,\
+  `slug` varchar(100) NOT NULL,\
+  `description` varchar(255) DEFAULT NULL,\
+  `active` int(11) NOT NULL DEFAULT 1,\
+  PRIMARY KEY (`id`),\
+  UNIQUE KEY `slug` (`slug`)\
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;\
+\
+INSERT INTO `logotic_post_categories` (`name`, `slug`, `description`) VALUES\
+('Logo History', 'logo-history', 'History and evolution of brand logos'),\
+('Design Tips', 'design-tips', 'Tips and tricks for logo design'),\
+('Brand Identity', 'brand-identity', 'Articles about brand identity'),\
+('Rebranding', 'rebranding', 'Famous rebranding cases');\cf5 \
 }
