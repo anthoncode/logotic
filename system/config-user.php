@@ -1,80 +1,59 @@
 <?php
 
-// DB Connect
+// ── DB Connect ──
 include_once 'db.php';
 
 try {
-	$DB_con = new PDO('mysql:host=' . DB_host . ';dbname=' . DB_name, DB_user, DB_pass);
-	$DB_con->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $DB_con = new PDO(
+        'mysql:host=' . DB_host . ';dbname=' . DB_name . ';charset=utf8',
+        DB_user,
+        DB_pass,
+        [
+            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES   => false,
+        ]
+    );
+} catch (PDOException $e) {
+    error_log('DB Connection failed: ' . $e->getMessage());
+    http_response_code(503);
+    die('Service temporarily unavailable.');
 }
 
-catch(PDOException $e) {
-	echo $e->getMessage();
-}
-
+// ── Idioma ──
 $myLang = "en";
 include_once('lang/' . $myLang . '.php');
 
-function sanitize_output($buffer)
-{
-	$search = array(
-		'/\>[^\S ]+/s', //strip whitespaces after tags, except space
-		'/[^\S ]+\</s', //strip whitespaces before tags, except space
-		'/(\s)+/s'
+// ── Sesión segura ──
+$sessionLifetime = 172800; // 48 horas
 
-		// shorten multiple whitespace sequences
+ini_set('session.gc_maxlifetime', $sessionLifetime);
+ini_set('session.cookie_lifetime', $sessionLifetime);
+ini_set('session.use_strict_mode', 1);
+ini_set('session.use_only_cookies', 1);
+ini_set('session.use_trans_sid', 0);
+ini_set('session.cookie_httponly', 1);
+ini_set('session.cookie_samesite', 'Lax');
 
-	);
-	$replace = array(
-		'>',
-		'<',
-		'\\1'
-	);
-	$buffer = preg_replace($search, $replace, $buffer);
-	return $buffer;
+// Secure solo en HTTPS
+if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') {
+    ini_set('session.cookie_secure', 1);
 }
 
-function get_timeago($ptime)
-{
-	$estimate_time = time() - $ptime;
-	if ($estimate_time < 1) {
-		return 'less than 1 second ago';
-	}
-
-	$condition = array(
-		12 * 30 * 24 * 60 * 60 => 'year',
-		30 * 24 * 60 * 60 => 'month',
-		24 * 60 * 60 => 'day',
-		60 * 60 => 'hour',
-		60 => 'minute',
-		1 => 'second'
-	);
-	foreach($condition as $secs => $str) {
-		$d = $estimate_time / $secs;
-		if ($d >= 1) {
-			$r = round($d);
-			return '' . $r . ' ' . $str . ($r > 1 ? 's' : '') . ' ago';
-		}
-	}
-}
-
-//ob_start("sanitize_output");
-header("Access-Control-Allow-Origin: *");
 session_name('DSP');
-session_start();//inicio de sesión
-  //$_SESSION["start"] = time();
 
-
-/*if (isset($_SESSION["uid"])) {
-  if (time() - $_SESSION["start"] > 600) {
-    echo "hola"; echo time(); echo "_"; echo $_SESSION["start"];
-  }
- else {
-  echo "chau";
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
 }
-}*/
 
-// Important classes
+// ── Headers de seguridad ──
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: SAMEORIGIN');
+header('X-XSS-Protection: 1; mode=block');
+header('Referrer-Policy: strict-origin-when-cross-origin');
+header('Access-Control-Allow-Origin: *');
+
+// ── Clases ──
 include_once 'classes/class.coupon.php';
 include_once 'classes/class.crypt.php';
 include_once 'classes/class.customer.php';
@@ -86,70 +65,89 @@ include_once 'classes/class.validate.php';
 include_once 'classes/class.news.php';
 include_once 'classes/class.wishlist.php';
 
-$coupon = new Coupon($DB_con);
-$crypt = new encryption_class($DB_con);
-$product = new Product($DB_con);
+// ── Instancias ──
+$coupon   = new Coupon($DB_con);
+$crypt    = new encryption_class($DB_con);
+$product  = new Product($DB_con);
 $settings = new Settings($DB_con);
-//$transaction = new Transaction($DB_con);
 $validate = new Validate($DB_con);
-$user = new Customer($DB_con);
+$user     = new Customer($DB_con);
 $purchases = new Sale($DB_con);
-$newsl = new News($DB_con);
-$wishlist = new Wishlist($DB_con);
+$newsl    = new News($DB_con);
+$wishlist  = new Wishlist($DB_con);
 
-// Fetch Settings
+include_once 'classes/class.mailer.php';
+$mailer = new Mailer($DB_con, $setting);
+
+// ── Settings ──
 $setting = $settings->get_all();
 
-// Login Checker
-if (isset($_REQUEST['login'])) {
-	$error = false;
-	if (empty($_REQUEST['email']) || empty($_REQUEST['pwd'])) {
-		$error = 'Please enter Email and Password';
-	}
-	else {
-		$email = trim($_REQUEST['email']);
-		$password = trim($_REQUEST['pwd']);
-		if (!$user->login($email, $password)) {
-			$error = $user->error;
-		}
-	}
-
-	if (isset($_REQUEST['ajax'])) {
-		echo ($error ? $error : "success");
-		exit;
-	}
+// ── Helpers ──
+function get_timeago($ptime) {
+    $estimate_time = time() - $ptime;
+    if ($estimate_time < 1) return 'just now';
+    $condition = [
+        12 * 30 * 24 * 60 * 60 => 'year',
+        30 * 24 * 60 * 60       => 'month',
+        24 * 60 * 60            => 'day',
+        60 * 60                 => 'hour',
+        60                      => 'minute',
+        1                       => 'second',
+    ];
+    foreach ($condition as $secs => $str) {
+        $d = $estimate_time / $secs;
+        if ($d >= 1) {
+            $r = round($d);
+            return $r . ' ' . $str . ($r > 1 ? 's' : '') . ' ago';
+        }
+    }
 }
 
-/*login download*/
-if (!$user->is_loggedin() && (basename($_SERVER["PHP_SELF"]) != 'facebook.php') && (basename($_SERVER["PHP_SELF"]) != 'json-load.php') && (basename($_SERVER["PHP_SELF"]) != 'buy.php') && (basename($_SERVER["PHP_SELF"]) != 'login.php') && (basename($_SERVER["PHP_SELF"]) != 'register.php') && (basename($_SERVER["PHP_SELF"]) != 'recover.php')) {
-	header("location:" . $setting['website_url'] . "/user/login.php");
-	exit;
+// ── Archivos excluidos del check de sesión ──
+$excluded = [
+    'login.php', 'register.php', 'recover.php',
+    'resetpwd.php', 'google-callback.php',
+    'facebook.php', 'json-load.php', 'buy.php'
+];
+
+$currentFile = basename($_SERVER['PHP_SELF']);
+
+// ── Logout ──
+if ($currentFile === 'login.php' && isset($_REQUEST['logout'])) {
+    $user->logout();
 }
 
-$current_file = explode('/', $_SERVER['SCRIPT_NAME']);
-$current_file = end($current_file);
+// ── Redirect a login si no está autenticado ──
+if (!$user->is_loggedin()
+    && !in_array($currentFile, $excluded)
+    && !isset($_SESSION['2fa_pending'])
+) {
+    $redirect = urlencode($_SERVER['REQUEST_URI'] ?? '');
+    header('Location: ' . $setting['website_url'] . '/user/login.php?redirect=' . $redirect);
+    exit;
+}
 
+// ── Redirect si ya está logueado y va a login ──
+if ($currentFile === 'login.php' && $user->is_loggedin()) {
+    header('Location: ' . $setting['website_url'] . '/user/');
+    exit;
+}
+
+// ── Datos del usuario logueado ──
 if ($user->is_loggedin()) {
+    define('USER', $_SESSION['curr_user']);
+    $userDetails = $user->details($_SESSION['uid']);
+    $wishcount   = $wishlist->countAll('user_id', $crypt->decrypt($_SESSION['uid'], 'USER'));
 
-	define('USER', $_SESSION['curr_user']);
-	$userDetails = $user->details($_SESSION['uid']);
-	$wishcount = $wishlist->countAll('user_id',$crypt->decrypt($_SESSION['uid'],'USER'));
-	
-	if($current_file !== 'resetpwd.php' && $current_file != 'login.php?logout' && $userDetails['password_recover'] == 1){
-        header('Location: resetpwd.php?force');
-        exit();
-    	}
-	
-}
-
-if (basename($_SERVER["PHP_SELF"]) == 'login.php') {
-	if (isset($_REQUEST['logout'])) {
-		$user->logout();
-	}
-
-	if ($user->is_loggedin()) {
-		echo '<script>window.location = "' . $setting['website_url'] . '/user/index.php"</script>';
-	}
+    // Forzar cambio de contraseña si fue recovery
+    if (
+        isset($userDetails['password_recover']) &&
+        $userDetails['password_recover'] == 1 &&
+        $currentFile !== 'resetpwd.php'
+    ) {
+        header('Location: ' . $setting['website_url'] . '/user/resetpwd.php?force');
+        exit;
+    }
 }
 
 error_reporting(E_ALL);

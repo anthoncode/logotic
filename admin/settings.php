@@ -74,6 +74,41 @@ if (isset($_REQUEST['save'])) {
       $activeTab = 'security';
       break;
 
+    case 'email':
+      $smtpHost  = trim($_POST['smtp_host']       ?? '');
+      $smtpUser  = trim($_POST['smtp_user']        ?? '');
+      $smtpFrom  = trim($_POST['smtp_from_email']  ?? '');
+      $smtpPort  = (int)($_POST['smtp_port']        ?? 587);
+      $smtpEnc   = in_array($_POST['smtp_encryption'] ?? '', ['tls', 'ssl', 'none'])
+        ? $_POST['smtp_encryption'] : 'tls';
+
+      // Validaciones
+      if ($smtpFrom && !filter_var($smtpFrom, FILTER_VALIDATE_EMAIL)) {
+        $settings->error = 'Invalid From email address.';
+        $activeTab = 'email';
+        break;
+      }
+      if ($smtpPort < 1 || $smtpPort > 65535) {
+        $settings->error = 'Invalid SMTP port.';
+        $activeTab = 'email';
+        break;
+      }
+
+      $newsettings = [
+        'smtp_enabled'       => isset($_POST['smtp_enabled'])       ? '1' : '0',
+        'smtp_host'          => $smtpHost,
+        'smtp_port'          => $smtpPort,
+        'smtp_user'          => $smtpUser,
+        'smtp_pass'          => !empty($_POST['smtp_pass']) ? $_POST['smtp_pass'] : ($setting['smtp_pass'] ?? ''),
+        'smtp_from_name'     => htmlspecialchars(strip_tags(trim($_POST['smtp_from_name'] ?? ''))),
+        'smtp_from_email'    => $smtpFrom,
+        'smtp_encryption'    => $smtpEnc,
+        'email_verification' => isset($_POST['email_verification']) ? '1' : '0',
+      ];
+      $settings->update($newsettings);
+      $activeTab = 'email';
+      break;
+
     case 'appearance':
       $newsettings = [
         'bg_color' => trim($_POST['bg_color'] ?? '#0d0f1c'),
@@ -142,13 +177,15 @@ require_once('includes/header1.php');
   <?php endif; ?>
 
   <!-- Tabs — links <a> para mantener tab activo tras guardar -->
+  <!-- Tabs -->
   <div class="adm-tabs">
-    <a class="adm-tab <?php echo $activeTab === 'general'    ? 'active' : '' ?>" href="?tab=general"> <i class="fa-regular fa-globe"></i> General</a>
-    <a class="adm-tab <?php echo $activeTab === 'homepage'   ? 'active' : '' ?>" href="?tab=homepage"> <i class="fa-regular fa-house"></i> Homepage</a>
-    <a class="adm-tab <?php echo $activeTab === 'security'   ? 'active' : '' ?>" href="?tab=security"> <i class="fa-regular fa-shield"></i> Security</a>
-    <a class="adm-tab <?php echo $activeTab === 'appearance' ? 'active' : '' ?>" href="?tab=appearance"> <i class="fa-regular fa-palette"></i> Appearance</a>
-    <a class="adm-tab <?php echo $activeTab === 'features'   ? 'active' : '' ?>" href="?tab=features"> <i class="fa-regular fa-toggle-on"></i> Features</a>
-    <a class="adm-tab <?php echo $activeTab === 'ads'        ? 'active' : '' ?>" href="?tab=ads"> <i class="fa-regular fa-code"></i> Ads & Code</a>
+    <a class="adm-tab <?php echo $activeTab === 'general'    ? 'active' : '' ?>" href="?tab=general"><i class="fa-regular fa-globe"></i> General</a>
+    <a class="adm-tab <?php echo $activeTab === 'homepage'   ? 'active' : '' ?>" href="?tab=homepage"><i class="fa-regular fa-house"></i> Homepage</a>
+    <a class="adm-tab <?php echo $activeTab === 'security'   ? 'active' : '' ?>" href="?tab=security"><i class="fa-regular fa-shield"></i> Security</a>
+    <a class="adm-tab <?php echo $activeTab === 'email'      ? 'active' : '' ?>" href="?tab=email"><i class="fa-regular fa-envelope"></i> Email & SMTP</a>
+    <a class="adm-tab <?php echo $activeTab === 'appearance' ? 'active' : '' ?>" href="?tab=appearance"><i class="fa-regular fa-palette"></i> Appearance</a>
+    <a class="adm-tab <?php echo $activeTab === 'features'   ? 'active' : '' ?>" href="?tab=features"><i class="fa-regular fa-toggle-on"></i> Features</a>
+    <a class="adm-tab <?php echo $activeTab === 'ads'        ? 'active' : '' ?>" href="?tab=ads"><i class="fa-regular fa-code"></i> Ads & Code</a>
   </div>
 
   <!-- ── GENERAL ── -->
@@ -267,6 +304,177 @@ require_once('includes/header1.php');
     </form>
 
     <!-- ── APPEARANCE ── -->
+     <!-- ── EMAIL & SMTP ── -->
+<?php elseif ($activeTab === 'email'): ?>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;align-items:start;">
+
+    <!-- Columna izquierda: SMTP -->
+    <div>
+        <form action="settings.php?tab=email" method="POST">
+            <input type="hidden" name="save" value="email">
+
+            <!-- Email Verification toggle -->
+            <div class="adm-card" style="margin-bottom:1rem;">
+                <div class="adm-card-title"><i class="fa-regular fa-envelope-circle-check"></i> Email Verification</div>
+                <label class="adm-toggle" style="margin-bottom:0;">
+                    <div>
+                        <div class="adm-toggle-label">Require Email Verification</div>
+                        <div class="adm-toggle-sub">New users must verify their email before logging in</div>
+                    </div>
+                    <label class="adm-switch">
+                        <input type="checkbox" name="email_verification"
+                               <?php echo ($setting['email_verification'] ?? '0') == '1' ? 'checked' : ''; ?>>
+                        <span class="adm-slider"></span>
+                    </label>
+                </label>
+            </div>
+
+            <!-- SMTP Config -->
+            <div class="adm-card" style="margin-bottom:1rem;">
+                <div class="adm-card-title">
+                    <i class="fa-regular fa-server"></i> SMTP Configuration
+                </div>
+
+                <label class="adm-toggle" style="margin-bottom:1rem;">
+                    <div>
+                        <div class="adm-toggle-label">Use SMTP</div>
+                        <div class="adm-toggle-sub">Use custom SMTP instead of PHP mail()</div>
+                    </div>
+                    <label class="adm-switch">
+                        <input type="checkbox" name="smtp_enabled" id="smtpToggle"
+                               <?php echo ($setting['smtp_enabled'] ?? '0') == '1' ? 'checked' : ''; ?>>
+                        <span class="adm-slider"></span>
+                    </label>
+                </label>
+
+                <div id="smtpFields" style="<?php echo ($setting['smtp_enabled'] ?? '0') != '1' ? 'opacity:.4;pointer-events:none;' : ''; ?>">
+                    <div class="adm-grid-2">
+                        <div class="adm-field">
+                            <label class="adm-label">SMTP Host *</label>
+                            <input class="adm-input" type="text" name="smtp_host"
+                                   value="<?php echo htmlspecialchars($setting['smtp_host'] ?? ''); ?>"
+                                   placeholder="smtp.gmail.com">
+                        </div>
+                        <div class="adm-field">
+                            <label class="adm-label">Port *</label>
+                            <input class="adm-input" type="number" name="smtp_port"
+                                   value="<?php echo (int)($setting['smtp_port'] ?? 587); ?>"
+                                   min="1" max="65535" placeholder="587">
+                        </div>
+                    </div>
+
+                    <div class="adm-field">
+                        <label class="adm-label">Encryption</label>
+                        <select class="adm-input" name="smtp_encryption">
+                            <?php foreach (['tls' => 'TLS (recommended)', 'ssl' => 'SSL', 'none' => 'None'] as $val => $label): ?>
+                                <option value="<?php echo $val; ?>"
+                                    <?php echo ($setting['smtp_encryption'] ?? 'tls') === $val ? 'selected' : ''; ?>>
+                                    <?php echo $label; ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <div class="adm-grid-2">
+                        <div class="adm-field">
+                            <label class="adm-label">SMTP Username</label>
+                            <input class="adm-input" type="text" name="smtp_user"
+                                   value="<?php echo htmlspecialchars($setting['smtp_user'] ?? ''); ?>"
+                                   placeholder="your@email.com"
+                                   autocomplete="username">
+                        </div>
+                        <div class="adm-field">
+                            <label class="adm-label">
+                                SMTP Password
+                                <span style="font-weight:400;font-size:.7rem;color:var(--adm-muted);">(leave empty to keep current)</span>
+                            </label>
+                            <div style="position:relative;">
+                                <input class="adm-input" type="password" name="smtp_pass"
+                                       placeholder="••••••••"
+                                       autocomplete="new-password"
+                                       id="smtpPass"
+                                       style="padding-right:2.5rem;">
+                                <button type="button" onclick="toggleSmtpPass()"
+                                        style="position:absolute;right:.7rem;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--adm-muted);cursor:pointer;font-size:.85rem;padding:0;">
+                                    <i class="fa-regular fa-eye" id="smtpPassIcon"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="adm-grid-2">
+                        <div class="adm-field">
+                            <label class="adm-label">From Name</label>
+                            <input class="adm-input" type="text" name="smtp_from_name"
+                                   value="<?php echo htmlspecialchars($setting['smtp_from_name'] ?? ''); ?>"
+                                   placeholder="<?php echo htmlspecialchars($setting['site_name']); ?>"
+                                   maxlength="100">
+                        </div>
+                        <div class="adm-field">
+                            <label class="adm-label">From Email *</label>
+                            <input class="adm-input" type="email" name="smtp_from_email"
+                                   value="<?php echo htmlspecialchars($setting['smtp_from_email'] ?? ''); ?>"
+                                   placeholder="noreply@yourdomain.com"
+                                   maxlength="150">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="adm-save" type="submit">
+                <i class="fa-regular fa-floppy-disk"></i> Save Email Settings
+            </button>
+        </form>
+    </div>
+
+    <!-- Columna derecha: Test + Info -->
+    <div>
+        <!-- Test SMTP -->
+        <div class="adm-card" style="margin-bottom:1rem;">
+            <div class="adm-card-title"><i class="fa-regular fa-paper-plane"></i> Test Connection</div>
+            <div class="adm-field">
+                <label class="adm-label">Send test email to</label>
+                <input class="adm-input" type="email" id="testEmail"
+                       placeholder="test@example.com"
+                       value="<?php echo htmlspecialchars($setting['mail_admin'] ?? ''); ?>">
+            </div>
+            <button type="button" class="adm-save" style="margin-top:.5rem;" onclick="testSmtp()">
+                <i class="fa-regular fa-paper-plane"></i> Send Test Email
+            </button>
+            <div id="smtpTestResult" style="margin-top:.75rem;font-size:.82rem;display:none;"></div>
+        </div>
+
+        <!-- Providers info -->
+        <div class="adm-card">
+            <div class="adm-card-title"><i class="fa-regular fa-circle-info"></i> Common SMTP Providers</div>
+            <div style="font-size:.78rem;color:var(--adm-muted);">
+                <?php
+                $providers = [
+                    ['Gmail',     'smtp.gmail.com',     587, 'TLS', 'Use App Password, not your regular password'],
+                    ['Outlook',   'smtp.office365.com', 587, 'TLS', 'Use your Microsoft account credentials'],
+                    ['Yahoo',     'smtp.mail.yahoo.com',587, 'TLS', 'Requires App Password'],
+                    ['Mailgun',   'smtp.mailgun.org',   587, 'TLS', 'Use SMTP credentials from Mailgun dashboard'],
+                    ['SendGrid',  'smtp.sendgrid.net',  587, 'TLS', 'Use apikey as username and API key as password'],
+                ];
+                foreach ($providers as $p): ?>
+                <div style="display:flex;align-items:flex-start;gap:.75rem;padding:.6rem 0;border-bottom:1px solid var(--adm-border);">
+                    <div style="width:70px;font-weight:600;color:var(--adm-text);flex-shrink:0;"><?php echo $p[0]; ?></div>
+                    <div>
+                        <div style="color:var(--adm-accent);font-size:.75rem;"><?php echo $p[1]; ?>:<?php echo $p[2]; ?> (<?php echo $p[3]; ?>)</div>
+                        <div style="font-size:.72rem;margin-top:.15rem;"><?php echo $p[4]; ?></div>
+                    </div>
+                </div>
+                <?php endforeach; ?>
+                <div style="padding:.6rem 0;">
+                    <div style="font-weight:600;color:var(--adm-text);margin-bottom:.25rem;">Gmail App Password:</div>
+                    Google Account → Security → 2-Step Verification → App Passwords
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
   <?php elseif ($activeTab === 'appearance'): ?>
 
     <!-- Form colores -->
@@ -385,6 +593,57 @@ require_once('includes/header1.php');
 </div>
 
 <script>
+
+  // SMTP toggle
+const smtpToggle = document.getElementById('smtpToggle');
+const smtpFields = document.getElementById('smtpFields');
+if (smtpToggle && smtpFields) {
+    smtpToggle.addEventListener('change', function() {
+        smtpFields.style.opacity        = this.checked ? '1' : '.4';
+        smtpFields.style.pointerEvents  = this.checked ? 'auto' : 'none';
+    });
+}
+
+// Toggle SMTP password
+function toggleSmtpPass() {
+    var inp  = document.getElementById('smtpPass');
+    var icon = document.getElementById('smtpPassIcon');
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+    icon.className = inp.type === 'password' ? 'fa-regular fa-eye' : 'fa-regular fa-eye-slash';
+}
+
+// Test SMTP
+function testSmtp() {
+    var email  = document.getElementById('testEmail').value.trim();
+    var result = document.getElementById('smtpTestResult');
+    if (!email) {
+        result.style.display = 'block';
+        result.style.color   = 'var(--adm-danger)';
+        result.innerHTML     = '<i class="fa-solid fa-circle-xmark"></i> Enter a valid email address.';
+        return;
+    }
+    result.style.display = 'block';
+    result.style.color   = 'var(--adm-muted)';
+    result.innerHTML     = '<i class="fa-regular fa-spinner fa-spin"></i> Sending test email...';
+
+    $.ajax({
+        url: '<?php echo $setting['website_url']; ?>/admin/ajax-test-smtp.php',
+        type: 'POST',
+        data: { email: email },
+        success: function(res) {
+            var data = JSON.parse(res);
+            result.style.color = data.success ? 'var(--adm-success)' : 'var(--adm-danger)';
+            result.innerHTML   = '<i class="fa-solid fa-' + (data.success ? 'circle-check' : 'circle-xmark') + '"></i> ' + data.msg;
+        },
+        error: function() {
+            result.style.color = 'var(--adm-danger)';
+            result.innerHTML   = '<i class="fa-solid fa-circle-xmark"></i> Request failed.';
+        }
+    });
+}
+
+
+
   // Color picker sync
   const bgText = document.getElementById('bgColorText');
   const bgPicker = document.getElementById('bgColorPicker');
