@@ -1,15 +1,18 @@
 <?php
-class Mailer {
+class Mailer
+{
 
     private $db;
     private $setting;
 
-    public function __construct($DB_con, $setting) {
+    public function __construct($DB_con, $setting)
+    {
         $this->db      = $DB_con;
         $this->setting = $setting;
     }
 
-    public function send($to, $subject, $body) {
+    public function send($to, $subject, $body)
+    {
         // Usar PHPMailer si SMTP está habilitado
         if ($this->setting['smtp_enabled'] == '1') {
             return $this->sendSMTP($to, $subject, $body);
@@ -17,7 +20,8 @@ class Mailer {
         return $this->sendMail($to, $subject, $body);
     }
 
-    private function sendMail($to, $subject, $body) {
+    private function sendMail($to, $subject, $body)
+    {
         $fromName  = $this->setting['smtp_from_name']  ?: $this->setting['site_name'];
         $fromEmail = $this->setting['smtp_from_email'] ?: 'noreply@' . $_SERVER['HTTP_HOST'];
         $headers   = "MIME-Version: 1.0\n";
@@ -26,15 +30,30 @@ class Mailer {
         return mail($to, $subject, $body, $headers);
     }
 
-    private function sendSMTP($to, $subject, $body) {
-        // Requiere PHPMailer: composer require phpmailer/phpmailer
+    private function sendSMTP($to, $subject, $body)
+    {
+        // class.mailer.php está en system/classes/
+        // vendor/ está en la raíz del proyecto
+        // Necesitamos subir: classes/ → system/ → logotic/ (raíz)
         $autoload = dirname(__DIR__, 2) . '/vendor/autoload.php';
+
+        error_log('Looking for autoload at: ' . $autoload); // debug temporal
+
         if (!file_exists($autoload)) {
             error_log('PHPMailer not installed. Falling back to mail().');
             return $this->sendMail($to, $subject, $body);
         }
+
         require_once $autoload;
         $mail = new PHPMailer\PHPMailer\PHPMailer(true);
+
+         // ← AGREGA AQUÍ el log
+    error_log('SMTP Config — Host: ' . $this->setting['smtp_host'] 
+        . ' | Port: ' . $this->setting['smtp_port']
+        . ' | Enc: ' . $this->setting['smtp_encryption']
+        . ' | User: ' . $this->setting['smtp_user']
+        . ' | From: ' . $this->setting['smtp_from_email']);
+
         try {
             $mail->isSMTP();
             $mail->Host       = $this->setting['smtp_host'];
@@ -46,8 +65,8 @@ class Mailer {
                 : PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
             $mail->Port       = (int)$this->setting['smtp_port'];
             $mail->setFrom(
-                $this->setting['smtp_from_email'],
-                $this->setting['smtp_from_name'] ?: $this->setting['site_name']
+                $this->setting['smtp_from_email'] ?: 'noreply@' . $_SERVER['HTTP_HOST'],
+                $this->setting['smtp_from_name']  ?: $this->setting['site_name']
             );
             $mail->addAddress($to);
             $mail->isHTML(true);
@@ -57,12 +76,14 @@ class Mailer {
             $mail->send();
             return true;
         } catch (Exception $e) {
-            error_log('SMTP error: ' . $e->getMessage());
+            error_log('PHPMailer error: ' . $mail->ErrorInfo);
             return false;
         }
     }
 
-    public function template($title, $content, $btnText = null, $btnUrl = null) {
+
+    public function template($title, $content, $btnText = null, $btnUrl = null)
+    {
         $siteName = $this->setting['site_name'];
         $siteUrl  = $this->setting['website_url'];
         $logo     = $siteUrl . '/system/assets/uploads/img/' . $this->setting['site_favicon'];

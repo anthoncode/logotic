@@ -1,0 +1,13 @@
+{
+    "require": {
+        "phpmailer/phpmailer": "^7.1",
+        "google/apiclient": "^2.15"
+    },
+    "config": {
+        "policy": {
+            "advisories": {
+                "block": false
+            }
+        }
+    }
+}

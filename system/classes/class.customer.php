@@ -193,36 +193,21 @@ class Customer
 
     public function generateCsrfToken()
     {
-        $token     = bin2hex(random_bytes(32));
-        $sessionId = session_id();
-        $expires   = date('Y-m-d H:i:s', time() + 3600);
-
-        // Limpiar tokens viejos
-        $this->db->prepare("DELETE FROM " . PFX . "csrf_tokens WHERE expires_at < NOW()")->execute();
-
-        $stmt = $this->db->prepare("
-            INSERT INTO " . PFX . "csrf_tokens (token, session_id, expires_at)
-            VALUES (:token, :sid, :exp)
-        ");
-        $stmt->execute([':token' => $token, ':sid' => $sessionId, ':exp' => $expires]);
-
-        $_SESSION['csrf_token'] = $token;
-        return $token;
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            session_start();
+        }
+        if (empty($_SESSION['csrf_token'])) {
+            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+        }
+        return $_SESSION['csrf_token'];
     }
 
     public function validateCsrfToken($token)
     {
-        if (empty($token) || empty($_SESSION['csrf_token'])) return false;
-        if (!hash_equals($_SESSION['csrf_token'], $token)) return false;
-
-        $stmt = $this->db->prepare("
-            SELECT id FROM " . PFX . "csrf_tokens
-            WHERE token = :token
-              AND session_id = :sid
-              AND expires_at > NOW()
-        ");
-        $stmt->execute([':token' => $token, ':sid' => session_id()]);
-        return (bool)$stmt->fetchColumn();
+        if (empty($token) || empty($_SESSION['csrf_token'])) {
+            return false;
+        }
+        return hash_equals($_SESSION['csrf_token'], $token);
     }
 
     // ══════════════════════════════════════════════
@@ -810,17 +795,30 @@ class Customer
     {
         global $setting, $mailer;
 
-        $token   = bin2hex(random_bytes(32));
-        $expires = date('Y-m-d H:i:s', time() + 86400); // 24 horas
+        error_log('sendVerificationEmail called for: ' . $email);
+        error_log('mailer exists: ' . (isset($mailer) ? 'yes' : 'NO'));
+        error_log('email_verification setting: ' . ($setting['email_verification'] ?? 'NOT SET'));
 
-        $stmt = $this->db->prepare("
-        UPDATE " . PFX . "users
-        SET email_token = :token, email_token_expires = :expires
-        WHERE id = :id
-    ");
-        $stmt->execute([':token' => $token, ':expires' => $expires, ':id' => $userId]);
+        $token   = bin2hex(random_bytes(32));
+        $expires = date('Y-m-d H:i:s', time() + 86400);
+
+        error_log('Token generated: ' . $token);
+
+        try {
+            $stmt = $this->db->prepare("
+            UPDATE " . PFX . "users
+            SET email_token = :token, email_token_expires = :expires
+            WHERE id = :id
+        ");
+            $result = $stmt->execute([':token' => $token, ':expires' => $expires, ':id' => $userId]);
+            error_log('Token saved to DB: ' . ($result ? 'yes' : 'NO'));
+        } catch (Exception $e) {
+            error_log('DB error saving token: ' . $e->getMessage());
+            return false;
+        }
 
         $verifyUrl = $setting['website_url'] . '/user/verify-email.php?token=' . $token;
+        error_log('Verify URL: ' . $verifyUrl);
 
         $body = $mailer->template(
             'Verify your email address',
@@ -831,7 +829,11 @@ class Customer
             $verifyUrl
         );
 
-        return $mailer->send($email, 'Verify your email — ' . $setting['site_name'], $body);
+        error_log('Template generated, sending email...');
+        $sent = $mailer->send($email, 'Verify your email — ' . $setting['site_name'], $body);
+        error_log('Email sent result: ' . ($sent ? 'YES' : 'NO'));
+
+        return $sent;
     }
 
     public function verifyEmailToken($token)

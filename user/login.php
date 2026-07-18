@@ -5,8 +5,8 @@ error_reporting(E_ALL);
 require_once('../system/config-user.php');
 
 // Configuración Google OAuth
-$googleClientId     = '648071122021-kbdish25vulmve3por1f6lfc6hbt1uli.apps.googleusercontent.com';
-$googleRedirectUri  = $setting['website_url'] . '/user/google-callback.php';
+$googleClientId    = $setting['google_client_id']    ?? '';
+$googleEnabled     = ($setting['google_oauth_enabled'] ?? '0') == '1' && !empty($googleClientId);
 
 $pageTitle = 'Sign In';
 $pageMeta  = 'Sign in to your Logotic account';
@@ -569,7 +569,7 @@ if (isset($_GET['error'])) {
         <?php endif; ?>
 
         <!-- Google -->
-        <?php if ($setting['login'] == 1): ?>
+       <?php if ($googleEnabled && $setting['login'] == '1'): ?>
         <a href="<?php echo htmlspecialchars($googleAuthUrl); ?>" class="btn-google">
             <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OCA0OCI+PHBhdGggZmlsbD0iI0ZGQzEwNyIgZD0iTTQzLjYxMSwyMC4wODNIMjRWMjguMDgzSDM1LjMwMkMzMy4yNTMsMzMuNzI0LDI5LjA5NSwzNy4xMjMsMjQsMzcuMTIzQzE4LjA3MywzNy4xMjMsMTMuMzA5LDMyLjM1OSwxMy4zMDksMjYuNDMyQzEzLjMwOSwyMC41MDUsMTguMDczLDE1Ljc0MSwyNCwxNS43NDFDMjYuNzU5LDE1Ljc0MSwyOS4yNDYsMTYuNzQ2LDMxLjEzMSwxOC40MjNMMzYuNzA5LDEyLjg0NUM0MC44MzMsOS4xMzgsMzYuNzEzLDUuOTU5LDMyLjg5MSw2QzI4Ljk3Miw2LjA0MiwyNS4xNDIsNy4xNzEsMjEuNzkyLDkuMjQ4QzE1LjgyNywxMi45OTYsMTEuNzQ0LDE5LjIxMiwxMS43NDQsMjYuNDMyQzExLjc0NCwzNy4wNzQsMjAuMzU4LDQ1LjY4OCwzMC45OTksNDUuNjg4QzM4LjQ2NSw0NS42ODgsNDQuOTk5LDQxLjUzNiw0Ny44NzgsMzUuMTU3TDQ3Ljg3OCwzNS4xNTdDNDkuNTg5LDMxLjM3OCw0OS44OTcsMjYuOTgxLDQ4LjU1LDIyLjk0QzQ4LjAyOCwyMS4yMiw0Ni4xMzIsMjAuMDgzLDQzLjYxMSwyMC4wODNaIi8+PHBhdGggZmlsbD0iI0ZGMzMwMCIgZD0iTTYuMzA2LDE0LjY5MUwxMi44NzcsMTkuNTFDMTQuNjMxLDE0Ljk0NyAxOS4wMDgsMTEuNzQxIDI0LDExLjc0MUMyNi43NTksMTEuNzQxIDI5LjI0NiwxMi43NDYgMzEuMTMxLDE0LjQyM0wzNi43MDksOC44NDVDNDAUODE0LDUuMTM4IDM2LjcxMywxLjk1OSAzMi44OTEsMkMyNS42MjYsMi4wNjQgMTkuMjE5LDYuMjE5IDE1LjEzNywxMS42NzkgMTQuMDgzLDEzLjA5IDYuMzA2LDE0LjY5MSA2LjMwNiwxNC42OTFaIi8+PHBhdGggZmlsbD0iIzRDQUYzRSIgZD0iTTI0LDQ0QzI5LjQ4Myw0NCAzMy45NjIsNDEuOTYzIDM3LjE0NCwzOC42NzNMMzEuMDU2LDMzLjI2NkMyOS4yNjMsMzQuNTkgMjcuMjEzLDM1LjMwNCAxNS45ODYsMzUuMzA0TDE1LjI3NywzNS4zMDRDMTIuNjE1LDM1LjE5MiA4LjQ3NCwzMy4yNjYgNi4zMDYsMzMuMjY2TDYuMzA2LDMzLjI2NkMxMC42MDIsMzkuNjAzIDE2Ljg3OCw0NCAyNCw0NFoiLz48cGF0aCBmaWxsPSIjMTk3NkQyIiBkPSJNNDMuNjExLDIwLjA4M0gyNFYyOC4wODNIMzUuMzAyQzM0LjI0MywzMS4xMjEgMzIuMzY1LDMzLjU5NiAzMC4wNTYsMzUuMjY2TDMxLjA1NiwzMy4yNjZDMzMuNDA4LDMxLjc0MSAzNS4zMDIsMjkuNjkxIDM2LjM2NCwyNy4wMzNMMzYuMzY0LDI3LjAzM0M0MS4wMjksMjcuMDMzIDQ0LjE0NiwyMy4yMzggNDMuNjExLDIwLjA4M1oiLz48L3N2Zz4=" alt="Google">
             Continue with Google

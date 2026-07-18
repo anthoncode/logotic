@@ -66,13 +66,16 @@ if (isset($_REQUEST['save'])) {
       break;
 
     case 'security':
-      $newsettings = [
-        'site_key_captcha'   => trim($_POST['site_key_captcha']   ?? ''),
-        'secret_key_captcha' => trim($_POST['secret_key_captcha'] ?? ''),
-      ];
-      $settings->update($newsettings);
-      $activeTab = 'security';
-      break;
+    $newsettings = [
+        'site_key_captcha'    => trim($_POST['site_key_captcha']    ?? ''),
+        'secret_key_captcha'  => trim($_POST['secret_key_captcha']  ?? ''),
+        'google_client_id'    => trim($_POST['google_client_id']    ?? ''),
+        'google_client_secret'=> trim($_POST['google_client_secret']?? ''),
+        'google_oauth_enabled'=> isset($_POST['google_oauth_enabled']) ? '1' : '0',
+    ];
+    $settings->update($newsettings);
+    $activeTab = 'security';
+    break;
 
     case 'email':
       $smtpHost  = trim($_POST['smtp_host']       ?? '');
@@ -283,25 +286,96 @@ require_once('includes/header1.php');
 
     <!-- ── SECURITY ── -->
   <?php elseif ($activeTab === 'security'): ?>
-    <form action="settings.php?tab=security" method="POST">
-      <input type="hidden" name="save" value="security">
-      <div class="adm-card">
+<form action="settings.php?tab=security" method="POST">
+    <input type="hidden" name="save" value="security">
+
+    <!-- reCAPTCHA -->
+    <div class="adm-card" style="margin-bottom:1rem;">
         <div class="adm-card-title"><i class="fa-regular fa-shield"></i> Google reCAPTCHA v2</div>
         <div class="adm-field">
-          <label class="adm-label">Site Key (public)</label>
-          <input class="adm-input" type="text" name="site_key_captcha" value="<?php echo htmlspecialchars($setting['site_key_captcha'] ?? ''); ?>" placeholder="6LeT72gi...">
+            <label class="adm-label">Site Key (public)</label>
+            <input class="adm-input" type="text" name="site_key_captcha"
+                   value="<?php echo htmlspecialchars($setting['site_key_captcha'] ?? ''); ?>"
+                   placeholder="6LeT72gi...">
         </div>
         <div class="adm-field">
-          <label class="adm-label">Secret Key (private)</label>
-          <input class="adm-input" type="text" name="secret_key_captcha" value="<?php echo htmlspecialchars($setting['secret_key_captcha'] ?? ''); ?>" placeholder="6LeT72gi...">
+            <label class="adm-label">Secret Key (private)</label>
+            <input class="adm-input" type="text" name="secret_key_captcha"
+                   value="<?php echo htmlspecialchars($setting['secret_key_captcha'] ?? ''); ?>"
+                   placeholder="6LeT72gi...">
         </div>
         <p style="font-size:.75rem;color:var(--adm-muted);margin-top:.5rem;">
-          <i class="fa-regular fa-circle-info"></i> Get your keys at
-          <a href="https://www.google.com/recaptcha/admin/create" target="_blank" style="color:var(--adm-accent);">google.com/recaptcha</a>
+            <i class="fa-regular fa-circle-info"></i> Get your keys at
+            <a href="https://www.google.com/recaptcha/admin/create" target="_blank"
+               style="color:var(--adm-accent);">google.com/recaptcha</a>
         </p>
-      </div>
-      <button class="adm-save" type="submit"><i class="fa-regular fa-floppy-disk"></i> Save Security</button>
-    </form>
+    </div>
+
+    <!-- Google OAuth -->
+    <div class="adm-card" style="margin-bottom:1rem;">
+        <div class="adm-card-title"><i class="fa-brands fa-google"></i> Google OAuth</div>
+
+        <label class="adm-toggle" style="margin-bottom:1rem;">
+            <div>
+                <div class="adm-toggle-label">Enable Google Sign-In</div>
+                <div class="adm-toggle-sub">Show "Sign in with Google" button on login and register</div>
+            </div>
+            <label class="adm-switch">
+                <input type="checkbox" name="google_oauth_enabled"
+                       <?php echo ($setting['google_oauth_enabled'] ?? '0') == '1' ? 'checked' : ''; ?>>
+                <span class="adm-slider"></span>
+            </label>
+        </label>
+
+        <div class="adm-field">
+            <label class="adm-label">Client ID</label>
+            <input class="adm-input" type="text" name="google_client_id"
+                   value="<?php echo htmlspecialchars($setting['google_client_id'] ?? ''); ?>"
+                   placeholder="648071122021-xxx.apps.googleusercontent.com">
+        </div>
+        <div class="adm-field">
+            <label class="adm-label">Client Secret</label>
+            <div style="position:relative;">
+                <input class="adm-input" type="password" name="google_client_secret"
+                       id="googleSecret"
+                       value="<?php echo htmlspecialchars($setting['google_client_secret'] ?? ''); ?>"
+                       placeholder="GOCSPX-..."
+                       style="padding-right:2.5rem;">
+                <button type="button"
+                        onclick="toggleGoogleSecret()"
+                        style="position:absolute;right:.7rem;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--adm-muted);cursor:pointer;font-size:.85rem;padding:0;">
+                    <i class="fa-regular fa-eye" id="googleSecretIcon"></i>
+                </button>
+            </div>
+        </div>
+        <div style="background:rgba(212,255,0,.05);border:1px solid rgba(212,255,0,.15);border-radius:10px;padding:.85rem 1rem;font-size:.75rem;color:var(--adm-muted);">
+            <div style="font-weight:600;color:var(--adm-accent);margin-bottom:.4rem;">
+                <i class="fa-regular fa-circle-info"></i> Required Authorized Redirect URIs
+            </div>
+            <div style="font-family:monospace;font-size:.72rem;margin-bottom:.2rem;">
+                <?php echo $setting['website_url']; ?>/user/google-callback.php
+            </div>
+            <div style="font-size:.7rem;margin-top:.4rem;">
+                Add this URL in <a href="https://console.cloud.google.com/apis/credentials"
+                target="_blank" style="color:var(--adm-accent);">Google Cloud Console</a>
+                → Credentials → OAuth Client → Authorized redirect URIs
+            </div>
+        </div>
+    </div>
+
+    <button class="adm-save" type="submit">
+        <i class="fa-regular fa-floppy-disk"></i> Save Security
+    </button>
+</form>
+
+<script>
+function toggleGoogleSecret() {
+    var inp  = document.getElementById('googleSecret');
+    var icon = document.getElementById('googleSecretIcon');
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+    icon.className = inp.type === 'password' ? 'fa-regular fa-eye' : 'fa-regular fa-eye-slash';
+}
+</script>
 
     <!-- ── APPEARANCE ── -->
      <!-- ── EMAIL & SMTP ── -->
