@@ -106,7 +106,7 @@ function get_timeago($ptime) {
 // ── Archivos excluidos del check de sesión ──
 $excluded = [
     'login.php', 'register.php', 'recover.php',
-    'resetpwd.php', 'google-callback.php',
+    'resetpwd.php', 'google-callback.php', 'google-onetap.php',
     'facebook.php', 'json-load.php', 'buy.php'
 ];
 

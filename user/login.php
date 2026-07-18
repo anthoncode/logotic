@@ -5,7 +5,8 @@ error_reporting(E_ALL);
 require_once('../system/config-user.php');
 
 // Configuración Google OAuth
-$googleClientId    = $setting['google_client_id']    ?? '';
+$googleClientId    = $setting['google_client_id'] ?? '';
+$googleRedirectUri = $setting['website_url'] . '/user/google-callback.php';  // ← AGREGA ESTA LÍNEA
 $googleEnabled     = ($setting['google_oauth_enabled'] ?? '0') == '1' && !empty($googleClientId);
 
 $pageTitle = 'Sign In';
@@ -733,6 +734,8 @@ if (digits.length) {
 
     digits[0]?.focus();
 }
+
+
 </script>
 
 </body>

@@ -44,32 +44,12 @@
 
 <body>
 
-  <div id="js-favourites" class="off-canvas-panel">
-    <button class="btn js-close btn-close btn-sm btn-outline-primary">Close</button>
-    <div class="heading">
-      <a class="text-dark" href="<?php echo $setting['website_url']; ?>"><?php if (empty($setting['site_logo'])) { ?><?php echo $setting['site_name']; ?><?php } else { ?><img src="<?php echo $setting['website_url'] . "/system/assets/uploads/img/" . $setting['site_logo']; ?>" width="" height="30"><?php } ?></a>
-    </div>
-    <div class="inner">
-
-      <ul class="list-group list-group-flush">
-        <li class="list-group-item"><a href="<?php echo $setting['website_url']; ?>">Website</a></li>
-        <li class="list-group-item">About</li>
-        <li class="list-group-item">Contact Us</li>
-        <li class="list-group-item">News</li>
-      </ul>
-
-    </div>
-    <a class="btn btn-primary btn-lg" href="<?php echo $setting['website_url']; ?>/user/login.php?logout">Sign Out</a>
-
-  </div>
 
 
   <header class="blog-header py-3 bg-white">
     <div class="container">
       <div class="row flex-nowrap justify-content-between align-items-center">
-        <div class="col-4 pt-0">
-          <a class="text-muted js-open" data-target="#js-favourites" aria-controls="js-favourites"><i class="fa fa-bars" aria-hidden="true"></i></a>
-        </div>
+
         <div class="col-4 text-center">
           <a class="text-dark" href="<?php echo $setting['website_url']; ?>"><?php if (empty($setting['site_logo'])) { ?><?php echo $setting['site_name']; ?><?php } else { ?><img src="<?php echo $setting['website_url'] . "/system/assets/uploads/img/" . $setting['site_logo']; ?>" width="" height="30"><?php } ?></a>
         </div>

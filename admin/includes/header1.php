@@ -502,6 +502,8 @@ document.addEventListener('click', function(e) {
         sidebar.classList.remove('open');
     }
 });
+
+
 </script>
 
 <?php else: ?>

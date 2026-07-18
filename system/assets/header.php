@@ -113,6 +113,17 @@
 </head>
 
 <body>
+  <?php if ($googleEnabled): ?>
+<!-- Google One Tap -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<div id="g_id_onload"
+     data-client_id="<?php echo htmlspecialchars($googleClientId); ?>"
+     data-callback="handleOneTap"
+     data-auto_prompt="true"
+     data-cancel_on_tap_outside="false">
+</div>
+<?php endif; ?>
+
   <?php if (!empty($setting['global_message'])) { ?>
     <div class="alert box-shadow text-center alert-<?php echo $setting['alert_type']; ?> alert-dismissible fade show mb-0 rounded-0" role="alert">
       <?php echo $setting['global_message']; ?>
@@ -313,4 +324,41 @@
         megaOverlay.classList.remove('open');
       });
     });
+
+
   </script>
+
+  <?php
+// Google One Tap — disponible en todo el sitio
+$oneTapEnabled = ($setting['google_oauth_enabled'] ?? '0') == '1'
+    && !empty($setting['google_client_id'])
+    && !$user->is_loggedin(); // solo si NO ha iniciado sesión
+?>
+<?php if ($oneTapEnabled): ?>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<div id="g_id_onload"
+     data-client_id="<?php echo htmlspecialchars($setting['google_client_id']); ?>"
+     data-callback="handleOneTap"
+     data-auto_prompt="true"
+     data-cancel_on_tap_outside="false">
+</div>
+<script>
+function handleOneTap(response) {
+    fetch('<?php echo $setting['website_url']; ?>/user/google-onetap.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ credential: response.credential })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.success) {
+            window.location.reload();
+        } else {
+            console.error('One Tap failed:', data.error);
+        }
+    })
+    .catch(function(err) { console.error('One Tap error:', err); });
+}
+</script>
+<?php endif; ?>
