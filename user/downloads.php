@@ -1,111 +1,190 @@
 <?php
 ini_set('display_errors', 0);
-ini_set('display_startup_errors', 0);
 error_reporting(E_ALL);
 
-$pageTitle = 'Downloads';
+$pageTitle = 'My Downloads';
 $pg = '2';
-require_once('../system/config-user.php');
-//$sales = $purchases->all($crypt->decrypt($_SESSION['uid'],'USER'));
-$sales = $purchases->all($crypt->decrypt($_SESSION['uid'], 'USER')); //class.sale.php
-$currpage = (isset($_GET['page'])) ? $_GET['page'] : 1;
-$maxres = 5;
-$num = count($sales);
-$pages = $num / $maxres;
-$pages = ceil($pages);
-$start = ($currpage - 1) * $maxres;
-$last = $start + $maxres - 1;
-require_once('includes/header.php');
-if (isset($_GET['type']) && isset($_GET['msg'])) {
-  echo  "<div class=\"alert mt-3 " . $_GET['type'] . "\" style=\"display:block;\">" . $_GET['msg'] . "<button type=\"button\" class=\"close\" data-dismiss=\"alert\">&times;</button></div>";
-} ?>
 
-<div class="alert alert-primary alert-dismissible fade show mb-0 mt-3" role="alert">
-  This is your download history in Logotic
+require_once('../system/config-user.php');
+
+$uid = $crypt->decrypt($_SESSION['uid'], 'USER');
+
+// Paginación
+$currpage = max(1, (int)($_GET['page'] ?? 1));
+$maxres   = 18;
+$start    = ($currpage - 1) * $maxres;
+
+// Total
+$countStmt = $DB_con->prepare("SELECT COUNT(*) FROM " . PFX . "downloads WHERE user_id = :uid");
+$countStmt->execute([':uid' => $uid]);
+$total = $countStmt->fetchColumn();
+$pages = ceil($total / $maxres);
+
+// Descargas
+$stmt = $DB_con->prepare("
+    SELECT p.id, p.name, p.slug_lg, p.icon_img, d.date_created
+    FROM " . PFX . "downloads d
+    INNER JOIN " . PFX . "products p ON d.products_id = p.id
+    WHERE d.user_id = :uid
+    ORDER BY d.date_created DESC
+    LIMIT :start, :maxres
+");
+$stmt->bindValue(':uid', $uid, PDO::PARAM_INT);
+$stmt->bindValue(':start', $start, PDO::PARAM_INT);
+$stmt->bindValue(':maxres', $maxres, PDO::PARAM_INT);
+$stmt->execute();
+$downloads = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+require_once('includes/header.php');
+?>
+
+<div class="user-panel-head">
+    <h1>My Downloads</h1>
+    <p><?php echo number_format($total); ?> logo<?php echo $total !== 1 ? 's' : ''; ?> downloaded</p>
 </div>
 
-<div class="row">
-  <div class="col-4">
-    <div class="my-3 p-3 bg-white rounded box-shadow">
-      <?php include 'includes/sidenav.php'; ?>
+<style>
+.logo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 1rem;
+}
+
+.logo-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
+    padding: 1rem;
+    text-align: center;
+    text-decoration: none;
+    transition: var(--transition);
+    position: relative;
+}
+
+.logo-card:hover {
+    border-color: rgba(212,255,0,.3);
+    transform: translateY(-3px);
+}
+
+.logo-card-img {
+    width: 100%;
+    aspect-ratio: 1;
+    background: #fff;
+    border-radius: 10px;
+    padding: 12px;
+    object-fit: contain;
+    margin-bottom: .6rem;
+}
+
+.logo-card-name {
+    font-size: .8rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.logo-card-date {
+    font-size: .68rem;
+    color: var(--text-muted);
+    margin-top: .2rem;
+}
+
+.logo-card-redl {
+    position: absolute;
+    top: .5rem; right: .5rem;
+    width: 28px; height: 28px;
+    background: rgba(13,15,28,.8);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+    font-size: .75rem;
+    opacity: 0;
+    transition: opacity .2s;
+}
+
+.logo-card:hover .logo-card-redl { opacity: 1; }
+
+.up-empty {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--text-muted);
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
+}
+
+.up-empty i { font-size: 3rem; color: var(--border); display: block; margin-bottom: 1rem; }
+.up-empty a { color: var(--accent); text-decoration: none; }
+
+.up-pagination {
+    display: flex;
+    justify-content: center;
+    gap: .4rem;
+    margin-top: 2rem;
+}
+
+.up-page-btn {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: 8px;
+    padding: .5rem 1rem;
+    font-size: .82rem;
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+.up-page-btn:hover, .up-page-btn.active {
+    background: var(--accent);
+    color: #0d0f1c;
+    border-color: var(--accent);
+    font-weight: 700;
+}
+</style>
+
+<?php if (empty($downloads)): ?>
+    <div class="up-empty">
+        <i class="fa-regular fa-download"></i>
+        <p>You haven't downloaded any logos yet.</p>
+        <a href="<?php echo $setting['website_url']; ?>">Browse the collection →</a>
     </div>
-  </div>
-  <div class="col-8 pl-0">
-    <?php if ($num > 0) {
-    ?>
-      <div class="my-3 p-3 bg-white rounded box-shadow">
-        <table class="table">
-          <thead>
-            <tr>
-              <th scope="col">img</th>
-              <th scope="col">Product Name</th>
-              <th scope="col">Date</th>
-              <th scope="col"></th>
-            </tr>
-          </thead>
-          <tbody>
-            <?php
-            /*for($i = $start; $i <= $last; $i++) {
-if(!isset($sales[$i])){
-break;
-}*/
-            //$pro_details= $product->details_downloads($sales[$i]['id']);
-            //$prod1 = $product->details($sales[$i]['id']);
-            //$prod0 = $product->details($sales[$i]['id']);
-            //$prod1 = $sales[$i]['id'];
-            //$tran_details= $transaction->details($sales[$i]['transaction_id']);
-            foreach ($sales as $salee) {
-              if ($salee['products_id'] != '0') {
-                $prod = $product->details_downloads($salee['products_id']);
-                $prod1 = $prod['name'];
-                $prod2 = $prod['description'];
-              }
-            ?>
+<?php else: ?>
+    <div class="logo-grid">
+        <?php foreach ($downloads as $d): ?>
+            <a href="<?php echo $setting['website_url'] . '/item/' . $d['id'] . '/' . $d['slug_lg'] . '/'; ?>"
+               class="logo-card" title="<?php echo htmlspecialchars($d['name']); ?>">
+                <div class="logo-card-redl"><i class="fa-regular fa-arrow-down-to-line"></i></div>
+                <img class="logo-card-img"
+                     src="<?php echo $setting['website_url']; ?>/system/assets/uploads/vector-files/<?php echo $d['icon_img']; ?>"
+                     alt="<?php echo htmlspecialchars($d['name']); ?>">
+                <div class="logo-card-name"><?php echo htmlspecialchars($d['name']); ?></div>
+                <div class="logo-card-date">
+                    <?php echo $d['date_created'] ? date('d M Y', strtotime($d['date_created'])) : ''; ?>
+                </div>
+            </a>
+        <?php endforeach; ?>
+    </div>
 
-              <tr>
-                <td class="align-middle"><a href="<?php echo $setting['website_url'] . '/item/' . $sales[$i]['pro_id']; ?>/"><img class="img-fluid rounded" width="80" height="80" src="../system/assets/uploads/vector-files/<?php echo $pro_details['icon_img']; ?>" /></a></td>
-                <td class="align-middle"><b><?php echo $prod1; ?></b></td>
-                <td class="align-middle"><?php echo $prod2; ?></td>
-                <td class="align-middle">
-                  <div class="btn-group"><a href="download.php?id=<?php echo $sales[$i]['pro_id']; ?>" class="btn btn-primary">Download <i class="fa fa-cloud-download" aria-hidden="true"></i></a><button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                      <span class="sr-only">Toggle Dropdown</span>
-                    </button>
-                    <div class="dropdown-menu dropdown-menu-right">
-                      <form id="myform" method="post" action="invoice.php">
-                        <input type="hidden" name="product-name" value="<?php echo $pro_details['name']; ?>">
-                        <input type="hidden" name="product-date" value="<?php echo $sales[$i]['date']; ?>">
-                        <input type="hidden" name="product-downloaded" value="<?php echo ($sales[$i]['downloaded'] == '1' ? 'Yes' : 'No'); ?>">
-                        <input type="hidden" name="product-price" value="<?php echo $tran_details['amount']; ?>">
-                        <button class="dropdown-item" type="submit">Generate Invoice</button>
-                      </form>
-                    </div>
-                  </div>
-                </td>
-              </tr>
+    <?php if ($pages > 1): ?>
+    <div class="up-pagination">
+        <?php if ($currpage > 1): ?>
+            <a href="?page=<?php echo $currpage - 1; ?>" class="up-page-btn">←</a>
+        <?php endif; ?>
+        <?php for ($i = 1; $i <= $pages; $i++): ?>
+            <a href="?page=<?php echo $i; ?>" class="up-page-btn <?php echo $i == $currpage ? 'active' : ''; ?>">
+                <?php echo $i; ?>
+            </a>
+        <?php endfor; ?>
+        <?php if ($currpage < $pages): ?>
+            <a href="?page=<?php echo $currpage + 1; ?>" class="up-page-btn">→</a>
+        <?php endif; ?>
+    </div>
+    <?php endif; ?>
+<?php endif; ?>
 
-            <?php } ?>
-          </tbody>
-        </table>
-      </div>
-      <br>
-      <ul class="pagination justify-content-center">
-        <?php
-        $back = (($currpage == 1) ? '#' : 'downloads.php?page=' . ($currpage - 1));
-        $next = (($currpage == $pages) ? 'downloads.php?page=' . $currpage : 'downloads.php?page=' . ($currpage + 1));
-        ?>
-        <li class="page-item">
-          <a class="page-link" <?php echo ($currpage == 1) ? "class='disabled'" : ''; ?> data-toggle="tooltip" data-placement="top" title="Previous" href="<?php echo $back; ?>" tabindex="-1"><i class="fa fa-chevron-left" aria-hidden="true"></i></a>
-        </li>
-        <li class="page-item">
-          <a class="page-link" <?php echo ($currpage == $pages) ? "class='disabled'" : ''; ?> data-toggle="tooltip" data-placement="top" title="Next" href="<?php echo $next; ?>"><i class="fa fa-chevron-right" aria-hidden="true"></i></a>
-        </li>
-      </ul>
-
-    <?php
-    } else {
-      echo  "<div class='my-3 p-3 bg-white rounded box-shadow'><div class='alert alert-primary mb-0'>You have not purchased anything!</div></div>";
-    } ?>
-  </div>
-
-  <?php require_once('includes/footer.php');
-  ?>
+<?php require_once('includes/footer.php'); ?>

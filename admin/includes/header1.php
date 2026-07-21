@@ -342,9 +342,6 @@ $allPending  = $product->countPending();
             <i class="fa-regular fa-folder"></i> Categories
         </div>
         <div class="adm-submenu <?php echo in_array($currentPage, ['categories.php','add-category.php','all-category.php']) ? 'open' : ''; ?>" id="subCats">
-            <a href="<?php echo $setting['website_url']; ?>/admin/categories.php" class="adm-nav-item <?php echo $currentPage === 'categories.php' ? 'active' : ''; ?>">
-                <i class="fa-regular fa-list"></i> All Categories
-            </a>
             <a href="<?php echo $setting['website_url']; ?>/admin/add-category.php" class="adm-nav-item <?php echo $currentPage === 'add-category.php' ? 'active' : ''; ?>">
                 <i class="fa-regular fa-plus"></i> Add Category
             </a>
@@ -368,14 +365,14 @@ $allPending  = $product->countPending();
         <!-- Content -->
         <div class="adm-nav-section">Content</div>
 
-        <div class="adm-nav-item has-sub <?php echo in_array($currentPage, ['custom-pages.php','add-page.php']) ? 'open active' : ''; ?>" onclick="toggleSub(this, 'subPages')">
+        <div class="adm-nav-item has-sub <?php echo in_array($currentPage, ['all-pages.php','new-page.php']) ? 'open active' : ''; ?>" onclick="toggleSub(this, 'subPages')">
             <i class="fa-regular fa-file"></i> Custom Pages
         </div>
-        <div class="adm-submenu <?php echo in_array($currentPage, ['custom-pages.php','add-page.php']) ? 'open' : ''; ?>" id="subPages">
-            <a href="<?php echo $setting['website_url']; ?>/admin/custom-pages.php" class="adm-nav-item">
+        <div class="adm-submenu <?php echo in_array($currentPage, ['all-pages.php','new-page.php']) ? 'open' : ''; ?>" id="subPages">
+            <a href="<?php echo $setting['website_url']; ?>/admin/all-pages.php" class="adm-nav-item">
                 <i class="fa-regular fa-list"></i> All Pages
             </a>
-            <a href="<?php echo $setting['website_url']; ?>/admin/add-page.php" class="adm-nav-item">
+            <a href="<?php echo $setting['website_url']; ?>/admin/new-page.php" class="adm-nav-item">
                 <i class="fa-regular fa-plus"></i> Add Page
             </a>
         </div>
@@ -401,7 +398,7 @@ $allPending  = $product->countPending();
             <a href="<?php echo $setting['website_url']; ?>/admin/new-post.php" class="adm-nav-item">
                 <i class="fa-regular fa-plus"></i> Add Post
             </a>
-            <a href="<?php echo $setting['website_url']; ?>/admin/cat-post.php" class="adm-nav-item">
+            <a href="<?php echo $setting['website_url']; ?>/admin/post-categories.php" class="adm-nav-item">
                 <i class="fa-regular fa-plus"></i> Add Categories
             </a>
         </div>

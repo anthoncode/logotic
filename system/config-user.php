@@ -25,7 +25,7 @@ $myLang = "en";
 include_once('lang/' . $myLang . '.php');
 
 // ── Sesión segura ──
-$sessionLifetime = 172800; // 48 horas
+$sessionLifetime = 2592000; // 30 días
 
 ini_set('session.gc_maxlifetime', $sessionLifetime);
 ini_set('session.cookie_lifetime', $sessionLifetime);
@@ -40,10 +40,30 @@ if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') {
     ini_set('session.cookie_secure', 1);
 }
 
+// Carpeta propia de sesiones (evita que macOS/XAMPP limpie /tmp)
+$sessionPath = __DIR__ . '/sessions';
+if (!is_dir($sessionPath)) {
+    @mkdir($sessionPath, 0700, true);
+}
+if (is_dir($sessionPath) && is_writable($sessionPath)) {
+    ini_set('session.save_path', $sessionPath);
+}
+
 session_name('DSP');
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
+}
+
+// Renovar la cookie en cada visita: el mes cuenta desde la última actividad
+if (isset($_SESSION['uid'])) {
+    setcookie(session_name(), session_id(), [
+        'expires'  => time() + $sessionLifetime,
+        'path'     => '/',
+        'httponly' => true,
+        'samesite' => 'Lax',
+        'secure'   => (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on'),
+    ]);
 }
 
 // ── Headers de seguridad ──
@@ -76,11 +96,11 @@ $purchases = new Sale($DB_con);
 $newsl    = new News($DB_con);
 $wishlist  = new Wishlist($DB_con);
 
-include_once 'classes/class.mailer.php';
-$mailer = new Mailer($DB_con, $setting);
-
 // ── Settings ──
 $setting = $settings->get_all();
+
+include_once 'classes/class.mailer.php';
+$mailer = new Mailer($DB_con, $setting);
 
 // ── Helpers ──
 function get_timeago($ptime) {

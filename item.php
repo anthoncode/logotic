@@ -93,8 +93,6 @@ if (isset($_GET['id'])) {
 ?>
 
 
-
-
   <!-- ─── DOWNLOAD TOAST ─── -->
   <div id="downloadToast">
     <div class="toast-ring-wrap">
@@ -166,7 +164,7 @@ if (isset($_GET['id'])) {
           <div class="stats">
             <div class="stat-item">
               <i class="fa-regular fa-eye"></i>
-              <span class="stat-value"><?php echo $row['views']; ?></span>
+              <span class="stat-value"><?php echo number_format($details['views']); ?></span>
             </div>
             <div class="stat-item" id="downloadCount">
               <i class="fa-solid fa-download"></i>
@@ -181,17 +179,42 @@ if (isset($_GET['id'])) {
 
 
           <div class="owner-card">
-            <div class="owner-avatar">🌸</div>
-            <div class="owner-info">
-              <div class="owner-label">Owned By</div>
-              <div class="owner-name">
-                <?php if ($details['submit_user_id'] == 0) {
-                  echo "Logotic";
-                } else {
-                  $uploader = $author['username'];
-                  echo $uploader;
-                } ?>
+            <?php
+            $isSystemUpload = ($details['submit_user_id'] == 0);
+            $uploaderName   = $isSystemUpload ? $setting['site_name'] : ($author['username'] ?? 'User');
+            $uploaderPhoto  = $isSystemUpload ? '' : ($author['profile'] ?? '');
+            // Considerar "sin foto" si está vacía o es la imagen por defecto
+            $hasPhoto = !$isSystemUpload
+              && !empty($uploaderPhoto)
+              && strpos($uploaderPhoto, 'default') === false;
+            ?>
+
+            <?php if ($isSystemUpload): ?>
+              <!-- Subido por el sitio: mostrar logo/favicon o inicial del sitio -->
+              <div class="owner-avatar owner-avatar-brand">
+                <?php if (!empty($setting['site_favicon'])): ?>
+                  <img src="<?php echo $setting['website_url'] . '/system/assets/uploads/img/' . $setting['site_favicon']; ?>"
+                    alt="<?php echo htmlspecialchars($setting['site_name']); ?>">
+                <?php else: ?>
+                  <?php echo strtoupper(mb_substr($setting['site_name'], 0, 1)); ?>
+                <?php endif; ?>
               </div>
+            <?php elseif ($hasPhoto): ?>
+              <!-- Usuario con foto -->
+              <div class="owner-avatar">
+                <img src="<?php echo htmlspecialchars($uploaderPhoto); ?>"
+                  alt="<?php echo htmlspecialchars($uploaderName); ?>">
+              </div>
+            <?php else: ?>
+              <!-- Usuario sin foto: inicial -->
+              <div class="owner-avatar owner-avatar-letter">
+                <?php echo strtoupper(mb_substr($uploaderName, 0, 1)); ?>
+              </div>
+            <?php endif; ?>
+
+            <div class="owner-info">
+              <div class="owner-label">Uploaded by</div>
+              <div class="owner-name"><?php echo htmlspecialchars($uploaderName); ?></div>
             </div>
           </div>
 
@@ -363,13 +386,14 @@ if (isset($_GET['id'])) {
 
     <!-- src="<?php //echo $setting['website_url']; 
               ?>/system/assets/uploads/products/<?php //echo $details['preview_img']; 
-                                                                                      ?>"
+                                                ?>"
      -->
-
 
 
     <!--Similar Products-->
     <div class="container mt-5">
+
+     <h2 class="similar-title">Similar Logos</h2>
 
       <div class="container-logo p-15">
         <?php
@@ -581,6 +605,75 @@ if (isset($_GET['id'])) {
     }
   </script>
 
+  <script>
+    < script >
+      (function() {
+        var svgBaseUrl = '<?php echo $setting['website_url'] . '/system/assets/uploads/vector-files/' . $details['icon_img']; ?>';
+        var logoName = '<?php echo htmlspecialchars($details['name'], ENT_QUOTES); ?>';
+
+        var sizeInput = document.getElementById('sizeInput');
+        var urlText = document.getElementById('urlText');
+        var sizeUp = document.getElementById('sizeUp');
+        var sizeDown = document.getElementById('sizeDown');
+        var urlCopyBtn = document.getElementById('urlCopyBtn');
+
+        function getSize() {
+          var size = parseInt(sizeInput.value) || 50;
+          if (size < 10) size = 10;
+          if (size > 1000) size = 1000;
+          return size;
+        }
+
+        // Solo la URL con parámetros
+        function buildUrl() {
+          var size = getSize();
+          return svgBaseUrl + '?width=' + size + '&height=' + size;
+        }
+
+        // Tag <img> completo con alt (para copiar)
+        function buildImgTag() {
+          var size = getSize();
+          return '<img src="' + buildUrl() + '" alt="' + logoName + '" width="' + size + '" height="' + size + '">';
+        }
+
+        function updateUrl() {
+          urlText.textContent = buildUrl();
+        }
+
+        sizeInput.addEventListener('input', updateUrl);
+
+        sizeUp.addEventListener('click', function() {
+          var v = parseInt(sizeInput.value) || 50;
+          if (v < 1000) {
+            sizeInput.value = v + 10;
+            updateUrl();
+          }
+        });
+        sizeDown.addEventListener('click', function() {
+          var v = parseInt(sizeInput.value) || 50;
+          if (v > 10) {
+            sizeInput.value = v - 10;
+            updateUrl();
+          }
+        });
+
+        // Copia el tag <img> completo con alt
+        urlCopyBtn.addEventListener('click', function() {
+          navigator.clipboard.writeText(buildImgTag()).then(function() {
+            var icon = urlCopyBtn.querySelector('i');
+            var original = icon.className;
+            icon.className = 'fa-regular fa-check';
+            urlCopyBtn.style.color = 'var(--accent)';
+            setTimeout(function() {
+              icon.className = original;
+              urlCopyBtn.style.color = '';
+            }, 1500);
+          });
+        });
+
+        updateUrl();
+      })();
+  </script>
 
   <?php require_once 'system/assets/footer.php'; ?>
 

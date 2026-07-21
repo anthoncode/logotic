@@ -20,12 +20,12 @@
       </div>
       <div class="col-6 col-lg-2">
         <div class="footer-heading">Company</div>
-        <a href="<?php  echo $setting['website_url']; ?>/page/4/about-us/" class="footer-link">About</a><a href="#" class="footer-link">Blog</a>
+        <a href="<?php  echo $setting['website_url']; ?>/page/about-us/" class="footer-link">About</a><a href="<?php echo $setting['website_url']; ?>/blog/" class="footer-link">Blog</a>
       </div>
       <div class="col-6 col-lg-2">
         <div class="footer-heading">Legal</div>
-        <a href="#" class="footer-link">Privacy</a><a href="#" class="footer-link">Terms</a>
-        <a href="#" class="footer-link">License</a><a href="#" class="footer-link">DMCA</a>
+        <a href="<?php  echo $setting['website_url']; ?>/page/privacy/" class="footer-link">Privacy</a><a href="<?php  echo $setting['website_url']; ?>/page/terms/" class="footer-link">Terms</a>
+        <a href="<?php  echo $setting['website_url']; ?>/page/license/" class="footer-link">License</a><a href="<?php  echo $setting['website_url']; ?>/page/dmca/" class="footer-link">DMCA</a>
       </div>
     </div>
     <div class="footer-bottom">
@@ -93,12 +93,12 @@ const toastClose   = document.getElementById('toastClose');
 
 const CIRCUMFERENCE = 126;
 let downloadTimer = null;   // <-- esta es la que falla si está encerrada
-
+if (toastClose) {
 toastClose.addEventListener('click', () => {
     toast.classList.remove('show');
     clearInterval(downloadTimer);
 });
-
+}
 function simulateDownload(format, downloadUrl) {
     clearInterval(downloadTimer);
     let pct = 0;
@@ -474,13 +474,30 @@ function animateCounters(){
   });
 }
 
-/* INIT */
+
+  /* INIT */
 document.addEventListener('DOMContentLoaded',()=>{
   renderFeatured();renderPopular();renderCategories();
   setTimeout(animateCounters,400);
 });
 
 
+function closePromoBar() {
+    var bar = document.getElementById('promoBar');
+    if (bar) {
+        bar.style.display = 'none';
+        // Recordar por 1 día que se cerró
+        document.cookie = 'promoBarClosed=1; max-age=86400; path=/';
+    }
+}
+
+// Ocultar si ya se cerró antes
+(function() {
+    if (document.cookie.indexOf('promoBarClosed=1') !== -1) {
+        var bar = document.getElementById('promoBar');
+        if (bar) bar.style.display = 'none';
+    }
+})();
 
 </script>
 </body>

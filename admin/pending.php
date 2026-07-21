@@ -1,441 +1,169 @@
 <?php
 ini_set('display_errors', 0);
-ini_set('display_startup_errors', 0);
 error_reporting(E_ALL);
 
-$pageTitle = "Pending";
-
+$pageTitle = "Pending Approval";
 require_once '../system/config-admin.php';
 
-if (isset($_REQUEST['path'])) {
-    $file = $_REQUEST['path'];
-    if (!@fopen($file, 'r') && (!@file_exists($file))) {
-        echo 'File not found, Check file path';
-        print_r(error_get_last());
-        exit;
-    } else {
-        echo 'success';
-        exit;
-    }
+// Aprobar logo (active = 1)
+if (isset($_GET['action']) && $_GET['action'] === 'approve' && isset($_GET['id'])) {
+    $uid = (int)$_GET['id'];
+    $DB_con->prepare("UPDATE " . PFX . "products SET active = 1 WHERE id = :id")->execute([':id' => $uid]);
+    header('Location: pending.php?msg=Logo approved and published');
+    exit;
 }
 
+// Rechazar logo (eliminar + borrar archivo)
+if (isset($_GET['action']) && $_GET['action'] === 'reject' && isset($_GET['id'])) {
+    $uid  = (int)$_GET['id'];
+    $stmt = $DB_con->prepare("SELECT icon_img FROM " . PFX . "products WHERE id = :id");
+    $stmt->execute([':id' => $uid]);
+    $logo = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($logo) {
+        $filePath = '../system/assets/uploads/vector-files/' . $logo['icon_img'];
+        if (file_exists($filePath)) unlink($filePath);
+        $DB_con->prepare("DELETE FROM " . PFX . "products WHERE id = :id")->execute([':id' => $uid]);
+    }
+    header('Location: pending.php?msg=Logo rejected and removed');
+    exit;
+}
 
-$search      = null;
-$search      = (isset($_GET['search'])) ? $_GET['search'] : null;
-$currpage    = (isset($_GET['page'])) ? $_GET['page'] : 1;
-$maxres      = 20;
-$num         = $product->countAllPending($search); //muestra el con total de acuerdo a la pala.clave
-$pages       = $num / $maxres; //divide tota entre el max de filas
-$pages       = ceil($pages); //devuelve un número entero
-$start       = ($currpage - 1) * $maxres;
-$last        = $start + $maxres - 1;
-$allProducts = $product->getLogoListPending($start, $maxres, $search);
-//$allProducts = $product->getLogoList();
+// Aprobar todos
+if (isset($_GET['action']) && $_GET['action'] === 'approve_all') {
+    $DB_con->query("UPDATE " . PFX . "products SET active = 1 WHERE active = 0");
+    header('Location: pending.php?msg=All pending logos approved');
+    exit;
+}
 
-//$downd_itm = $product->downloadCount($_REQUEST['id']);
+// Stats
+$totalPending  = $DB_con->query("SELECT COUNT(*) FROM " . PFX . "products WHERE active = 0")->fetchColumn();
+$totalActive   = $DB_con->query("SELECT COUNT(*) FROM " . PFX . "products WHERE active = 1")->fetchColumn();
+$fromUsers     = $DB_con->query("SELECT COUNT(*) FROM " . PFX . "products WHERE active = 0 AND submit_user_id > 0")->fetchColumn();
+$todayPending  = $DB_con->query("SELECT COUNT(*) FROM " . PFX . "products WHERE active = 0 AND DATE(created) = CURDATE()")->fetchColumn();
+
+if (isset($_GET['msg'])) $success = $_GET['msg'];
 
 require_once 'includes/header1.php';
 ?>
 
-<div class="content">
-  <nav class="navbar navbar-expand-lg navbar-dark text-white rounded bg-primary box-shadow">
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExample08" aria-controls="navbarsExample08" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
+<div class="adm-wrap">
 
-    <div class="collapse navbar-collapse justify-content-md-center" id="navbarsExample08">
-      <ul class="navbar-nav">
-        <li class="nav-item active">
-          <a class="nav-link" href="<?php echo $setting['website_url']; ?>/admin/all-logos.php">All logos</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="<?php echo $setting['website_url']; ?>/admin/add-product.php">Add Logo</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="<?php echo $setting['website_url']; ?>/admin/best-selling-all-logos.php">Top</a>
-        </li>
-      </ul>
+    <!-- Page Header -->
+    <div class="adm-page-header">
+        <div class="adm-page-icon">
+            <i class="fa-regular fa-clock" style="color:var(--adm-accent);"></i>
+        </div>
+        <div>
+            <h1 class="adm-page-title">Pending Approval</h1>
+            <p class="adm-page-sub">Review and approve logos submitted by users</p>
+        </div>
+        <div style="margin-left:auto;display:flex;gap:.5rem;">
+            <?php if ($totalPending > 0): ?>
+            <a href="pending.php?action=approve_all" class="adm-save"
+               style="margin-top:0;text-decoration:none;display:inline-flex;align-items:center;gap:.4rem;background:rgba(45,198,83,.15);color:var(--adm-success);border:1px solid rgba(45,198,83,.3);"
+               onclick="return confirm('Approve ALL <?php echo $totalPending; ?> pending logos?')">
+                <i class="fa-regular fa-circle-check"></i> Approve All
+            </a>
+            <?php endif; ?>
+            <a href="all-logos.php" class="adm-topbar-btn">
+                <i class="fa-regular fa-images"></i> All Logos
+            </a>
+        </div>
     </div>
-  </nav>
 
+    <?php if (isset($success)): ?>
+        <div class="adm-alert adm-alert-success" style="margin-bottom:1rem;">
+            <i class="fa-solid fa-circle-check"></i> <?php echo $success; ?>
+        </div>
+    <?php endif; ?>
 
-  <div class="my-3 p-3 bg-white rounded box-shadow">
-    <?php if ($num > 0) { ?>
-      <div id="response" class="alert text-center" style="display:none;">
-              <button type="button" class="close" id="clearMsg"><span aria-hidden="true">&times;</span></button>
-              <span id="message"></span>
-      </div>
-      <!-- <div id="res" class="res"></div> -->
-      <ul class="float-left" style="padding-left: 0;">
-        <form action="all-logos.php" method="GET" class="form-inline my-2 my-lg-0">
-          <div class="input-group mb-0">
-            <input type="text" placeholder="Search" name="search" class="form-control form-control-sm header-search" value="<?php echo $search; ?>">
-            <div class="input-group-append">
-              <button class="btn header-searchcustombtn btn-sm" type="submit"><i class="fa-regular fa-magnifying-glass"></i></button>
-            </div>
-            </div>
-        </form>
-      </ul>
-
-      <ul class="pagination float-right">
-        <!-- ?search='. $search .'&page  busca palabra clave y número de página-->
-        <?php
-        $back = (($currpage == 1) ? '#' : 'all-logos.php?search='. $search .'&page=' . ($currpage - 1));
-        $next = (($currpage == $pages) ? 'all-logos.php?search='. $search .'&page=' . $currpage : 'all-logos.php?search='. $search .'&page=' . ($currpage + 1));
-        ?>
-        <li class="page-item">
-          <a class="page-link">
-          <?php echo $num; ?> elements
-          </a>
-        </li>
-        <!-- <<< -->
-        <li class="page-item">
-          <a class="page-link" <?php echo ($currpage == 1) ? "class='disabled'" : ''; ?> data-toggle="tooltip" data-placement="top" title="Previous" href="<?php echo $back; ?>" tabindex="-1"><i class="fa fa-chevron-left" aria-hidden="true"></i></a>
-        </li>
-        <li class="page-item">
-          <a class="page-link">
-          <?php echo "".$currpage." of ".$pages.""?>
-          <a>
-        </li>
-        <!-- >>> -->
-        <li class="page-item">
-          <a class="page-link" <?php echo ($currpage == $pages) ? "class='disabled'" : ''; ?> data-toggle="tooltip" data-placement="top" title="Next" href="<?php echo $next; ?>"><i class="fa fa-chevron-right" aria-hidden="true"></i></a>
-        </li>
-      </ul>
-
-      <table id="table_id" class="table table-hover table-striped display">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Description</th>
-            <th>Tags</th>
-            <th>Status</th>
-            <th><i class="fa-solid fa-eye"></i></th>
-            <th><i class="fa-solid fa-download"></i></th>
-            <th><i class="fa-solid fa-file"></i></th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <?php
-              foreach ($allProducts as $productss) {
-              $ip_item  = $productss['id'];
-              $download = $product->downloadCount($ip_item);
-          ?>
-
-            <tr id="<?php echo $productss['id']; ?>" class="id_table">
-              <td>
-                <span class="editValue name"><?php echo $productss['name']; ?></span>
-                <input class="form-control editInput name" type="text" name="name" value="<?php echo $productss['name']; ?> " style="display:none;">
-              </td>
-              <td>
-                <span class="editValue description"><?php echo $productss['description']; ?></span>
-                <input class="form-control editInput description" type="text" name="description" value="<?php echo $productss['description']; ?>" style="display:none;">
-              </td>
-              <td class="overflow-tag first">
-                <span class="editValue tags"><?php echo $productss['tags']; ?></span>
-                <input class="form-control editInput tags" type="text" name="tags" value="<?php echo $productss['tags']; ?>" style="display:none;">
-              </td>
-              <style>
-                .first {
-                    width: 60%;
-                }
-                .overflow-tag {
-                    position: relative;
-                }
-                .overflow-tag:before {
-                    content: ' ';
-                    visibility: hidden;
-                }
-                .overflow-tag span {
-                    position: absolute;
-                    left: 0;
-                    right: 0;
-                    white-space: nowrap;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                }
-              </style>
-              
-              <!-- <td><?php //echo ($productss['active'] == '1' ? '<span data-toggle="tooltip" data-placement="top" title="Item Active" class="badge badge-success badge-pill">Active</span>' : '<span data-toggle="tooltip" data-placement="top" title="Item Paused" class="badge badge-warning badge-pill">Paused</span>'); ?></td> -->
-
-              <td data-title="">
-                  <div class="onoffswitch-small" id="<?php echo $productss['id'];?>">
-                      <input type="checkbox" id="myonoffswitch<?php echo $productss['id'];?>" class="onoffswitch-small-checkbox" name="switch-btn"  <?php if ($productss['active'] === '1') {echo "checked='checked'";}?>>
-                      
-                      <label for="myonoffswitch<?php echo $productss['id'];?>" class="onoffswitch-small-label">
-                          <span class="onoffswitch-small-inner"></span>
-                          <span class="onoffswitch-small-switch"></span>
-                      </label>
-                  </div>
-              </td>
-
-              <td><?php echo $productss['views']; ?></td>
-
-              <td>
-                <?php echo $download['doCount']; ?>
-              </td>
-
-              <td><img itemprop="image" class="pull-left thumb-lg m-r-md rounded mr-3" src="<?php echo $setting['website_url']; ?>/system/assets/uploads/vector-files/<?php echo $productss['icon_img']; ?>" width="50" height="50"></td>
-              <td>
-                <div class="btn-group btn-group-sm" role="group" aria-label="AActions">
-                  <a href="<?php echo $setting['website_url']; ?>/item.php?id=<?php echo $productss['id']; ?>" class="btn btn-info" target="_blank"><i class="fa-solid fa-eye"></i></a>
-                 <!--  <a type="submit" id="btn" href="" class="btn btn-primary w-100">Edit</a> -->
-                  <button class="btn btn-primary editbutton">
-                    <span class="glyphicon glyphicon-edit"></span> <i class="fa-solid fa-pen-to-square"></i>
-                  </button>
-                  <button class="btn btn-success savebutton" style="display:none;">
-                    <span class="glyphicon glyphicon-floppy-disk"></span> <i class="fa-solid fa-floppy-disk"></i>
-                  </button>
-
-                  <a href="edit-product.php?id=<?php echo $productss['id']; ?>" class="btn btn-warning"><i class="fa-solid fa-file-pen"></i></a>
-
-                  <button class="btn btn-danger btn-delete-file" data-id='<?php echo $ip_item ?>'><i class="fa-solid fa-trash"></i></a></button>
-                </div>
-              </td>
-            </tr>
-          <?php }?>
-        </tbody>
-      </table>
-
-      <ul class="pagination float-right">
-        <?php
-        $back = (($currpage == 1) ? '#' : 'all-logos.php?search='. $search .'&page=' . ($currpage - 1));
-        $next = (($currpage == $pages) ? 'all-logos.php?search='. $search .'&page=' . $currpage : 'all-logos.php?search='. $search .'&page=' . ($currpage + 1));
-        ?>
-        <li class="page-item">
-          <a class="page-link">
-          <?php echo $num; ?> elements
-          </a>
-        </li>
-        <li class="page-item">
-          <a class="page-link" <?php echo ($currpage == 1) ? "class='disabled'" : ''; ?> data-toggle="tooltip" data-placement="top" title="Previous" href="<?php echo $back; ?>" tabindex="-1"><i class="fa fa-chevron-left" aria-hidden="true"></i></a>
-        </li>
-        <li class="page-item">
-          <a class="page-link">
-          <?php echo "".$currpage." of ".$pages.""?>
-          <a>
-        </li>
-        <li class="page-item">
-          <a class="page-link" <?php echo ($currpage == $pages) ? "class='disabled'" : ''; ?> data-toggle="tooltip" data-placement="top" title="Next" href="<?php echo $next; ?>"><i class="fa fa-chevron-right" aria-hidden="true"></i></a>
-        </li>
-      </ul> 
+    <!-- Stats -->
+    <div class="adm-stats">
+        <div class="adm-stat" style="cursor:default;">
+            <i class="adm-stat-icon fa-solid fa-clock"></i>
+            <div class="adm-stat-num" style="color:var(--adm-warning);"><?php echo number_format($totalPending); ?></div>
+            <div class="adm-stat-label">Pending Approval</div>
+        </div>
+        <div class="adm-stat" style="cursor:default;">
+            <i class="adm-stat-icon fa-solid fa-user-check"></i>
+            <div class="adm-stat-num" style="color:var(--adm-info);"><?php echo number_format($fromUsers); ?></div>
+            <div class="adm-stat-label">From Users</div>
+        </div>
+        <div class="adm-stat" style="cursor:default;">
+            <i class="adm-stat-icon fa-solid fa-calendar-day"></i>
+            <div class="adm-stat-num"><?php echo number_format($todayPending); ?></div>
+            <div class="adm-stat-label">Submitted Today</div>
+        </div>
+        <div class="adm-stat" style="cursor:default;">
+            <i class="adm-stat-icon fa-solid fa-circle-check"></i>
+            <div class="adm-stat-num" style="color:var(--adm-success);"><?php echo number_format($totalActive); ?></div>
+            <div class="adm-stat-label">Already Published</div>
+        </div>
     </div>
-  </div>
+
+    <!-- Toolbar -->
+    <div class="adm-toolbar">
+        <input type="text" id="adm-search" class="adm-search"
+               placeholder="🔍 Search pending logos by name, tags or slug...">
+        <span id="adm-total" style="font-size:.78rem;color:var(--adm-muted);margin-left:auto;"></span>
+    </div>
+
+    <!-- Table -->
+    <div class="adm-table-wrap">
+        <table class="adm-table">
+            <thead>
+                <tr>
+                    <th>Logo</th>
+                    <th>Tags</th>
+                    <th>Submitted by</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="adm-tbody">
+                <tr>
+                    <td colspan="5" style="text-align:center;padding:2rem;color:var(--adm-muted);">
+                        <i class="fa-regular fa-spinner fa-spin"></i> Loading...
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="adm-pagination" id="adm-pagination"></div>
+
 </div>
 
-
-<!-- <script type="text/javascript">
-  $("#edit-logo").on("submit", (function(e) {
-
-    //tinyMCE.triggerSave();
-
-    e.preventDefault();
-    $.ajax({
-      url: "<?php //echo $setting['website_url']; ?>/admin/edit-list.php",
-      method: "POST",
-      data: new FormData(this),
-      contentType: false,
-      cache: false,
-      processData: false,
-      beforeSend: function() {
-        $("#res").html('Updating..Please wait!');
-      },
-      success: function(response) {
-        $("#res").html(response);
-      }
-    });
-  }));
-</script> -->
-
-
-<script type="text/javascript">
-  $(document).ready(function(){
-    //fetch table data
-    //fetch();
-    //clicking edit button
-    $(document).on('click', '.editbutton', function(){
-      var row = $(this).closest('.id_table');
-      //hide values
-          row.find('.editValue').hide();
-          //show edit input
-          row.find('.editInput').show();
-          //show save button
-          row.find('.savebutton').show();
-          //hide edit button
-          $(this).hide();
-    });
-
-
-    //save
-    $(document).on('click', '.savebutton', function(){
-      var row = $(this).closest('.id_table');
-      //hide textbox
-      row.find('.editInput').hide();
-      //show value
-      row.find('.editValue').show();
-      //show edit button
-      row.find('.editbutton').show();
-      //hide save button
-      $(this).hide();
-      var id = row.attr('id');
-      var form = row.find('.editInput').serializeArray();
-      form.push({ name:'id', value:id });
-      $.ajax({
-        method: 'POST',
-        url: '<?php echo $setting['website_url']; ?>/admin/edit-list.php',
-        data: form,
-        dataType: 'json',
-
-        success: function(response){
-        if(response.error){
-          //$('#response').show().removeClass('alert-sucess').addClass('alert-danger');
-          //$('#message').html(response.message);
-
-          toastr.options = {
-                "closeButton": true,
-                "debug": false,
-                "newestOnTop": false,
-                "progressBar": true,
-                "positionClass": "toast-top-right",
-                "preventDuplicates": false,
-                "onclick": null,
-                "showDuration": "500",
-                "hideDuration": "500",
-                "timeOut": "5000",
-                "extendedTimeOut": "1000",
-                "showEasing": "swing",
-                "hideEasing": "linear",
-                "showMethod": "fadeIn",
-                "hideMethod": "fadeOut"
-          }
-             Command: toastr["error"](response.message)
-        }
-          else{
-            //$('#response').show().removeClass('alert-danger').addClass('alert-success');
-            //$('#message').html(response.message);
-
-            toastr.options = {
-                   "closeButton": true,
-                   "debug": false,
-                   "newestOnTop": false,
-                   "progressBar": true,
-                   "positionClass": "toast-top-right",
-                   "preventDuplicates": false,
-                   "onclick": null,
-                   "showDuration": "500",
-                   "hideDuration": "500",
-                   "timeOut": "5000",
-                   "extendedTimeOut": "1000",
-                   "showEasing": "swing",
-                   "hideEasing": "linear",
-                   "showMethod": "fadeIn",
-                   "hideMethod": "fadeOut"
-               }
-               Command: toastr["success"](response.message)
-
-
-            //populate table with updated row
-            row.find('.editValue.name').html(response.member.name);
-            row.find('.editValue.description').html(response.member.description);
-            row.find('.editValue.tags').html(response.member.tags);
-
-            row.find('.editInput.name').val(response.member.name);
-            row.find('.editInput.description').val(response.member.description);
-            row.find('.editInput.tags').val(response.member.tags);
-          }
-        }
-      });
-    });
-    //clear msg
-    /*$('#clearMsg').click(function(){
-      $('#response').hide();
-    });*/
-
-    
-  });
-
-  /*function fetch(){
-    $.ajax({
-      method: 'GET',
-      url: 'all-logos.php',
-      success: function(response){
-        $('#tbody').html(response);
-      }
-    });
-  }*/
-</script>
-
-
-<script type="text/javascript">
-    var active = '';
-    var id = 0;
-    $('.onoffswitch-small-checkbox').click(function() {
-        if($(this).prop('checked')) {
-            active = '1';
-            id = $(this).parent().attr("id");
-        } else {
-            active = '0';
-            id = $(this).parent().attr("id");
-        }
-
-        if((active != '' || active != null) && (id !='')) {
-            $.ajax({
-                type: 'POST',
-                url: "ajax-active.php",
-                data: "id=" + id + "&active=" + active,
-                dataType: "html",
-                success: function(data) {
-
-                    if(data == 'error') {
-                        toastr["error"]("Error")
-                        toastr.options = {
-                            "closeButton": true,
-                            "debug": false,
-                            "newestOnTop": false,
-                            "progressBar": false,
-                            "positionClass": "toast-top-right",
-                            "preventDuplicates": false,
-                            "onclick": null,
-                            "showDuration": "500",
-                            "hideDuration": "500",
-                            "timeOut": "5000",
-                            "extendedTimeOut": "1000",
-                            "showEasing": "swing",
-                            "hideEasing": "linear",
-                            "showMethod": "fadeIn",
-                            "hideMethod": "fadeOut"
-                        }
-
-                    } else {
-                        toastr["success"]("Success")
-                        toastr.options = {
-                            "closeButton": true,
-                            "debug": false,
-                            "newestOnTop": false,
-                            "progressBar": false,
-                            "positionClass": "toast-top-right",
-                            "preventDuplicates": false,
-                            "onclick": null,
-                            "showDuration": "500",
-                            "hideDuration": "500",
-                            "timeOut": "5000",
-                            "extendedTimeOut": "1000",
-                            "showEasing": "swing",
-                            "hideEasing": "linear",
-                            "showMethod": "fadeIn",
-                            "hideMethod": "fadeOut"
-                        }
-                    }
-                }
-            });
-        }
-    });
-</script>
-
-<?php
-} else {
-    echo "<div class='alert'>No Products added yet</div>";
+<style>
+.adm-btn-approve {
+    color: var(--adm-success) !important;
+    border-color: rgba(45,198,83,.3) !important;
 }
-require_once 'includes/footer.php';
-?>
+.adm-btn-approve:hover {
+    background: var(--adm-success) !important;
+    color: #0d0f1c !important;
+}
+</style>
+
+<script>
+let currentSearch = '';
+let currentPage   = 1;
+
+function loadPending() {
+    $('#adm-tbody').html(`
+        <tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--adm-muted);">
+            <i class="fa-regular fa-spinner fa-spin"></i> Loading...
+        </td></tr>
+    `);
+
+    $.ajax({
+        url: '<?php echo $setting['website_url']; ?>/admin/ajax-pending-table.php',
+        type: 'POST',
+        data: { search: currentSearch, page: currentPage },
+        success: function(res) {
+            const data = JSON.parse(res);
+            $('#adm-tbody').html(data.tbody ||
+                '<tr><td colspan="5" style="text-align:center;padding:3rem;color:var(--adm-muted);"><i class="fa-regular fa-circle-check" style="font-size:2rem;display:block;margin-bottom:.75rem;color:var(--adm-success);"></i>No pending logos — all caught up!</td></tr>');
+            $('#adm-pagination').html(data.pagination);
+            $('#adm-total').text(data.total.toLocaleString() + ' pending');

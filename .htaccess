@@ -31,22 +31,26 @@ RewriteRule ^(.+[^/])$ %{REQUEST_URI}/ [R=301,L]
 RewriteRule ^item/(.*)/ item.php?id=$1 [L]
 
 
-RewriteRule profile/(.*)/ profile.php?user=$1
-RewriteRule products/item/(.*)/ item.php?id=$1
-RewriteRule category/(.*)/ category.php?id=$1
-RewriteRule subcat/(.*)/ sub-category.php?id=$1
+RewriteRule ^profile/(.*)/ profile.php?user=$1 [L]
+RewriteRule ^products/item/(.*)/ item.php?id=$1 [L]
+RewriteRule ^subcat/(.*)/ sub-category.php?id=$1 [L]
 
-
+# ── BLOG (debe ir ANTES que category de logos) ──
 RewriteRule ^blog/$ blog.php [L]
-RewriteRule ^blog/([^/]+)/$ post.php?slug=$1 [L]
 RewriteRule ^blog/category/([^/]+)/$ blog.php?cat=$1 [L]
+RewriteRule ^blog/([^/]+)/$ post.php?slug=$1 [L]
+
+# ── PÁGINAS ──
+RewriteRule ^page/([^/]+)/?$ custom-page.php?slug=$1 [L]
+
+# ── Categorías de LOGOS (anclada con ^) ──
+RewriteRule ^category/(.*)/ category.php?id=$1 [L]
 
 #RewriteRule tags/(.*)/ tags.php
 RewriteRule tags/(.*)$ tags.php?id=$1
 RewriteRule color/(.*)$ color.php?id=$1
 RewriteRule most-downloaded/$ most-downloaded.php [L]
 RewriteRule ^recently-added/$ recently-added.php [L]
-RewriteRule ^page/([^/]*)/(.*)$ custom-page.php?id=$1 [L]
 #RewriteRule ^free(.*)$ free.php [L]
 
 RewriteRule ^forum$ addons/forum/forum.php [L]

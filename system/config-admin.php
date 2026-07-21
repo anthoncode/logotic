@@ -32,7 +32,30 @@ function sanitize_output($buffer)
 }
 
 //ob_start("sanitize_output");
+// ── Configuración de sesión del admin ──
+// Detecta si estamos en local o producción
+$isLocal = (strpos($_SERVER['HTTP_HOST'] ?? '', 'localhost') !== false)
+        || (strpos($_SERVER['HTTP_HOST'] ?? '', '127.0.0.1') !== false);
+
+// Local: 7 días (cómodo para desarrollo) · Producción: 4 horas (seguro)
+$adminSessionLife = $isLocal ? 604800 : 14400;
+
+ini_set('session.gc_maxlifetime', $adminSessionLife);
+ini_set('session.cookie_lifetime', $adminSessionLife);
+ini_set('session.gc_probability', 1);
+ini_set('session.gc_divisor', 100);
+
+// Carpeta propia de sesiones
+$adminSessionPath = __DIR__ . '/sessions';
+if (!is_dir($adminSessionPath)) {
+    @mkdir($adminSessionPath, 0700, true);
+}
+if (is_dir($adminSessionPath) && is_writable($adminSessionPath)) {
+    ini_set('session.save_path', $adminSessionPath);
+}
+
 session_name('DSP_ADMIN');
+session_set_cookie_params($adminSessionLife);
 session_start();
 
 

@@ -1,256 +1,114 @@
 <?php
 ini_set('display_errors', 0);
-ini_set('display_startup_errors', 0);
 error_reporting(E_ALL);
 
-$pageTitle = 'Upload';
-$pg = '5';
+$pageTitle = 'My Logos';
+$pg = '4';
+
 require_once('../system/config-user.php');
 
-$category = $product->get_categories();
-$setting = $settings->get_all(); //para mostrar correo
-$sales = $purchases->all('user_id', $crypt->decrypt($_SESSION['uid'], 'USER'));
-require_once('includes/header.php');
-if (isset($_GET['type']) && isset($_GET['msg'])) {
-    echo  "<div class=\"alert mt-3 " . $_GET['type'] . "\" style=\"display:block;\">" . $_GET['msg'] . "<button type=\"button\" class=\"close\" data-dismiss=\"alert\">&times;</button></div>";
-}
+$uid = $crypt->decrypt($_SESSION['uid'], 'USER');
 
-//$eemail = $userDetails['email']; //correo del usuario
-//$eemail = $setting['mail_admin']; //correo del admin
-//$result = $user->newLogo($eemail);
+$currpage = max(1, (int)($_GET['page'] ?? 1));
+$maxres   = 18;
+$start    = ($currpage - 1) * $maxres;
+
+$countStmt = $DB_con->prepare("SELECT COUNT(*) FROM " . PFX . "products WHERE submit_user_id = :uid");
+$countStmt->execute([':uid' => $uid]);
+$total = $countStmt->fetchColumn();
+$pages = ceil($total / $maxres);
+
+$stmt = $DB_con->prepare("
+    SELECT id, name, slug_lg, icon_img, views, active
+    FROM " . PFX . "products
+    WHERE submit_user_id = :uid
+    ORDER BY id DESC
+    LIMIT :start, :maxres
+");
+$stmt->bindValue(':uid', $uid, PDO::PARAM_INT);
+$stmt->bindValue(':start', $start, PDO::PARAM_INT);
+$stmt->bindValue(':maxres', $maxres, PDO::PARAM_INT);
+$stmt->execute();
+$logos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+require_once('includes/header.php');
 ?>
 
-<script src="//cdnjs.cloudflare.com/ajax/libs/tinymce/4.6.5/tinymce.min.js"></script>
-<div class="content">
-  <div class="my-3 p-3 bg-white rounded box-shadow">
-    <form id="my-awesome-dropzone" class="form-horizontal dropzone">
-       <div class="form-group"> <label>Category:</label>
-          <div class="input-group mb-3">
-            <select class="custom-select" name="cat_id" id="cat_id" required>
-              <option value="">Select Category...</option>
-              <?php foreach ($category as $cat) {
-              ?>
-                <option value="<?php echo $cat['id']; ?>"><?php echo $cat['name']; ?></option>
-              <?php } ?>
-            </select>
-          </div>
-        </div>
-        <div class="form-group"> <label>Subcategory:</label>
-          <div class="input-group mb-3">
-            <select class="custom-select" name="subcat" id="subcat">
-              <option value="">Select Subcategory...</option>
+<div class="user-panel-head">
+    <h1>My Logos</h1>
+    <p><?php echo number_format($total); ?> logo<?php echo $total !== 1 ? 's' : ''; ?> published</p>
+</div>
 
-            </select>
-          </div>
-        </div>
- 
-        <script type="text/javascript">
-          $(function() {
-            $("#cat_id").bind("change", function() {
-              $.ajax({
-                type: "GET",
-                url: "<?php echo $setting['website_url']; ?>/admin/ajax-category-user.php",
-                data: "cat_id=" + $("#cat_id").val(),
-                success: function(html) {
-                  $("#subcat").html(html);
-                }
-              });
-            });
-          });
-        </script>
+<style>
+.logo-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:1rem; }
+.mylogo-card {
+    background:var(--bg-card); border:1px solid var(--border);
+    border-radius:var(--radius-card); padding:1rem; text-align:center;
+    text-decoration:none; transition:var(--transition); position:relative;
+}
+.mylogo-card:hover { border-color:rgba(212,255,0,.3); transform:translateY(-3px); }
+.mylogo-img {
+    width:100%; aspect-ratio:1; background:#fff;
+    border-radius:10px; padding:12px; object-fit:contain; margin-bottom:.6rem;
+}
+.mylogo-name {
+    font-size:.8rem; font-weight:600; color:var(--text-primary);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.mylogo-meta {
+    font-size:.7rem; color:var(--text-muted); margin-top:.3rem;
+    display:flex; align-items:center; justify-content:center; gap:.75rem;
+}
+.mylogo-status {
+    position:absolute; top:.5rem; left:.5rem;
+    font-size:.62rem; font-weight:700; text-transform:uppercase;
+    border-radius:6px; padding:2px 7px;
+}
+.status-active { background:rgba(45,198,83,.15); color:#2dc653; }
+.status-pending { background:rgba(244,208,63,.15); color:#f4d03f; }
 
-        <style>
-          .list-group {
-            display: -ms-flexbox;
-            display: flex;
-            -ms-flex-direction: column;
-            flex-direction: column;
-            padding-left: 0;
-            margin-bottom: 0;
-            border-radius: .25rem;
-          }
-        </style>
+.up-empty { text-align:center; padding:4rem 2rem; color:var(--text-muted); background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-card); }
+.up-empty i { font-size:3rem; color:var(--border); display:block; margin-bottom:1rem; }
+.up-empty a { color:var(--accent); text-decoration:none; }
+.up-pagination { display:flex; justify-content:center; gap:.4rem; margin-top:2rem; }
+.up-page-btn { background:var(--bg-card); border:1px solid var(--border); color:var(--text-muted); border-radius:8px; padding:.5rem 1rem; font-size:.82rem; text-decoration:none; transition:var(--transition); }
+.up-page-btn:hover, .up-page-btn.active { background:var(--accent); color:#0d0f1c; border-color:var(--accent); font-weight:700; }
+</style>
 
-       <script>
-        //Disabling autoDiscover
-        Dropzone.autoDiscover = false; 
-
-        $(function() {
-            //Dropzone class
-            var myDropzone = new Dropzone(".dropzone", {
-                url: "<?php echo $setting['website_url']; ?>/admin/ajax-upload-user.php",
-                paramName: "file",
-                maxFilesize: 1024,
-                maxFiles: 50,
-                autoProcessQueue: true,
-                acceptedFiles: "image/svg+xml",
-                dataType: "json",
-
-                init: function(){
-                  this.on('sending', function(file, formData, xhr){
-                     toastr.options = {
-                            "closeButton": true,
-                            "debug": false,
-                            "newestOnTop": false,
-                            "progressBar": true,
-                            "positionClass": "toast-top-left",
-                            "preventDuplicates": false,
-                            "onclick": null,
-                            "showDuration": "500",
-                            "hideDuration": "500",
-                            "timeOut": "5000",
-                            "extendedTimeOut": "1000",
-                            "showEasing": "swing",
-                            "hideEasing": "linear",
-                            "showMethod": "fadeIn",
-                            "hideMethod": "fadeOut"
-                        }                    
-                        Command: toastr["success"](file.name)       
-                  },);
-
-                  this.on('error', function(file, errormessage, xhr){
-                     toastr.options = {
-                           "closeButton": true,
-                           "debug": false,
-                           "newestOnTop": false,
-                           "progressBar": true,
-                           "positionClass": "toast-top-left",
-                           "preventDuplicates": false,
-                           "onclick": null,
-                           "showDuration": "500",
-                           "hideDuration": "500",
-                           "timeOut": "5000",
-                           "extendedTimeOut": "1000",
-                           "showEasing": "swing",
-                           "hideEasing": "linear",
-                           "showMethod": "fadeIn",
-                           "hideMethod": "fadeOut"
-                     }
-                        Command: toastr["error"](file.name)
-                  },);
-
-                  /*this.on('queuecomplete', function(file){
-                            alert("Se subieron todo los archivos");
-                            <?php //$result = $user->newLogo($eemail);?>
-                        },);*/
-
-                },
-                success: function(response, data, file) {
-                    //alert(name);
-                    //convierte en objeto el texto array - {"id":"1"} a objeto 
-                    json = JSON.parse(data); 
-                    //console.log(json.id);
-                    //console.log(json.file.name);
-
-                    var title_vect = response.name;
-                    var iddd = response.id;
-                    remove_ext = title_vect.split("/").slice(-1).join().split(".").shift();
-                    clean_str = remove_ext.replace(/[&\/\-\#,+()$~_%.'":*?<>@{}]/g, " ");
-                    finalTitle = clean_str[0].toUpperCase() +  clean_str.slice(1);
-
-                    var name_in = $("input[name='name_lg']").val();
-                    $txt = '<h5 class="mb-4">You can rename uploaded files:</h5><form id="'+json.id+'" class="form_logo" ><li class="list-group-item d-flex justify-content-between align-items-center"><div class="form-group col-md-1 mx-sm-3 mb-2"><img style="border-radius:5px" width="50" height="50" src="'+response.dataURL+'"></div><div class="form-group col-md-4 mx-sm-3 mb-2"><input class="name form-control mt-2" name="name_val '+json.id+'" maxlength="99" required value="'+finalTitle+'"></div><div class="form-group col-md-4 mx-sm-3 mb-2"><input class="form-control mt-2" name="tags_val '+json.id+'" placeholder="Tags" required></div><a id="'+json.id+'" onclick="upload_logo(this.id);" type="submit" class="btn-login btn btn-success btn-block text-white ml-1 mt-0 quick-post-rename"><i class="fas fa-pen"></i> </a></div></li></form>';
-
-
-                    //$miscript =  $.get("css/script.js"); ;
-                    $('#logo-list').append($txt);
-                    //$('#logo-list').append($txt, $miscript);
-                    return;
-                },
-            });
-        });
-
-
-        </script>
-
-        <script>
-          function upload_logo(clicked_id) { //clicked_id es una variable que captura el id
-            event.preventDefault()//evita redirigir después del get
-            //alert(clicked_id)
-            var id = clicked_id;
-            var name = $("input[name='name_val "+clicked_id+"']").val(); //obtiene el atributo de name
-            //var description = $("input[name='desc_val "+clicked_id+"']").val();
-            var tags = $("input[name='tags_val "+clicked_id+"']").val();
-            $.post("<?php echo $setting['website_url']; ?>/admin/ajax-update-logo-user.php", { id: id, name: name, tags: tags},
-            function(data) {
-              //$('#results').html(data);
-              if(data == 'error') {
-                  toastr["error"]("Error")
-                  toastr.options = {
-                    "closeButton": true,
-                    "debug": false,
-                    "newestOnTop": false,
-                    "progressBar": true,
-                    "positionClass": "toast-bottom-right",
-                    "preventDuplicates": false,
-                    "onclick": null,
-                    "showDuration": "300",
-                    "hideDuration": "1000",
-                    "timeOut": "5000",
-                    "extendedTimeOut": "1000",
-                    "showEasing": "swing",
-                    "hideEasing": "linear",
-                    "showMethod": "fadeIn",
-                    "hideMethod": "fadeOut"
-                  }
-
-              } else {
-                  //toastr["success"]("Success")
-                  Command: toastr["success"](name)
-                  toastr.options = {
-                  "closeButton": true,
-                  "debug": false,
-                  "newestOnTop": false,
-                  "progressBar": true,
-                  "positionClass": "toast-bottom-right",
-                  "preventDuplicates": false,
-                  "onclick": null,
-                  "showDuration": "300",
-                  "hideDuration": "1000",
-                  "timeOut": "5000",
-                  "extendedTimeOut": "1000",
-                  "showEasing": "swing",
-                  "hideEasing": "linear",
-                  "showMethod": "fadeIn",
-                  "hideMethod": "fadeOut"
-                }
-              }
-            });
-            return
-          }
-        </script>
-    </form>
-
-    <!-- formulario para actualizar -->
-    <div class="col-md-12 mt-5">
-        <ul class="list-group" id="logo-list"></ul>
+<?php if (empty($logos)): ?>
+    <div class="up-empty">
+        <i class="fa-regular fa-images"></i>
+        <p>You haven't published any logos yet.</p>
+        <a href="<?php echo $setting['website_url']; ?>/user/upload-logo.php">Upload your first logo →</a>
     </div>
-    <div id="results">
-    </div>
-    <br>
-    </div>
+<?php else: ?>
+    <div class="logo-grid">
+        <?php foreach ($logos as $l): ?>
+            <a href="<?php echo $setting['website_url'] . '/item/' . $l['id'] . '/' . $l['slug_lg'] . '/'; ?>"
+               class="mylogo-card" title="<?php echo htmlspecialchars($l['name']); ?>">
+                <span class="mylogo-status <?php echo $l['active'] == 1 ? 'status-active' : 'status-pending'; ?>">
+                    <?php echo $l['active'] == 1 ? 'Live' : 'Pending'; ?>
+                </span>
+                <img class="mylogo-img"
+                     src="<?php echo $setting['website_url']; ?>/system/assets/uploads/vector-files/<?php echo $l['icon_img']; ?>"
+                     alt="<?php echo htmlspecialchars($l['name']); ?>">
+                <div class="mylogo-name"><?php echo htmlspecialchars($l['name']); ?></div>
+                <div class="mylogo-meta">
+                    <span><i class="fa-regular fa-eye"></i> <?php echo number_format($l['views']); ?></span>
+                </div>
+            </a>
+        <?php endforeach; ?>
     </div>
 
-    <script>
-      $('.custom-file-input').on('change', function() {
-        let fileName = $(this).val().split('\\').pop();
-        $(this).next('.custom-file-label').addClass("selected").html(fileName);
-      });
-    </script>
+    <?php if ($pages > 1): ?>
+    <div class="up-pagination">
+        <?php if ($currpage > 1): ?><a href="?page=<?php echo $currpage-1; ?>" class="up-page-btn">←</a><?php endif; ?>
+        <?php for ($i=1;$i<=$pages;$i++): ?>
+            <a href="?page=<?php echo $i; ?>" class="up-page-btn <?php echo $i==$currpage?'active':''; ?>"><?php echo $i; ?></a>
+        <?php endfor; ?>
+        <?php if ($currpage < $pages): ?><a href="?page=<?php echo $currpage+1; ?>" class="up-page-btn">→</a><?php endif; ?>
+    </div>
+    <?php endif; ?>
+<?php endif; ?>
 
-    <script type="text/javascript">
-      tinymce.init({
-        selector: "textarea",
-        themes: "modern",
-        branding: false,
-        plugins: [
-          'advlist autolink lists link image charmap preview',
-          'visualblocks code',
-          'insertdatetime media contextmenu paste code'
-        ],
-        toolbar: 'bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image code'
-      });
-    </script>
-    <?php
-    require_once 'includes/footer.php';
-    ?>
+<?php require_once('includes/footer.php'); ?>

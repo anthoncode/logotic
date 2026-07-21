@@ -496,28 +496,50 @@ class Customer
         $googleId  = $googleUser['sub'];
         $fname     = $googleUser['given_name'] ?? $googleUser['name'] ?? 'User';
 
-        // Buscar si ya existe OAuth vinculado
+        // Buscar si ya existe OAuth vinculado a un usuario existente
         $stmt = $this->db->prepare("
-            SELECT u.* FROM " . PFX . "users u
-            INNER JOIN " . PFX . "oauth o ON u.id = o.user_id
-            WHERE o.provider = 'google' AND o.provider_id = :gid
-        ");
+        SELECT u.* FROM " . PFX . "users u
+        INNER JOIN " . PFX . "oauth o ON u.id = o.user_id
+        WHERE o.provider = 'google' AND o.provider_id = :gid
+    ");
         $stmt->execute([':gid' => $googleId]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$user) {
+            // ── Limpiar registro OAuth huérfano (usuario borrado) ──
+            // Si existe un oauth con este provider_id pero sin usuario válido, lo eliminamos
+            $orphan = $this->db->prepare("
+            SELECT o.id FROM " . PFX . "oauth o
+            LEFT JOIN " . PFX . "users u ON u.id = o.user_id
+            WHERE o.provider = 'google' AND o.provider_id = :gid AND u.id IS NULL
+        ");
+            $orphan->execute([':gid' => $googleId]);
+            if ($orphan->fetch()) {
+                $this->db->prepare("
+                DELETE FROM " . PFX . "oauth
+                WHERE provider = 'google' AND provider_id = :gid
+            ")->execute([':gid' => $googleId]);
+            }
+
             // Buscar por email
             $stmt2 = $this->db->prepare("SELECT * FROM " . PFX . "users WHERE email = :email");
             $stmt2->execute([':email' => $email]);
             $user = $stmt2->fetch(PDO::FETCH_ASSOC);
 
             if ($user) {
-                // Vincular Google a cuenta existente
-                $stmt3 = $this->db->prepare("
+                // Vincular Google a cuenta existente — verificar que no exista ya el vínculo
+                $chkLink = $this->db->prepare("
+                SELECT id FROM " . PFX . "oauth
+                WHERE provider = 'google' AND provider_id = :gid
+            ");
+                $chkLink->execute([':gid' => $googleId]);
+                if (!$chkLink->fetch()) {
+                    $stmt3 = $this->db->prepare("
                     INSERT INTO " . PFX . "oauth (user_id, provider, provider_id, email)
                     VALUES (:uid, 'google', :gid, :email)
                 ");
-                $stmt3->execute([':uid' => $user['id'], ':gid' => $googleId, ':email' => $email]);
+                    $stmt3->execute([':uid' => $user['id'], ':gid' => $googleId, ':email' => $email]);
+                }
             } else {
                 // Crear cuenta nueva
                 $username  = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $fname)) . '_' . substr($googleId, -4);
@@ -526,10 +548,10 @@ class Customer
                 $profile   = '../system/assets/uploads/user-img/default.png';
 
                 $add = $this->db->prepare("
-                    INSERT INTO " . PFX . "users
-                    (fname, username, email, password, active, verified, created, profile, allow_email, purchases, balance, password_recover, moderator)
-                    VALUES (:fname, :username, :email, :password, 1, 1, :date, :profile, 1, 0, 0, 0, 0)
-                ");
+                INSERT INTO " . PFX . "users
+                (fname, username, email, password, active, verified, created, profile, allow_email, purchases, balance, password_recover, moderator)
+                VALUES (:fname, :username, :email, :password, 1, 1, :date, :profile, 1, 0, 0, 0, 0)
+            ");
                 $add->execute([
                     ':fname'    => $fname,
                     ':username' => $username,
@@ -541,9 +563,9 @@ class Customer
                 $newId = $this->db->lastInsertId();
 
                 $this->db->prepare("
-                    INSERT INTO " . PFX . "oauth (user_id, provider, provider_id, email)
-                    VALUES (:uid, 'google', :gid, :email)
-                ")->execute([':uid' => $newId, ':gid' => $googleId, ':email' => $email]);
+                INSERT INTO " . PFX . "oauth (user_id, provider, provider_id, email)
+                VALUES (:uid, 'google', :gid, :email)
+            ")->execute([':uid' => $newId, ':gid' => $googleId, ':email' => $email]);
 
                 $stmt4 = $this->db->prepare("SELECT * FROM " . PFX . "users WHERE id = :id");
                 $stmt4->execute([':id' => $newId]);
@@ -557,8 +579,8 @@ class Customer
         }
 
         $this->db->prepare("
-            UPDATE " . PFX . "users SET last_login = NOW(), ip_address = :ip WHERE id = :id
-        ")->execute([':ip' => $this->getIP(), ':id' => $user['id']]);
+        UPDATE " . PFX . "users SET last_login = NOW(), ip_address = :ip WHERE id = :id
+    ")->execute([':ip' => $this->getIP(), ':id' => $user['id']]);
 
         $this->logEvent($user['id'], $email, 'google');
         $this->startSecureSession($user);

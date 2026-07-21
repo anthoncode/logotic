@@ -113,25 +113,25 @@
 </head>
 
 <body>
-  <?php if ($googleEnabled): ?>
-<!-- Google One Tap -->
-<script src="https://accounts.google.com/gsi/client" async defer></script>
-<div id="g_id_onload"
-     data-client_id="<?php echo htmlspecialchars($googleClientId); ?>"
-     data-callback="handleOneTap"
-     data-auto_prompt="true"
-     data-cancel_on_tap_outside="false">
-</div>
-<?php endif; ?>
 
   <?php if (!empty($setting['global_message'])) { ?>
-    <div class="alert box-shadow text-center alert-<?php echo $setting['alert_type']; ?> alert-dismissible fade show mb-0 rounded-0" role="alert">
-      <?php echo $setting['global_message']; ?>
-      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-        <span aria-hidden="true">&times;</span>
+    <div class="promo-bar promo-<?php echo $setting['alert_type'] ?? 'info'; ?>" id="promoBar">
+      <div class="promo-bar-inner">
+        <span class="promo-bar-icon"><i class="fa-solid fa-bolt"></i></span>
+        <span class="promo-bar-text"><?php echo $setting['global_message']; ?></span>
+        <?php if (!empty($setting['global_btn_text']) && !empty($setting['global_btn_link'])): ?>
+          <a href="<?php echo htmlspecialchars($setting['global_btn_link']); ?>"
+            class="promo-bar-btn"
+            <?php echo (strpos($setting['global_btn_link'], 'http') === 0) ? 'target="_blank" rel="noopener"' : ''; ?>>
+            <?php echo htmlspecialchars($setting['global_btn_text']); ?>
+            <i class="fa-solid fa-arrow-right"></i>
+          </a>
+        <?php endif; ?>
+      </div>
+      <button class="promo-bar-close" onclick="closePromoBar()" aria-label="Close">
+        <i class="fa-solid fa-xmark"></i>
       </button>
     </div>
-  <?php } else { ?>
   <?php } ?>
 
   <div class="bg-mesh"></div>
@@ -154,7 +154,7 @@
         <?php if (empty($setting['site_logo'])) { ?>
           <?php echo $setting['site_name']; ?>
         <?php } else { ?>
-          <img src="<?php echo $setting['website_url'] . "/system/assets/uploads/img/" . $setting['site_logo']; ?>">
+          <img src="<?php echo $setting['website_url'] . "/system/assets/uploads/img/" . $setting['site_logo']; ?>" style="height:30px;width:auto;">
         <?php } ?>
       </a>
 
@@ -183,6 +183,11 @@
               <i class="fa-regular fa-clock" style="font-size:.8rem;"></i> Recently Added
             </a>
           </li>
+          <li class="nav-item">
+            <a class="nav-link" href="<?php echo $setting['website_url']; ?>/blog/">
+              <i class="fa-regular fa-newspaper" style="font-size:.8rem;"></i> Blog
+            </a>
+          </li>
 
         </ul>
 
@@ -201,31 +206,41 @@
             <i class="bi bi-cloud-upload-fill"></i> Upload logo
           </button>
 
-          <div class="user-dropdown-wrap">
-            <div class="btn-user"><i class="bi bi-person-fill"></i></div>
-            <?php if ($setting['login'] == 1) { ?>
-              <?php if ($user->is_loggedin()) { ?>
+          <?php if ($setting['login'] == 1): ?>
+            <?php if ($user->is_loggedin()): ?>
+              <!-- Usuario logueado: avatar + dropdown -->
+              <div class="user-dropdown-wrap">
+                <div class="btn-user">
+                  <?php if (!empty($userDetails['profile']) && $userDetails['profile'] !== '../system/assets/uploads/user-img/default.png'): ?>
+                    <img src="<?php echo $userDetails['profile']; ?>" alt="<?php echo htmlspecialchars($userDetails['fname']); ?>">
+                  <?php else: ?>
+                    <?php echo strtoupper(mb_substr($userDetails['fname'] ?? 'U', 0, 1)); ?>
+                  <?php endif; ?>
+                </div>
                 <div class="user-dropdown-panel">
                   <div class="udp-header">
-                    <div class="udp-avatar">L</div>
+                    <div class="udp-avatar">
+                      <?php echo strtoupper(mb_substr($userDetails['fname'] ?? 'U', 0, 1)); ?>
+                    </div>
                     <div>
-                      <div class="udp-name"><?php echo $userDetails['fname']; ?></div>
-                      <div class="udp-email">jane@example.com</div>
+                      <div class="udp-name"><?php echo htmlspecialchars($userDetails['fname']); ?></div>
+                      <div class="udp-email"><?php echo htmlspecialchars($userDetails['email']); ?></div>
                     </div>
                   </div>
                   <a href="<?php echo $setting['website_url']; ?>/user/" class="udp-item"><i class="bi bi-grid-1x2-fill"></i> Overview</a>
                   <a href="<?php echo $setting['website_url']; ?>/user/downloads.php" class="udp-item"><i class="bi bi-download"></i> Downloads</a>
-                  <a href="<?php echo $setting['website_url']; ?>/user/news.php" class="udp-item"><i class="bi bi-bell-fill"></i> Notifications</a>
+                  <a href="<?php echo $setting['website_url']; ?>/user/favorites.php" class="udp-item"><i class="bi bi-heart"></i> Favorites</a>
                   <div class="udp-divider"></div>
                   <a href="<?php echo $setting['website_url']; ?>/user/login.php?logout" class="udp-item udp-signout"><i class="bi bi-box-arrow-right"></i> Sign out</a>
                 </div>
-              <?php } else { ?>
-                <a href="<?php echo $setting['website_url']; ?>/user/" type="button" class="btn-login me-1">
-                  <i class="bi bi-box-arrow-in-right"></i><span>Login</span>
-                </a>
-          </div>
-        <?php } ?>
-      <?php } ?>
+              </div>
+            <?php else: ?>
+              <!-- Usuario NO logueado: solo botón de login -->
+              <a href="<?php echo $setting['website_url']; ?>/user/login.php" class="btn-login me-1">
+                <i class="bi bi-box-arrow-in-right"></i><span>Login</span>
+              </a>
+            <?php endif; ?>
+          <?php endif; ?>
         </div>
       </div>
     </div>
@@ -324,41 +339,47 @@
         megaOverlay.classList.remove('open');
       });
     });
-
-
   </script>
 
   <?php
-// Google One Tap — disponible en todo el sitio
-$oneTapEnabled = ($setting['google_oauth_enabled'] ?? '0') == '1'
+  // Google One Tap — disponible en todo el sitio
+  $oneTapEnabled = ($setting['google_oauth_enabled'] ?? '0') == '1'
     && !empty($setting['google_client_id'])
     && !$user->is_loggedin(); // solo si NO ha iniciado sesión
-?>
-<?php if ($oneTapEnabled): ?>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
-<div id="g_id_onload"
-     data-client_id="<?php echo htmlspecialchars($setting['google_client_id']); ?>"
-     data-callback="handleOneTap"
-     data-auto_prompt="true"
-     data-cancel_on_tap_outside="false">
-</div>
-<script>
-function handleOneTap(response) {
-    fetch('<?php echo $setting['website_url']; ?>/user/google-onetap.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'same-origin',
-        body: JSON.stringify({ credential: response.credential })
-    })
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-        if (data.success) {
-            window.location.reload();
-        } else {
-            console.error('One Tap failed:', data.error);
-        }
-    })
-    .catch(function(err) { console.error('One Tap error:', err); });
-}
-</script>
-<?php endif; ?>
+  ?>
+  <?php if ($oneTapEnabled): ?>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <div id="g_id_onload"
+      data-client_id="<?php echo htmlspecialchars($setting['google_client_id']); ?>"
+      data-callback="handleOneTap"
+      data-auto_prompt="true"
+      data-cancel_on_tap_outside="false">
+    </div>
+    <script>
+      function handleOneTap(response) {
+        fetch('<?php echo $setting['website_url']; ?>/user/google-onetap.php', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({
+              credential: response.credential
+            })
+          })
+          .then(function(r) {
+            return r.json();
+          })
+          .then(function(data) {
+            if (data.success) {
+              window.location.reload();
+            } else {
+              console.error('One Tap failed:', data.error);
+            }
+          })
+          .catch(function(err) {
+            console.error('One Tap error:', err);
+          });
+      }
+    </script>
+  <?php endif; ?>

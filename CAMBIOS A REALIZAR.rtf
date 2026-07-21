@@ -187,3 +187,56 @@ INSERT INTO logotic_settings (setting, value) VALUES\
 ('google_client_secret', '')\
 ON DUPLICATE KEY UPDATE setting = setting;\cf4 \
 }
+
+
+
+CREATE TABLE `logotic_logo_views` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `product_id` int(11) NOT NULL,
+  `ip_address` varchar(45) NOT NULL,
+  `viewed_at` datetime NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `product_ip` (`product_id`, `ip_address`),
+  KEY `viewed_at` (`viewed_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+Paso 2 — Reemplaza admin/ajax-views-logo.php completo:
+
+
+
+-- Agregar la clave foránea con borrado en cascada
+ALTER TABLE logotic_oauth
+  ADD CONSTRAINT fk_oauth_user
+  FOREIGN KEY (user_id) REFERENCES logotic_users(id)
+  ON DELETE CASCADE;
+
+
+
+  -- ── 2. Foreign keys con borrado en cascada ──
+
+-- Downloads → usuario y producto
+ALTER TABLE logotic_downloads
+  ADD CONSTRAINT fk_downloads_user
+  FOREIGN KEY (user_id) REFERENCES logotic_users(id) ON DELETE CASCADE;
+
+ALTER TABLE logotic_downloads
+  ADD CONSTRAINT fk_downloads_product
+  FOREIGN KEY (products_id) REFERENCES logotic_products(id) ON DELETE CASCADE;
+
+-- Wishlists → usuario y producto
+ALTER TABLE logotic_wishlists
+  ADD CONSTRAINT fk_wishlists_user
+  FOREIGN KEY (user_id) REFERENCES logotic_users(id) ON DELETE CASCADE;
+
+ALTER TABLE logotic_wishlists
+  ADD CONSTRAINT fk_wishlists_product
+  FOREIGN KEY (product_id) REFERENCES logotic_products(id) ON DELETE CASCADE;
+
+-- 2FA codes → usuario
+ALTER TABLE logotic_2fa_codes
+  ADD CONSTRAINT fk_2fa_user
+  FOREIGN KEY (user_id) REFERENCES logotic_users(id) ON DELETE CASCADE;
+
+-- Logo views → producto
+ALTER TABLE logotic_logo_views
+  ADD CONSTRAINT fk_logoviews_product
+  FOREIGN KEY (product_id) REFERENCES logotic_products(id) ON DELETE CASCADE;
