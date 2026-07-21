@@ -64,17 +64,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // ── Acciones GET ──
+// ── Acciones GET ──
 if (isset($_GET['action'])) {
+
+    // Eliminar categoría
     if ($_GET['action'] === 'delete_cat' && isset($_GET['id'])) {
         $id = (int)$_GET['id'];
-        $DB_con->prepare("DELETE FROM " . PFX . "categories WHERE id = :id")->execute([':id' => $id]);
-        header('Location: add-category.php?msg=Category deleted&tab=cat');
+
+        // Bloqueo: las categorías raíz no se pueden eliminar
+        if ($id == 1 || $id == 2) {
+            header('Location: add-category.php?error=' . urlencode('Core categories (Brand Logos, Logo Templates) cannot be deleted.') . '&tab=cat');
+            exit;
+        }
+
+        // Protección: no eliminar si tiene logos en uso
+        $chk = $DB_con->prepare("SELECT COUNT(*) FROM " . PFX . "products WHERE cat_id = :id AND active = 1");
+        $chk->execute([':id' => $id]);
+        $count = $chk->fetchColumn();
+
+        if ($count > 0) {
+            header('Location: add-category.php?error=' . urlencode("This category has {$count} logo(s) in use. Reassign them first.") . '&tab=cat');
+            exit;
+        }
+
+        // Soft-delete (marca como inactiva, recuperable)
+        $DB_con->prepare("UPDATE " . PFX . "categories SET active = 0 WHERE id = :id")->execute([':id' => $id]);
+        header('Location: add-category.php?msg=' . urlencode('Category moved to trash') . '&tab=cat');
         exit;
     }
+
+    // Eliminar subcategoría
     if ($_GET['action'] === 'delete_scat' && isset($_GET['id'])) {
         $id = (int)$_GET['id'];
-        $DB_con->prepare("DELETE FROM " . PFX . "subcat WHERE id = :id")->execute([':id' => $id]);
-        header('Location: add-category.php?msg=Subcategory deleted&tab=scat');
+
+        // Protección: no eliminar si tiene logos en uso
+        $chk = $DB_con->prepare("SELECT COUNT(*) FROM " . PFX . "products WHERE subc_id = :id AND active = 1");
+        $chk->execute([':id' => $id]);
+        $count = $chk->fetchColumn();
+
+        if ($count > 0) {
+            header('Location: add-category.php?error=' . urlencode("This subcategory has {$count} logo(s) in use. Reassign them first.") . '&tab=scat');
+            exit;
+        }
+
+        // Soft-delete
+        $DB_con->prepare("UPDATE " . PFX . "subcat SET active = 0 WHERE id = :id")->execute([':id' => $id]);
+        header('Location: add-category.php?msg=' . urlencode('Subcategory moved to trash') . '&tab=scat');
         exit;
     }
 }
@@ -86,7 +121,8 @@ $totalCat  = count($categories);
 $totalScat = count($subcategories);
 $activeTab = $_GET['tab'] ?? 'cat';
 
-if (isset($_GET['msg'])) $success = $_GET['msg'];
+if (isset($_GET['msg']))   $success = urldecode($_GET['msg']);
+if (isset($_GET['error'])) $error   = urldecode($_GET['error']);
 
 require_once('includes/header1.php');
 ?>
@@ -137,320 +173,351 @@ require_once('includes/header1.php');
 
     <!-- ── CATEGORIES TAB ── -->
     <?php if ($activeTab === 'cat'): ?>
-    <div style="display:grid;grid-template-columns:300px 1fr;gap:1rem;align-items:start;">
+        <div style="display:grid;grid-template-columns:300px 1fr;gap:1rem;align-items:start;">
 
-        <!-- Form agregar -->
-        <div class="adm-card">
-            <div class="adm-card-title"><i class="fa-regular fa-plus"></i> Add Category</div>
-            <form action="add-category.php" method="POST">
-                <input type="hidden" name="action" value="add_cat">
-                <div class="adm-field">
-                    <label class="adm-label">Category Name *</label>
-                    <input class="adm-input" type="text" name="name" required
-                           placeholder="e.g. Brand Logos" maxlength="100" autofocus>
-                </div>
-                <button class="adm-save" type="submit" style="margin-top:.75rem;width:100%;justify-content:center;display:flex;">
-                    <i class="fa-regular fa-plus"></i> Add Category
-                </button>
-            </form>
-        </div>
-
-        <!-- Tabla categorías -->
-        <div class="adm-table-wrap">
-            <table class="adm-table">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Name</th>
-                        <th style="text-align:center;">Subcats</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($categories as $cat):
-                        $scatCount = $DB_con->prepare("SELECT COUNT(*) FROM " . PFX . "subcat WHERE cat_id = :id");
-                        $scatCount->execute([':id' => $cat['id']]);
-                        $scCount = $scatCount->fetchColumn();
-                    ?>
-                    <tr id="cat-row-<?php echo $cat['id']; ?>">
-                        <td style="color:var(--adm-muted);font-size:.78rem;">#<?php echo $cat['id']; ?></td>
-                        <td>
-                            <span class="cat-view"><?php echo htmlspecialchars($cat['name']); ?></span>
-                            <input class="adm-input cat-edit" type="text"
-                                   value="<?php echo htmlspecialchars($cat['name']); ?>"
-                                   style="display:none;font-size:.82rem;padding:.3rem .6rem;">
-                        </td>
-                        <td style="text-align:center;">
-                            <span class="adm-badge" style="background:rgba(212,255,0,.1);color:var(--adm-accent);">
-                                <?php echo $scCount; ?>
-                            </span>
-                        </td>
-                        <td>
-                            <div class="adm-actions">
-                                <button class="adm-btn cat-edit-btn" data-id="<?php echo $cat['id']; ?>" title="Edit">
-                                    <i class="fa-regular fa-pen"></i>
-                                </button>
-                                <button class="adm-btn adm-btn-unban cat-save-btn" data-id="<?php echo $cat['id']; ?>"
-                                        style="display:none;" title="Save">
-                                    <i class="fa-regular fa-floppy-disk"></i>
-                                </button>
-                                <button class="adm-btn cat-cancel-btn" data-id="<?php echo $cat['id']; ?>"
-                                        style="display:none;" title="Cancel">
-                                    <i class="fa-regular fa-xmark"></i>
-                                </button>
-                                <a href="?action=delete_cat&id=<?php echo $cat['id']; ?>&tab=cat"
-                                   class="adm-btn adm-btn-del"
-                                   onclick="return confirm('Delete category \'<?php echo htmlspecialchars($cat['name']); ?>\'? This will not delete its subcategories.')"
-                                   title="Delete">
-                                    <i class="fa-regular fa-trash"></i>
-                                </a>
-                            </div>
-                        </td>
-                    </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- ── SUBCATEGORIES TAB ── -->
-    <?php elseif ($activeTab === 'scat'): ?>
-    <div style="display:grid;grid-template-columns:300px 1fr;gap:1rem;align-items:start;">
-
-        <!-- Form agregar subcategoría -->
-        <div class="adm-card">
-            <div class="adm-card-title"><i class="fa-regular fa-plus"></i> Add Subcategory</div>
-            <form action="add-category.php" method="POST">
-                <input type="hidden" name="action" value="add_scat">
-                <div class="adm-field">
-                    <label class="adm-label">Parent Category *</label>
-                    <select class="adm-input" name="cat_id" required>
-                        <option value="">Select category...</option>
-                        <?php foreach ($categories as $cat): ?>
-                            <option value="<?php echo $cat['id']; ?>"><?php echo htmlspecialchars($cat['name']); ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div class="adm-field">
-                    <label class="adm-label">Subcategory Name *</label>
-                    <input class="adm-input" type="text" name="subname" required
-                           placeholder="e.g. Technology" maxlength="100">
-                </div>
-                <button class="adm-save" type="submit" style="margin-top:.75rem;width:100%;justify-content:center;display:flex;">
-                    <i class="fa-regular fa-plus"></i> Add Subcategory
-                </button>
-            </form>
-        </div>
-
-        <!-- Tabla subcategorías -->
-        <div>
-            <!-- Filtro por categoría padre -->
-            <div class="adm-toolbar" style="margin-bottom:.75rem;">
-                <div class="adm-filter" id="catFilter">
-                    <a class="adm-chip active" data-cat="all">All</a>
-                    <?php foreach ($categories as $cat): ?>
-                        <a class="adm-chip" data-cat="<?php echo $cat['id']; ?>">
-                            <?php echo htmlspecialchars($cat['name']); ?>
-                        </a>
-                    <?php endforeach; ?>
-                </div>
-                <span id="scatCount" style="font-size:.78rem;color:var(--adm-muted);margin-left:auto;">
-                    <?php echo $totalScat; ?> subcategories
-                </span>
+            <!-- Form agregar -->
+            <div class="adm-card">
+                <div class="adm-card-title"><i class="fa-regular fa-plus"></i> Add Category</div>
+                <form action="add-category.php" method="POST">
+                    <input type="hidden" name="action" value="add_cat">
+                    <div class="adm-field">
+                        <label class="adm-label">Category Name *</label>
+                        <input class="adm-input" type="text" name="name" required
+                            placeholder="e.g. Brand Logos" maxlength="100" autofocus>
+                    </div>
+                    <button class="adm-save" type="submit" style="margin-top:.75rem;width:100%;justify-content:center;display:flex;">
+                        <i class="fa-regular fa-plus"></i> Add Category
+                    </button>
+                </form>
             </div>
 
+            <!-- Tabla categorías -->
             <div class="adm-table-wrap">
                 <table class="adm-table">
                     <thead>
                         <tr>
                             <th>#</th>
                             <th>Name</th>
-                            <th>Parent</th>
+                            <th style="text-align:center;">Subcats</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="scatTableBody">
-                        <?php foreach ($subcategories as $scat):
-                            $catname = $product->catdetails($scat['cat_id']);
+                    <tbody>
+                        <?php foreach ($categories as $cat):
+                            $scatCount = $DB_con->prepare("SELECT COUNT(*) FROM " . PFX . "subcat WHERE cat_id = :id");
+                            $scatCount->execute([':id' => $cat['id']]);
+                            $scCount = $scatCount->fetchColumn();
                         ?>
-                        <tr id="scat-row-<?php echo $scat['id']; ?>" data-cat="<?php echo $scat['cat_id']; ?>">
-                            <td style="color:var(--adm-muted);font-size:.78rem;">#<?php echo $scat['id']; ?></td>
-                            <td>
-                                <span class="scat-view"><?php echo htmlspecialchars($scat['name']); ?></span>
-                                <input class="adm-input scat-edit-name" type="text"
-                                       value="<?php echo htmlspecialchars($scat['name']); ?>"
-                                       style="display:none;font-size:.82rem;padding:.3rem .6rem;">
-                            </td>
-                            <td>
-                                <span class="scat-view-parent" style="font-size:.78rem;color:var(--adm-muted);">
-                                    <?php echo htmlspecialchars($catname['name'] ?? ''); ?>
-                                </span>
-                                <select class="adm-input scat-edit-parent" style="display:none;font-size:.82rem;padding:.3rem .6rem;">
-                                    <?php foreach ($categories as $cat): ?>
-                                        <option value="<?php echo $cat['id']; ?>"
-                                            <?php echo $cat['id'] == $scat['cat_id'] ? 'selected' : ''; ?>>
-                                            <?php echo htmlspecialchars($cat['name']); ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </td>
-                            <td>
-                                <div class="adm-actions">
-                                    <button class="adm-btn scat-edit-btn" data-id="<?php echo $scat['id']; ?>" title="Edit">
-                                        <i class="fa-regular fa-pen"></i>
-                                    </button>
-                                    <button class="adm-btn adm-btn-unban scat-save-btn" data-id="<?php echo $scat['id']; ?>"
+                            <tr id="cat-row-<?php echo $cat['id']; ?>">
+                                <td style="color:var(--adm-muted);font-size:.78rem;">#<?php echo $cat['id']; ?></td>
+                                <td>
+                                    <span class="cat-view"><?php echo htmlspecialchars($cat['name']); ?></span>
+                                    <input class="adm-input cat-edit" type="text"
+                                        value="<?php echo htmlspecialchars($cat['name']); ?>"
+                                        style="display:none;font-size:.82rem;padding:.3rem .6rem;">
+                                </td>
+                                <td style="text-align:center;">
+                                    <span class="adm-badge" style="background:rgba(212,255,0,.1);color:var(--adm-accent);">
+                                        <?php echo $scCount; ?>
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="adm-actions">
+                                        <button class="adm-btn cat-edit-btn" data-id="<?php echo $cat['id']; ?>" title="Edit">
+                                            <i class="fa-regular fa-pen"></i>
+                                        </button>
+                                        <button class="adm-btn adm-btn-unban cat-save-btn" data-id="<?php echo $cat['id']; ?>"
                                             style="display:none;" title="Save">
-                                        <i class="fa-regular fa-floppy-disk"></i>
-                                    </button>
-                                    <button class="adm-btn scat-cancel-btn" data-id="<?php echo $scat['id']; ?>"
+                                            <i class="fa-regular fa-floppy-disk"></i>
+                                        </button>
+                                        <button class="adm-btn cat-cancel-btn" data-id="<?php echo $cat['id']; ?>"
                                             style="display:none;" title="Cancel">
-                                        <i class="fa-regular fa-xmark"></i>
-                                    </button>
-                                    <a href="?action=delete_scat&id=<?php echo $scat['id']; ?>&tab=scat"
-                                       class="adm-btn adm-btn-del"
-                                       onclick="return confirm('Delete subcategory \'<?php echo htmlspecialchars($scat['name']); ?>\'?')"
-                                       title="Delete">
-                                        <i class="fa-regular fa-trash"></i>
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
+                                            <i class="fa-regular fa-xmark"></i>
+                                        </button>
+                                        <?php if ($cat['id'] != 1 && $cat['id'] != 2): ?>
+                                            <a href="?action=delete_cat&id=<?php echo $cat['id']; ?>&tab=cat"
+                                                class="adm-btn adm-btn-del"
+                                                onclick="return confirm('Move this category to trash? Logos in use will block deletion. You can restore it later.')"
+                                                title="Delete">
+                                                <i class="fa-regular fa-trash"></i>
+                                            <?php else: ?>
+                                                <span class="adm-btn" style="opacity:.3;cursor:not-allowed;" title="Core category — protected">
+                                                    <i class="fa-regular fa-lock"></i>
+                                                </span>
+                                            <?php endif; ?>
+                                            </a>
+                                    </div>
+                                </td>
+                            </tr>
                         <?php endforeach; ?>
                     </tbody>
                 </table>
             </div>
         </div>
-    </div>
+
+        <!-- ── SUBCATEGORIES TAB ── -->
+    <?php elseif ($activeTab === 'scat'): ?>
+        <div style="display:grid;grid-template-columns:300px 1fr;gap:1rem;align-items:start;">
+
+            <!-- Form agregar subcategoría -->
+            <div class="adm-card">
+                <div class="adm-card-title"><i class="fa-regular fa-plus"></i> Add Subcategory</div>
+                <form action="add-category.php" method="POST">
+                    <input type="hidden" name="action" value="add_scat">
+                    <div class="adm-field">
+                        <label class="adm-label">Parent Category *</label>
+                        <select class="adm-input" name="cat_id" required>
+                            <option value="">Select category...</option>
+                            <?php foreach ($categories as $cat): ?>
+                                <option value="<?php echo $cat['id']; ?>"><?php echo htmlspecialchars($cat['name']); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="adm-field">
+                        <label class="adm-label">Subcategory Name *</label>
+                        <input class="adm-input" type="text" name="subname" required
+                            placeholder="e.g. Technology" maxlength="100">
+                    </div>
+                    <button class="adm-save" type="submit" style="margin-top:.75rem;width:100%;justify-content:center;display:flex;">
+                        <i class="fa-regular fa-plus"></i> Add Subcategory
+                    </button>
+                </form>
+            </div>
+
+            <!-- Tabla subcategorías -->
+            <div>
+                <!-- Filtro por categoría padre -->
+                <div class="adm-toolbar" style="margin-bottom:.75rem;">
+                    <div class="adm-filter" id="catFilter">
+                        <a class="adm-chip active" data-cat="all">All</a>
+                        <?php foreach ($categories as $cat): ?>
+                            <a class="adm-chip" data-cat="<?php echo $cat['id']; ?>">
+                                <?php echo htmlspecialchars($cat['name']); ?>
+                            </a>
+                        <?php endforeach; ?>
+                    </div>
+                    <span id="scatCount" style="font-size:.78rem;color:var(--adm-muted);margin-left:auto;">
+                        <?php echo $totalScat; ?> subcategories
+                    </span>
+                </div>
+
+                <div class="adm-table-wrap">
+                    <table class="adm-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Name</th>
+                                <th>Parent</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="scatTableBody">
+                            <?php foreach ($subcategories as $scat):
+                                $catname = $product->catdetails($scat['cat_id']);
+                            ?>
+                                <tr id="scat-row-<?php echo $scat['id']; ?>" data-cat="<?php echo $scat['cat_id']; ?>">
+                                    <td style="color:var(--adm-muted);font-size:.78rem;">#<?php echo $scat['id']; ?></td>
+                                    <td>
+                                        <span class="scat-view"><?php echo htmlspecialchars($scat['name']); ?></span>
+                                        <input class="adm-input scat-edit-name" type="text"
+                                            value="<?php echo htmlspecialchars($scat['name']); ?>"
+                                            style="display:none;font-size:.82rem;padding:.3rem .6rem;">
+                                    </td>
+                                    <td>
+                                        <span class="scat-view-parent" style="font-size:.78rem;color:var(--adm-muted);">
+                                            <?php echo htmlspecialchars($catname['name'] ?? ''); ?>
+                                        </span>
+                                        <select class="adm-input scat-edit-parent" style="display:none;font-size:.82rem;padding:.3rem .6rem;">
+                                            <?php foreach ($categories as $cat): ?>
+                                                <option value="<?php echo $cat['id']; ?>"
+                                                    <?php echo $cat['id'] == $scat['cat_id'] ? 'selected' : ''; ?>>
+                                                    <?php echo htmlspecialchars($cat['name']); ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <div class="adm-actions">
+                                            <button class="adm-btn scat-edit-btn" data-id="<?php echo $scat['id']; ?>" title="Edit">
+                                                <i class="fa-regular fa-pen"></i>
+                                            </button>
+                                            <button class="adm-btn adm-btn-unban scat-save-btn" data-id="<?php echo $scat['id']; ?>"
+                                                style="display:none;" title="Save">
+                                                <i class="fa-regular fa-floppy-disk"></i>
+                                            </button>
+                                            <button class="adm-btn scat-cancel-btn" data-id="<?php echo $scat['id']; ?>"
+                                                style="display:none;" title="Cancel">
+                                                <i class="fa-regular fa-xmark"></i>
+                                            </button>
+                                            <a href="?action=delete_scat&id=<?php echo $scat['id']; ?>&tab=scat"
+                                                class="adm-btn adm-btn-del"
+                                                onclick="return confirm('Move this subcategory to trash? You can restore it later.')"
+                                                title="Delete">
+                                                <i class="fa-regular fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     <?php endif; ?>
 
 </div>
 
 <script>
-// ── Inline edit CATEGORÍAS ──
-$(document).on('click', '.cat-edit-btn', function() {
-    var id  = $(this).data('id');
-    var row = $('#cat-row-' + id);
-    row.find('.cat-view').hide();
-    row.find('.cat-edit').show().focus();
-    row.find('.cat-edit-btn').hide();
-    row.find('.cat-save-btn, .cat-cancel-btn').show();
-});
+    // ── Inline edit CATEGORÍAS ──
+    $(document).on('click', '.cat-edit-btn', function() {
+        var id = $(this).data('id');
+        var row = $('#cat-row-' + id);
+        row.find('.cat-view').hide();
+        row.find('.cat-edit').show().focus();
+        row.find('.cat-edit-btn').hide();
+        row.find('.cat-save-btn, .cat-cancel-btn').show();
+    });
 
-$(document).on('click', '.cat-cancel-btn', function() {
-    var id  = $(this).data('id');
-    var row = $('#cat-row-' + id);
-    row.find('.cat-edit').hide();
-    row.find('.cat-view').show();
-    row.find('.cat-save-btn, .cat-cancel-btn').hide();
-    row.find('.cat-edit-btn').show();
-});
+    $(document).on('click', '.cat-cancel-btn', function() {
+        var id = $(this).data('id');
+        var row = $('#cat-row-' + id);
+        row.find('.cat-edit').hide();
+        row.find('.cat-view').show();
+        row.find('.cat-save-btn, .cat-cancel-btn').hide();
+        row.find('.cat-edit-btn').show();
+    });
 
-$(document).on('click', '.cat-save-btn', function() {
-    var id   = $(this).data('id');
-    var row  = $('#cat-row-' + id);
-    var btn  = $(this);
-    var name = row.find('.cat-edit').val().trim();
+    $(document).on('click', '.cat-save-btn', function() {
+        var id = $(this).data('id');
+        var row = $('#cat-row-' + id);
+        var btn = $(this);
+        var name = row.find('.cat-edit').val().trim();
 
-    if (!name) { toastr["warning"]("Name cannot be empty", "Required"); return; }
+        if (!name) {
+            toastr["warning"]("Name cannot be empty", "Required");
+            return;
+        }
 
-    btn.html('<i class="fa-regular fa-spinner fa-spin"></i>').prop('disabled', true);
+        btn.html('<i class="fa-regular fa-spinner fa-spin"></i>').prop('disabled', true);
 
-    $.ajax({
-        url: 'add-category.php',
-        method: 'POST',
-        data: { action: 'edit_cat', id: id, name: name },
-        dataType: 'json',
-        success: function(res) {
-            if (res.success) {
-                row.find('.cat-view').text(res.name).show();
-                row.find('.cat-edit').val(res.name).hide();
-                row.find('.cat-save-btn, .cat-cancel-btn').hide();
-                row.find('.cat-edit-btn').show();
-                toastr.options = { closeButton: true, progressBar: true, positionClass: "toast-top-right", timeOut: "2000" };
-                toastr["success"](res.name, "Category updated");
-            } else {
-                toastr["error"](res.msg, "Error");
+        $.ajax({
+            url: 'add-category.php',
+            method: 'POST',
+            data: {
+                action: 'edit_cat',
+                id: id,
+                name: name
+            },
+            dataType: 'json',
+            success: function(res) {
+                if (res.success) {
+                    row.find('.cat-view').text(res.name).show();
+                    row.find('.cat-edit').val(res.name).hide();
+                    row.find('.cat-save-btn, .cat-cancel-btn').hide();
+                    row.find('.cat-edit-btn').show();
+                    toastr.options = {
+                        closeButton: true,
+                        progressBar: true,
+                        positionClass: "toast-top-right",
+                        timeOut: "2000"
+                    };
+                    toastr["success"](res.name, "Category updated");
+                } else {
+                    toastr["error"](res.msg, "Error");
+                }
+                btn.html('<i class="fa-regular fa-floppy-disk"></i>').prop('disabled', false);
             }
-            btn.html('<i class="fa-regular fa-floppy-disk"></i>').prop('disabled', false);
-        }
+        });
     });
-});
 
-// ── Inline edit SUBCATEGORÍAS ──
-$(document).on('click', '.scat-edit-btn', function() {
-    var id  = $(this).data('id');
-    var row = $('#scat-row-' + id);
-    row.find('.scat-view, .scat-view-parent').hide();
-    row.find('.scat-edit-name, .scat-edit-parent').show();
-    row.find('.scat-edit-name').focus();
-    row.find('.scat-edit-btn').hide();
-    row.find('.scat-save-btn, .scat-cancel-btn').show();
-});
+    // ── Inline edit SUBCATEGORÍAS ──
+    $(document).on('click', '.scat-edit-btn', function() {
+        var id = $(this).data('id');
+        var row = $('#scat-row-' + id);
+        row.find('.scat-view, .scat-view-parent').hide();
+        row.find('.scat-edit-name, .scat-edit-parent').show();
+        row.find('.scat-edit-name').focus();
+        row.find('.scat-edit-btn').hide();
+        row.find('.scat-save-btn, .scat-cancel-btn').show();
+    });
 
-$(document).on('click', '.scat-cancel-btn', function() {
-    var id  = $(this).data('id');
-    var row = $('#scat-row-' + id);
-    row.find('.scat-edit-name, .scat-edit-parent').hide();
-    row.find('.scat-view, .scat-view-parent').show();
-    row.find('.scat-save-btn, .scat-cancel-btn').hide();
-    row.find('.scat-edit-btn').show();
-});
+    $(document).on('click', '.scat-cancel-btn', function() {
+        var id = $(this).data('id');
+        var row = $('#scat-row-' + id);
+        row.find('.scat-edit-name, .scat-edit-parent').hide();
+        row.find('.scat-view, .scat-view-parent').show();
+        row.find('.scat-save-btn, .scat-cancel-btn').hide();
+        row.find('.scat-edit-btn').show();
+    });
 
-$(document).on('click', '.scat-save-btn', function() {
-    var id    = $(this).data('id');
-    var row   = $('#scat-row-' + id);
-    var btn   = $(this);
-    var name  = row.find('.scat-edit-name').val().trim();
-    var catId = row.find('.scat-edit-parent').val();
-    var catName = row.find('.scat-edit-parent option:selected').text();
+    $(document).on('click', '.scat-save-btn', function() {
+        var id = $(this).data('id');
+        var row = $('#scat-row-' + id);
+        var btn = $(this);
+        var name = row.find('.scat-edit-name').val().trim();
+        var catId = row.find('.scat-edit-parent').val();
+        var catName = row.find('.scat-edit-parent option:selected').text();
 
-    if (!name) { toastr["warning"]("Name cannot be empty", "Required"); return; }
+        if (!name) {
+            toastr["warning"]("Name cannot be empty", "Required");
+            return;
+        }
 
-    btn.html('<i class="fa-regular fa-spinner fa-spin"></i>').prop('disabled', true);
+        btn.html('<i class="fa-regular fa-spinner fa-spin"></i>').prop('disabled', true);
 
-    $.ajax({
-        url: 'add-category.php',
-        method: 'POST',
-        data: { action: 'edit_scat', id: id, name: name, cat_id: catId },
-        dataType: 'json',
-        success: function(res) {
-            if (res.success) {
-                row.find('.scat-view').text(res.name).show();
-                row.find('.scat-view-parent').text(catName).show();
-                row.find('.scat-edit-name').val(res.name).hide();
-                row.find('.scat-edit-parent').hide();
-                row.find('.scat-save-btn, .scat-cancel-btn').hide();
-                row.find('.scat-edit-btn').show();
-                row.attr('data-cat', catId);
-                toastr.options = { closeButton: true, progressBar: true, positionClass: "toast-top-right", timeOut: "2000" };
-                toastr["success"](res.name, "Subcategory updated");
-            } else {
-                toastr["error"](res.msg, "Error");
+        $.ajax({
+            url: 'add-category.php',
+            method: 'POST',
+            data: {
+                action: 'edit_scat',
+                id: id,
+                name: name,
+                cat_id: catId
+            },
+            dataType: 'json',
+            success: function(res) {
+                if (res.success) {
+                    row.find('.scat-view').text(res.name).show();
+                    row.find('.scat-view-parent').text(catName).show();
+                    row.find('.scat-edit-name').val(res.name).hide();
+                    row.find('.scat-edit-parent').hide();
+                    row.find('.scat-save-btn, .scat-cancel-btn').hide();
+                    row.find('.scat-edit-btn').show();
+                    row.attr('data-cat', catId);
+                    toastr.options = {
+                        closeButton: true,
+                        progressBar: true,
+                        positionClass: "toast-top-right",
+                        timeOut: "2000"
+                    };
+                    toastr["success"](res.name, "Subcategory updated");
+                } else {
+                    toastr["error"](res.msg, "Error");
+                }
+                btn.html('<i class="fa-regular fa-floppy-disk"></i>').prop('disabled', false);
             }
-            btn.html('<i class="fa-regular fa-floppy-disk"></i>').prop('disabled', false);
-        }
+        });
     });
-});
 
-// ── Filtro por categoría padre ──
-$('#catFilter .adm-chip').on('click', function() {
-    $('#catFilter .adm-chip').removeClass('active');
-    $(this).addClass('active');
-    var cat = $(this).data('cat');
-    var rows = $('#scatTableBody tr');
-    var visible = 0;
+    // ── Filtro por categoría padre ──
+    $('#catFilter .adm-chip').on('click', function() {
+        $('#catFilter .adm-chip').removeClass('active');
+        $(this).addClass('active');
+        var cat = $(this).data('cat');
+        var rows = $('#scatTableBody tr');
+        var visible = 0;
 
-    rows.each(function() {
-        if (cat === 'all' || $(this).data('cat') == cat) {
-            $(this).show();
-            visible++;
-        } else {
-            $(this).hide();
-        }
+        rows.each(function() {
+            if (cat === 'all' || $(this).data('cat') == cat) {
+                $(this).show();
+                visible++;
+            } else {
+                $(this).hide();
+            }
+        });
+        $('#scatCount').text(visible + ' subcategories');
     });
-    $('#scatCount').text(visible + ' subcategories');
-});
 </script>
 
 <?php require_once('includes/footer.php'); ?>
