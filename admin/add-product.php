@@ -121,85 +121,143 @@ require_once 'includes/header1.php';
 
 <style>
 
-  /* ── Dropzone previews — VISIBLES ── */
+  /* ── Dropzone previews ── */
 #my-awesome-dropzone .dz-preview {
-    display: flex !important;  /* ← antes era none, ahora visible */
+    display: flex !important;
     align-items: center;
     gap: .75rem;
+    flex-wrap: wrap;
+    min-height: 0 !important;
+    margin: .5rem 0 0 !important;
     padding: .5rem .75rem;
-    border: 0.5px solid var(--adm-border);
+    border: 1px solid var(--adm-border);
     border-radius: 8px;
-    margin-top: .5rem;
     background: rgba(255,255,255,.03);
     position: relative;
+    text-align: left;
 }
 
-#my-awesome-dropzone .dz-preview .dz-image { display: none; }
+/* Miniatura */
+#my-awesome-dropzone .dz-preview .dz-image {
+    display: block !important;
+    order: 1;
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px;
+    border-radius: 6px !important;
+    background: #fff !important;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+#my-awesome-dropzone .dz-preview .dz-image img {
+    width: 100%; height: 100%;
+    object-fit: contain;
+    padding: 3px;
+}
 
-#my-awesome-dropzone .dz-preview .dz-filename span {
+/* Nombre y tamaño */
+#my-awesome-dropzone .dz-preview .dz-details {
+    order: 2;
+    position: static !important;
+    opacity: 1 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    text-align: left !important;
+    line-height: 1.3 !important;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+#my-awesome-dropzone .dz-preview .dz-filename span,
+#my-awesome-dropzone .dz-preview .dz-filename:hover span {
     font-size: .78rem;
     color: var(--adm-text);
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+}
+#my-awesome-dropzone .dz-preview .dz-size {
+    display: block !important;
+    font-size: .68rem;
+    color: var(--adm-muted);
+    margin: 0 !important;
+}
+#my-awesome-dropzone .dz-preview .dz-size span {
+    background: none !important;
+    padding: 0 !important;
 }
 
+/* Barra de progreso */
 #my-awesome-dropzone .dz-preview .dz-progress {
-    width: 120px;
-    height: 4px;
-    background: var(--adm-border);
+    order: 3;
+    position: static !important;
+    width: 120px !important;
+    height: 4px !important;
+    margin: 0 0 0 auto !important;
+    background: rgba(255,255,255,.1) !important;
     border-radius: 99px;
     overflow: hidden;
-    margin-left: auto;
+    opacity: 1 !important;
+    animation: none !important;
+    transform: none !important;
+    flex-shrink: 0;
 }
-
 #my-awesome-dropzone .dz-preview .dz-upload {
     display: block;
     height: 100%;
-    background: var(--adm-accent);
-    border-radius: 99px;
+    background: var(--adm-accent) !important;
     transition: width .3s;
 }
 
+/* Marcas por defecto fuera */
 #my-awesome-dropzone .dz-preview .dz-success-mark,
-#my-awesome-dropzone .dz-preview .dz-error-mark {
-    position: static;
-    opacity: 1;
-    animation: none;
-    font-size: .75rem;
-    margin-left: .5rem;
-}
+#my-awesome-dropzone .dz-preview .dz-error-mark { display: none !important; }
 
-#my-awesome-dropzone .dz-preview.dz-success .dz-success-mark { color: var(--adm-success); }
-#my-awesome-dropzone .dz-preview.dz-error  .dz-error-mark   { color: var(--adm-danger); }
-#my-awesome-dropzone .dz-preview .dz-size  { display: none; }
-#my-awesome-dropzone .dz-preview .dz-details { display: flex; align-items: center; gap: .5rem; flex: 1; }
-
-/* Dropzone bloqueado */
-#my-awesome-dropzone.dz-locked {
-    opacity: .5;
-    cursor: not-allowed !important;
-    pointer-events: none;
-}
-
-.dz-lock-msg {
+/* Indicador propio */
+#my-awesome-dropzone .dz-preview::after {
+    order: 4;
+    font-size: .9rem;
+    font-weight: 700;
+    flex-shrink: 0;
+    width: 16px;
     text-align: center;
-    font-size: .78rem;
-    color: var(--adm-warning);
-    margin-top: .75rem;
+}
+#my-awesome-dropzone .dz-preview.dz-success::after { content: '✓'; color: var(--adm-success); }
+#my-awesome-dropzone .dz-preview.dz-error::after   { content: '✕'; color: var(--adm-danger); }
+
+#my-awesome-dropzone .dz-preview.dz-success { border-color: rgba(45,198,83,.3); }
+#my-awesome-dropzone .dz-preview.dz-success .dz-progress { display: none !important; }
+#my-awesome-dropzone .dz-preview.dz-error {
+    border-color: rgba(255,77,77,.4);
+    background: rgba(255,77,77,.05);
+}
+
+/* Mensaje de error */
+#my-awesome-dropzone .dz-preview .dz-error-message {
+    order: 5;
     display: none;
+    position: static !important;
+    opacity: 1 !important;
+    background: none !important;
+    color: var(--adm-danger) !important;
+    font-size: .72rem;
+    padding: 0 !important;
+    margin-top: .3rem;
+    flex-basis: 100%;
+    width: auto !important;
+    top: auto !important;
+    left: auto !important;
 }
+#my-awesome-dropzone .dz-preview .dz-error-message:after { display: none !important; }
+#my-awesome-dropzone .dz-preview.dz-error .dz-error-message { display: block; }
 
-.dz-lock-msg.visible { display: block; }
-
-
-/* ── Dropzone hover ── */
-#my-awesome-dropzone:hover,
-#my-awesome-dropzone.dz-drag-hover {
-    border-color: var(--adm-accent) !important;
-    background: rgba(212,255,0,.06) !important;
-}
-
-/* ── Dropzone previews (thumbnails) ── */
-#my-awesome-dropzone .dz-preview {
-    display: none !important; /* las previews van al logo-list, no aquí */
+/* Mensaje central de la zona */
+#my-awesome-dropzone .dz-message {
+    text-align: center !important;
+    margin: 0 !important;
+    width: 100%;
 }
 
 /* ── Logo list rows ── */
@@ -323,7 +381,9 @@ $(function() {
         maxFilesize: 1024,
         maxFiles: 200,
         autoProcessQueue: true,
-        acceptedFiles: "image/svg+xml",
+        acceptedFiles: ".svg,image/svg+xml",
+        dictInvalidFileType: "Not an SVG file — rejected",
+        dictFileTooBig: "Too large ({{filesize}}MB). Max {{maxFilesize}}MB",
         dataType: "json",
         headers: { 'X-Requested-With': 'XMLHttpRequest' },
 
