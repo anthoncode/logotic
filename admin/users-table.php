@@ -33,10 +33,23 @@ $pages = ceil($num / $maxres);
 
 $params[':start']  = $start;
 $params[':maxres'] = $maxres;
-$stmt = $DB_con->prepare("SELECT * FROM " . PFX . "users WHERE $where ORDER BY id DESC LIMIT :start, :maxres");
+
+
+
+
+$stmt = $DB_con->prepare("
+    SELECT u.*,
+           (SELECT COUNT(*) FROM " . PFX . "oauth o
+            WHERE o.user_id = u.id AND o.provider = 'google') AS has_google
+    FROM " . PFX . "users u
+    WHERE $where
+    ORDER BY u.id DESC
+    LIMIT :start, :maxres
+");
 foreach ($params as $key => $val) {
     $stmt->bindValue($key, $val, is_int($val) ? PDO::PARAM_INT : PDO::PARAM_STR);
 }
+
 $stmt->execute();
 $allUsers = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -58,7 +71,11 @@ foreach ($allUsers as $u) {
         : (!$isVerified
             ? '<span class="adm-badge adm-badge-pending"><i class="fa-regular fa-clock"></i> Unverified</span>'
             : '<span class="adm-badge adm-badge-active"><i class="fa-solid fa-circle-check"></i> Active</span>');
-
+    $verifiedBadge = $u['has_google'] > 0
+        ? '<span class="adm-badge" style="background:rgba(66,133,244,.15);color:#4285f4;" title="Verified through Google"><i class="fa-brands fa-google"></i> Google</span>'
+        : ($isVerified
+            ? '<span class="adm-badge" style="background:rgba(45,198,83,.15);color:var(--adm-success);" title="Email confirmed"><i class="fa-solid fa-envelope-circle-check"></i> Email</span>'
+            : '<span class="adm-badge" style="background:rgba(244,208,63,.15);color:var(--adm-warning);" title="Has not confirmed their email yet"><i class="fa-regular fa-clock"></i> Pending</span>');
     $roleBadge = $isMod
         ? '<span class="adm-badge" style="background:rgba(139,92,246,.15);color:#8b5cf6;"><i class="fa-solid fa-shield"></i> Mod</span>'
         : '<span style="color:var(--adm-muted);font-size:.78rem;">User</span>';
@@ -85,10 +102,11 @@ foreach ($allUsers as $u) {
         <td style='color:var(--adm-muted);'>" . htmlspecialchars($u['email']) . "</td>
         <td style='color:var(--adm-muted);font-size:.78rem;'>" . date('d M Y', strtotime($u['created'])) . "<div style='font-size:.7rem;'>{$daysAgo}d ago</div></td>
         <td>{$statusBadge}</td>
+        <td>{$verifiedBadge}</td>
         <td>{$roleBadge}</td>
         <td>
             <div class='adm-actions'>
-                <a href='edit-user.php?id={$u['username']}' class='adm-btn'><i class='fa-regular fa-pen'></i> Edit</a>
+                <a href='edit-user.php?id={$u['id']}' class='adm-btn'><i class='fa-regular fa-pen'></i> Edit</a>
                 {$banBtn}
                 <a href='users.php?action=delete&id={$u['id']}' class='adm-btn adm-btn-del' onclick=\"return confirm('Permanently delete this user?')\"><i class='fa-regular fa-trash'></i></a>
             </div>

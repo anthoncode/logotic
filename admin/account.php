@@ -261,45 +261,6 @@ require_once('includes/header1.php');
     </div>
 </div>
 
-<style>
-.field-hint {
-    font-size: .72rem;
-    margin-top: .2rem;
-    display: block;
-    min-height: 1rem;
-}
-.field-hint.error { color: var(--adm-danger); }
-.field-hint.ok    { color: var(--adm-success); }
-
-.adm-input.is-error { border-color: var(--adm-danger) !important; }
-.adm-input.is-ok    { border-color: var(--adm-success) !important; }
-
-.pwd-toggle {
-    position: absolute;
-    right: .6rem; top: 50%;
-    transform: translateY(-50%);
-    background: transparent;
-    border: none;
-    color: var(--adm-muted);
-    cursor: pointer;
-    font-size: .85rem;
-    padding: 0;
-    transition: color .15s;
-}
-.pwd-toggle:hover { color: var(--adm-text); }
-
-.pwd-rule {
-    font-size: .72rem;
-    color: var(--adm-muted);
-    display: flex;
-    align-items: center;
-    gap: .4rem;
-    padding: .15rem 0;
-    transition: color .2s;
-}
-.pwd-rule.pass { color: var(--adm-success); }
-.pwd-rule.pass i::before { content: "\f058"; } /* fa-circle-check */
-</style>
 
 <script>
 // ── Mostrar/ocultar contraseña ──

@@ -38,7 +38,7 @@ if (isset($_POST['bulk_delete']) && !empty($_POST['selected_users'])) {
 $totalUsers  = $DB_con->query("SELECT COUNT(*) FROM " . PFX . "users")->fetchColumn();
 $activeUsers = $DB_con->query("SELECT COUNT(*) FROM " . PFX . "users WHERE active = 1")->fetchColumn();
 $bannedUsers = $DB_con->query("SELECT COUNT(*) FROM " . PFX . "users WHERE active = 0")->fetchColumn();
-$unverified  = $DB_con->query("SELECT COUNT(*) FROM " . PFX . "users WHERE verified = 0")->fetchColumn();
+$unverified = $DB_con->query("SELECT COUNT(*) FROM " . PFX . "users WHERE active = 1 AND verified = 0")->fetchColumn();
 
 if (isset($_GET['msg'])) $success = $_GET['msg'];
 
@@ -112,13 +112,15 @@ require_once('includes/header1.php');
                             <th>Email</th>
                             <th>Registered</th>
                             <th>Status</th>
+                            <th>Verified</th>
                             <th>Role</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="adm-tbody">
+
                         <tr>
-                            <td colspan="8" style="text-align:center;padding:2rem;color:var(--adm-muted);">
+                            <td colspan="9" style="text-align:center;padding:2rem;color:var(--adm-muted);">
                                 <i class="fa-regular fa-spinner fa-spin"></i> Loading...
                             </td>
                         </tr>
@@ -138,7 +140,7 @@ require_once('includes/header1.php');
         let currentPage = 1;
 
         function loadUsers() {
-            $('#adm-tbody').html('<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--adm-muted);"><i class="fa-regular fa-spinner fa-spin"></i> Loading...</td></tr>');
+            $('#adm-tbody').html('<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--adm-muted);"><i class="fa-regular fa-spinner fa-spin"></i> Loading...</td></tr>');
 
             $.ajax({
                 url: '<?php echo $setting['website_url']; ?>/admin/users-table.php',
@@ -151,7 +153,7 @@ require_once('includes/header1.php');
                 success: function(res) {
                     const data = JSON.parse(res);
                     $('#adm-tbody').html(data.tbody ||
-                        '<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--adm-muted);">No users found</td></tr>');
+                        '<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--adm-muted);">No users found</td></tr>');
                     $('#adm-pagination').html(data.pagination);
                     $('#adm-total').text(data.total + ' users found');
                     $('#selectAll').prop('checked', false);
