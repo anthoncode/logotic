@@ -12,7 +12,9 @@ $googleEnabled     = ($setting['google_oauth_enabled'] ?? '0') == '1' && !empty(
 
 // Redirigir si ya está logueado
 if ($user->is_loggedin()) {
-    header('Location: ' . $setting['website_url'] . '/user/');
+    $dest = $_SESSION['login_redirect'] ?? $setting['website_url'] . '/user/';
+    unset($_SESSION['login_redirect']);
+    header('Location: ' . $dest);
     exit;
 }
 
@@ -21,6 +23,20 @@ $success = '';
 
 // ← CSRF debe generarse aquí, no dentro del if POST
 $csrfToken = $user->generateCsrfToken();
+
+// ── Redirect seguro tras registro ──
+function getSafeRedirect($setting)
+{
+    $target = $_REQUEST['redirect'] ?? '';
+    $base   = $setting['website_url'];
+    if (!empty($target) && strpos($target, $base) === 0) {
+        return $target;
+    }
+    return $base . '/user/';
+}
+if (!empty($_GET['redirect'])) {
+    $_SESSION['login_redirect'] = getSafeRedirect($setting);
+}
 
 // ── Reenviar verificación ──
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'resend') {
@@ -135,7 +151,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'signu
                     // Sin verificación — login directo
                     $loginResult = $user->login($email, $pwd);
                     if ($loginResult === true) {
-                        header('Location: ' . $setting['website_url'] . '/user/');
+                        $dest = $_SESSION['login_redirect'] ?? $setting['website_url'] . '/user/';
+                        unset($_SESSION['login_redirect']);
+                        header('Location: ' . $dest);
                         exit;
                     }
                     $success = 'registered';

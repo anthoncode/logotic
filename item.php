@@ -17,6 +17,15 @@ $views = explode("/", $po);
 $viewsOne = $views[1];
 $productid = intval($views[0]); // ✅ solo el número
 
+// ¿Este logo ya está en los favoritos del usuario?
+$isSaved = false;
+if ($user->is_loggedin()) {
+  $uidReal = $crypt->decrypt($_SESSION['uid'], 'USER');
+  $chkFav = $DB_con->prepare("SELECT w_id FROM " . PFX . "wishlists WHERE user_id = :uid AND product_id = :pid");
+  $chkFav->execute([':uid' => $uidReal, ':pid' => $productid]);
+  $isSaved = (bool)$chkFav->fetchColumn();
+}
+
 if (is_array($details)) { // is_array solo para php7 o superior, necesita verificar array
   $idItem = $details['id'];
   $slugItem = $details['slug_lg'];
@@ -144,8 +153,9 @@ if (isset($_GET['id'])) {
             </button>
 
             <!-- Bookmark / Save -->
-            <button class="action-btn btn-bookmark" id="bookmarkBtn" title="Guardar">
-              <i class="fa-regular fa-bookmark"></i>
+            <button class="action-btn btn-bookmark <?php echo $isSaved ? 'saved' : ''; ?>" id="bookmarkBtn"
+              title="<?php echo $isSaved ? 'Quitar de favoritos' : 'Guardar en favoritos'; ?>">
+              <i class="<?php echo $isSaved ? 'fa-solid' : 'fa-regular'; ?> fa-bookmark"></i>
             </button>
 
           </div>
@@ -393,7 +403,7 @@ if (isset($_GET['id'])) {
     <!--Similar Products-->
     <div class="container mt-5">
 
-     <h2 class="similar-title">Similar Logos</h2>
+      <h2 class="similar-title">Similar Logos</h2>
 
       <div class="container-logo p-15">
         <?php
@@ -674,6 +684,76 @@ if (isset($_GET['id'])) {
         updateUrl();
       })();
   </script>
+<script>
+// ── Botón de favoritos ──
+(function() {
+    var btn = document.getElementById('bookmarkBtn');
+    if (!btn) return;
+
+    var isLoggedIn = <?php echo $user->is_loggedin() ? 'true' : 'false'; ?>;
+    var productId  = <?php echo (int)$productid; ?>;
+    var loginUrl   = '<?php echo $setting['website_url']; ?>/user/login.php';
+    var currentUrl = window.location.href;
+
+    btn.addEventListener('click', function(e) {
+        e.preventDefault();
+
+        if (!isLoggedIn) {
+            window.location.href = loginUrl + '?redirect=' + encodeURIComponent(currentUrl);
+            return;
+        }
+
+        btn.disabled = true;
+
+        fetch('<?php echo $setting['website_url']; ?>/ajax-wishlist.php', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'action=toggle&product_id=' + productId
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            btn.disabled = false;
+            if (!data.success) {
+                if (data.reason === 'auth') {
+                    window.location.href = loginUrl + '?redirect=' + encodeURIComponent(currentUrl);
+                }
+                return;
+            }
+
+            var icon = btn.querySelector('i');
+            if (data.saved) {
+                btn.classList.add('saved');
+                icon.className = 'fa-solid fa-bookmark';
+                btn.title = 'Quitar de favoritos';
+                showFavToast('Saved to favorites', true);
+            } else {
+                btn.classList.remove('saved');
+                icon.className = 'fa-regular fa-bookmark';
+                btn.title = 'Guardar en favoritos';
+                showFavToast('Removed from favorites', false);
+            }
+
+            if (window.updateFavCount) window.updateFavCount(data.count, data.saved);
+        })
+        .catch(function() { btn.disabled = false; });
+    });
+})();
+
+function showFavToast(message, saved) {
+    var t = document.getElementById('favToast');
+    if (!t) {
+        t = document.createElement('div');
+        t.id = 'favToast';
+        t.className = 'fav-toast';
+        document.body.appendChild(t);
+    }
+    t.innerHTML = '<i class="fa-solid ' + (saved ? 'fa-bookmark' : 'fa-circle-check') + '"></i> ' + message;
+    t.classList.add('show');
+    clearTimeout(window._favToastTimer);
+    window._favToastTimer = setTimeout(function() { t.classList.remove('show'); }, 2500);
+}
+</script>
 
   <?php require_once 'system/assets/footer.php'; ?>
 

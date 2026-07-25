@@ -3342,3 +3342,51 @@ body {
     .promo-bar { padding: .6rem 2.5rem .6rem .75rem; font-size: .78rem; }
     .promo-bar-inner { gap: .5rem; }
 }
+
+/* Botón bookmark guardado */
+.btn-bookmark.saved {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: rgba(212,255,0,.1);
+}
+
+/* Toast de favoritos */
+.fav-toast {
+    position: fixed;
+    bottom: 90px;
+    right: 24px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    padding: .8rem 1.25rem;
+    border-radius: 12px;
+    font-size: .85rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    box-shadow: 0 8px 24px rgba(0,0,0,.4);
+    z-index: 9999;
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity .25s, transform .25s;
+    pointer-events: none;
+}
+.fav-toast.show { opacity: 1; transform: translateY(0); }
+.fav-toast i { color: var(--accent); }
+
+/* Rebote de atención cada cierto tiempo */
+@keyframes favAttention {
+    0%, 100%   { transform: translateY(0); }
+    10%        { transform: translateY(-10px); }
+    20%        { transform: translateY(0); }
+    28%        { transform: translateY(-6px); }
+    35%        { transform: translateY(0); }
+    41%        { transform: translateY(-3px); }
+    46%        { transform: translateY(0); }
+}
+
+/* Solo rebota si hay favoritos guardados */
+.fav-float.has-items {
+    animation: favAttention 3s ease-in-out infinite;
+}

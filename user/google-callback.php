@@ -21,9 +21,13 @@ $clientId     = $setting['google_client_id']     ?? '';
 $clientSecret = $setting['google_client_secret'] ?? '';
 $redirectUri  = $setting['website_url'] . '/user/google-callback.php';
 
-error_log('Google callback — code: ' . substr($_GET['code'], 0, 20));
-error_log('Client ID empty: ' . (empty($clientId) ? 'YES' : 'NO'));
-error_log('Redirect URI: ' . $redirectUri);
+if (!empty($_SESSION['login_redirect'])) {
+    $_SESSION['oauth_redirect'] = $_SESSION['login_redirect'];
+}
+
+//error_log('Google callback — code: ' . substr($_GET['code'], 0, 20));
+//error_log('Client ID empty: ' . (empty($clientId) ? 'YES' : 'NO'));
+//error_log('Redirect URI: ' . $redirectUri);
 
 // ── 1. Intercambiar code por access_token ──
 $ch = curl_init('https://oauth2.googleapis.com/token');
@@ -45,7 +49,7 @@ $tokenResponse = curl_exec($ch);
 $curlError     = curl_error($ch);
 curl_close($ch);
 
-error_log('Token response: ' . $tokenResponse);
+//error_log('Token response: ' . $tokenResponse);
 if ($curlError) error_log('cURL error: ' . $curlError);
 
 if (!$tokenResponse) {
@@ -72,7 +76,7 @@ curl_setopt_array($ch2, [
 $userInfoResponse = curl_exec($ch2);
 curl_close($ch2);
 
-error_log('User info: ' . $userInfoResponse);
+//error_log('User info: ' . $userInfoResponse);
 
 $googleUser = json_decode($userInfoResponse, true);
 

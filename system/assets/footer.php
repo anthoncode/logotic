@@ -500,6 +500,117 @@ function closePromoBar() {
 })();
 
 </script>
+
+<?php
+// Contar favoritos del usuario logueado
+$favCount = 0;
+if ($user->is_loggedin()) {
+    $uidFav = $crypt->decrypt($_SESSION['uid'], 'USER');
+    $cntFav = $DB_con->prepare("SELECT COUNT(*) FROM " . PFX . "wishlists WHERE user_id = :uid");
+    $cntFav->execute([':uid' => $uidFav]);
+    $favCount = (int)$cntFav->fetchColumn();
+}
+?>
+
+<!-- Icono flotante de favoritos -->
+<a href="<?php echo $setting['website_url']; ?>/user/favorites.php"
+   class="fav-float <?php echo $favCount > 0 ? 'has-items' : ''; ?>"
+   id="favFloat"
+   title="My favorites"
+   style="<?php echo $favCount > 0 ? '' : 'display:none;'; ?>">
+    <i class="fa-solid fa-bookmark"></i>
+    <span class="fav-float-count" id="favFloatCount"><?php echo $favCount; ?></span>
+</a>
+
+<style>
+.fav-float {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--bg-card);
+    border: 1px solid var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    text-decoration: none;
+    box-shadow: 0 8px 24px rgba(0,0,0,.35);
+    z-index: 9998;
+    transition: all .25s;
+}
+.fav-float:hover {
+    background: var(--accent);
+    color: #0d0f1c;
+    transform: translateY(-3px);
+    box-shadow: 0 12px 28px rgba(212,255,0,.25);
+}
+.fav-float i { font-size: 1.3rem; }
+
+/* El contador pequeño arriba */
+.fav-float-count {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: 99px;
+    background: var(--accent);
+    color: #0d0f1c;
+    font-size: .72rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--bg-dark, #0d0f1c);
+    transition: transform .25s;
+}
+
+/* Ocultar el contador cuando está en 0 */
+.fav-float:not(.has-items) .fav-float-count { display: none; }
+
+/* Efecto rebote al añadir */
+@keyframes favBounce {
+    0%   { transform: scale(1); }
+    30%  { transform: scale(1.4); }
+    50%  { transform: scale(.9); }
+    70%  { transform: scale(1.15); }
+    100% { transform: scale(1); }
+}
+.fav-float-count.bounce { animation: favBounce .5s ease; }
+
+@media (max-width: 600px) {
+    .fav-float { bottom: 16px; right: 16px; width: 50px; height: 50px; }
+}
+</style>
+
+<script>
+// Función global para actualizar el contador desde cualquier página
+window.updateFavCount = function(count, saved) {
+    var float = document.getElementById('favFloat');
+    var badge = document.getElementById('favFloatCount');
+    if (!float || !badge) return;
+
+    badge.textContent = count;
+
+    if (count > 0) {
+        float.style.display = 'flex';   // mostrar el botón
+        float.classList.add('has-items');
+    } else {
+        float.style.display = 'none';   // ocultar cuando no hay favoritos
+        float.classList.remove('has-items');
+    }
+
+    if (saved) {
+        badge.classList.remove('bounce');
+        void badge.offsetWidth;
+        badge.classList.add('bounce');
+    }
+};
+</script>
 </body>
 
 </html>

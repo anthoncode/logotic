@@ -137,6 +137,29 @@ require_once 'includes/header1.php';
     text-align: left;
 }
 
+/* ── Dropzone bloqueado ── */
+#my-awesome-dropzone.dz-locked {
+    opacity: .5;
+    cursor: not-allowed !important;
+    pointer-events: none;
+}
+
+.dz-lock-msg {
+    text-align: center;
+    font-size: .78rem;
+    color: var(--adm-warning);
+    margin-top: .75rem;
+    display: none;
+}
+.dz-lock-msg.visible { display: block; }
+
+/* ── Dropzone hover ── */
+#my-awesome-dropzone:hover,
+#my-awesome-dropzone.dz-drag-hover {
+    border-color: var(--adm-accent) !important;
+    background: rgba(212,255,0,.06) !important;
+}
+
 /* Miniatura */
 #my-awesome-dropzone .dz-preview .dz-image {
     display: block !important;
@@ -209,6 +232,11 @@ require_once 'includes/header1.php';
     height: 100%;
     background: var(--adm-accent) !important;
     transition: width .3s;
+    position: static !important;
+    top: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    right: auto !important;
 }
 
 /* Marcas por defecto fuera */
@@ -258,6 +286,10 @@ require_once 'includes/header1.php';
     text-align: center !important;
     margin: 0 !important;
     width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 /* ── Logo list rows ── */
@@ -332,8 +364,10 @@ $(function() {
                 url: "ajax-category.php",
                 data: "cat_id=" + catVal,
                 success: function(html) {
-                    $("#subcat").html(html).prop('disabled', false);
-                    checkDropzone(); // re-evaluar estado
+
+                $("#subcat").html('<option value="">Select subcategory...</option>' + html).prop('disabled', false);
+                $("#subcat").val(''); // forzar vacío
+                checkDropzone();
                 }
             });
         } else {
@@ -412,11 +446,17 @@ $(function() {
                     }
                     return;
                 }
+                var img = file.previewElement.querySelector('[data-dz-thumbnail]');
+                if (img) {
+                    var reader = new FileReader();
+                    reader.onload = function(e) { img.src = e.target.result; };
+                    reader.readAsDataURL(file);
+                }
             });
 
             dz.on('sending', function(file) {
-                toastr.options = { closeButton: true, progressBar: true, positionClass: "toast-top-right", timeOut: "2000" };
-                toastr["info"](file.name, "Uploading...");
+               // toastr.options = { closeButton: true, progressBar: true, positionClass: "toast-top-right", timeOut: "2000" };
+               // toastr["info"](file.name, "Uploading...");
             });
 
             dz.on('error', function(file, errormessage) {
@@ -426,6 +466,7 @@ $(function() {
         },
 
         success: function(response, data) {
+            if (response.previewElement) response.previewElement.classList.add('dz-success');
             function uppercase(str) {
                 return str.split(' ').map(function(w) {
                     return w.charAt(0).toUpperCase() + w.slice(1);
