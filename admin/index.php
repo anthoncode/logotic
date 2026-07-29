@@ -42,6 +42,77 @@ $topDownloads = $DB_con->query("
 // Sitemap info
 $sitemapPath = $_SERVER['DOCUMENT_ROOT'] . '/logotic/sitemap.xml';
 
+// ═══════════════════════════════════════════
+// DATOS PARA GRÁFICOS
+// ═══════════════════════════════════════════
+
+// 1. Descargas por DÍA (últimos 30 días)
+$dlByDay = $DB_con->query("
+    SELECT DATE(date_created) as d, COUNT(*) as total
+    FROM " . PFX . "downloads
+    WHERE date_created >= (CURDATE() - INTERVAL 29 DAY)
+    GROUP BY DATE(date_created)
+    ORDER BY d ASC
+")->fetchAll(PDO::FETCH_ASSOC);
+
+// Rellenar días sin descargas con 0 (para que la línea sea continua)
+$dayLabels = [];
+$dayData   = [];
+$dayMap = [];
+foreach ($dlByDay as $row) { $dayMap[$row['d']] = (int)$row['total']; }
+for ($i = 29; $i >= 0; $i--) {
+    $date = date('Y-m-d', strtotime("-$i days"));
+    $dayLabels[] = date('d M', strtotime($date));
+    $dayData[]   = $dayMap[$date] ?? 0;
+}
+
+// 2. Descargas por SEMANA (últimas 12 semanas)
+$dlByWeek = $DB_con->query("
+    SELECT YEARWEEK(date_created, 1) as yw, MIN(DATE(date_created)) as week_start, COUNT(*) as total
+    FROM " . PFX . "downloads
+    WHERE date_created >= (CURDATE() - INTERVAL 12 WEEK)
+    GROUP BY YEARWEEK(date_created, 1)
+    ORDER BY yw ASC
+")->fetchAll(PDO::FETCH_ASSOC);
+$weekLabels = [];
+$weekData   = [];
+foreach ($dlByWeek as $row) {
+    $weekLabels[] = date('d M', strtotime($row['week_start']));
+    $weekData[]   = (int)$row['total'];
+}
+
+// 3. Descargas por MES (últimos 12 meses)
+$dlByMonth = $DB_con->query("
+    SELECT DATE_FORMAT(date_created, '%Y-%m') as ym, COUNT(*) as total
+    FROM " . PFX . "downloads
+    WHERE date_created >= (CURDATE() - INTERVAL 12 MONTH)
+    GROUP BY DATE_FORMAT(date_created, '%Y-%m')
+    ORDER BY ym ASC
+")->fetchAll(PDO::FETCH_ASSOC);
+$monthLabels = [];
+$monthData   = [];
+foreach ($dlByMonth as $row) {
+    $monthLabels[] = date('M Y', strtotime($row['ym'] . '-01'));
+    $monthData[]   = (int)$row['total'];
+}
+
+// 4. Top 10 logos más descargados (para el gráfico de barras)
+$topChart = $DB_con->query("
+    SELECT p.name, COUNT(d.id) as dl_count
+    FROM " . PFX . "products p
+    INNER JOIN " . PFX . "downloads d ON p.id = d.products_id
+    WHERE p.active = 1
+    GROUP BY p.id
+    ORDER BY dl_count DESC
+    LIMIT 10
+")->fetchAll(PDO::FETCH_ASSOC);
+$topLabels = [];
+$topData   = [];
+foreach ($topChart as $row) {
+    $topLabels[] = $row['name'];
+    $topData[]   = (int)$row['dl_count'];
+}
+
 require_once('includes/header1.php');
 ?>
 
@@ -109,6 +180,56 @@ require_once('includes/header1.php');
             <div class="adm-stat-label">Total Views</div>
         </div>
     </div>
+
+    <!-- ═══ GRÁFICOS ═══ -->
+    <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:1rem;margin-bottom:1.5rem;">
+
+        <!-- Descargas en el tiempo -->
+        <div class="adm-card">
+            <div class="adm-card-title" style="display:flex;align-items:center;">
+                <i class="fa-solid fa-chart-line"></i> Downloads Over Time
+                <div style="margin-left:auto;display:flex;gap:.35rem;" id="dlRangeBtns">
+                    <button class="dl-range-btn active" data-range="day">Day</button>
+                    <button class="dl-range-btn" data-range="week">Week</button>
+                    <button class="dl-range-btn" data-range="month">Month</button>
+                </div>
+            </div>
+            <div style="height:280px;position:relative;">
+                <canvas id="downloadsChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Top logos -->
+        <div class="adm-card">
+            <div class="adm-card-title">
+                <i class="fa-solid fa-ranking-star"></i> Top 10 Downloaded
+            </div>
+            <div style="height:280px;position:relative;">
+                <canvas id="topLogosChart"></canvas>
+            </div>
+        </div>
+
+    </div>
+
+    <style>
+    .dl-range-btn {
+        background: rgba(255,255,255,.04);
+        border: 1px solid var(--adm-border);
+        color: var(--adm-muted);
+        border-radius: 7px;
+        padding: .25rem .7rem;
+        font-size: .72rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all .15s;
+    }
+    .dl-range-btn:hover { color: var(--adm-text); }
+    .dl-range-btn.active {
+        background: var(--adm-accent);
+        color: #0d0f1c;
+        border-color: var(--adm-accent);
+    }
+    </style>
 
     <!-- Quick Links -->
     <div class="adm-quick-links">
@@ -255,5 +376,129 @@ require_once('includes/header1.php');
     </div>
 
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+(function() {
+    // Colores del tema
+    var accent   = '#d4ff00';
+    var textMut  = '#8b8fa3';
+    var gridCol  = 'rgba(255,255,255,.06)';
+    var accentBg = 'rgba(212,255,0,.12)';
+
+    Chart.defaults.color = textMut;
+    Chart.defaults.font.family = "'Poppins', sans-serif";
+    Chart.defaults.font.size = 11;
+
+    // Datos de descargas (día/semana/mes)
+    var dlData = {
+        day:   { labels: <?php echo json_encode($dayLabels); ?>,   data: <?php echo json_encode($dayData); ?> },
+        week:  { labels: <?php echo json_encode($weekLabels); ?>,  data: <?php echo json_encode($weekData); ?> },
+        month: { labels: <?php echo json_encode($monthLabels); ?>, data: <?php echo json_encode($monthData); ?> }
+    };
+
+    // ── Gráfico de descargas en el tiempo ──
+    var dlCtx = document.getElementById('downloadsChart').getContext('2d');
+    var gradient = dlCtx.createLinearGradient(0, 0, 0, 280);
+    gradient.addColorStop(0, 'rgba(212,255,0,.25)');
+    gradient.addColorStop(1, 'rgba(212,255,0,0)');
+
+    var downloadsChart = new Chart(dlCtx, {
+        type: 'line',
+        data: {
+            labels: dlData.day.labels,
+            datasets: [{
+                label: 'Downloads',
+                data: dlData.day.data,
+                borderColor: accent,
+                backgroundColor: gradient,
+                borderWidth: 2,
+                fill: true,
+                tension: .35,
+                pointRadius: 0,
+                pointHoverRadius: 5,
+                pointHoverBackgroundColor: accent,
+                pointHoverBorderColor: '#0d0f1c',
+                pointHoverBorderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#13152a',
+                    borderColor: 'rgba(255,255,255,.1)',
+                    borderWidth: 1,
+                    titleColor: '#fff',
+                    bodyColor: accent,
+                    padding: 10,
+                    displayColors: false,
+                    callbacks: {
+                        label: function(ctx) { return ctx.parsed.y + ' downloads'; }
+                    }
+                }
+            },
+            scales: {
+                x: { grid: { color: gridCol, drawBorder: false }, ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 8 } },
+                y: { grid: { color: gridCol, drawBorder: false }, beginAtZero: true, ticks: { precision: 0 } }
+            }
+        }
+    });
+
+    // Cambiar rango día/semana/mes
+    document.querySelectorAll('.dl-range-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.dl-range-btn').forEach(function(b) { b.classList.remove('active'); });
+            btn.classList.add('active');
+            var range = btn.getAttribute('data-range');
+            downloadsChart.data.labels = dlData[range].labels;
+            downloadsChart.data.datasets[0].data = dlData[range].data;
+            downloadsChart.update();
+        });
+    });
+
+    // ── Gráfico de top logos (barras horizontales) ──
+    var topCtx = document.getElementById('topLogosChart').getContext('2d');
+    new Chart(topCtx, {
+        type: 'bar',
+        data: {
+            labels: <?php echo json_encode($topLabels); ?>,
+            datasets: [{
+                label: 'Downloads',
+                data: <?php echo json_encode($topData); ?>,
+                backgroundColor: accentBg,
+                borderColor: accent,
+                borderWidth: 1.5,
+                borderRadius: 5,
+                barThickness: 'flex',
+                maxBarThickness: 22
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#13152a',
+                    borderColor: 'rgba(255,255,255,.1)',
+                    borderWidth: 1,
+                    titleColor: '#fff',
+                    bodyColor: accent,
+                    padding: 10,
+                    displayColors: false
+                }
+            },
+            scales: {
+                x: { grid: { color: gridCol, drawBorder: false }, beginAtZero: true, ticks: { precision: 0 } },
+                y: { grid: { display: false, drawBorder: false }, ticks: { autoSkip: false } }
+            }
+        }
+    });
+})();
+</script>
 
 <?php require_once('includes/footer.php'); ?>

@@ -1477,10 +1477,10 @@ body {
 }
 
 .download-buttons {
-    display: flex;
-    gap: 15px;
     margin-bottom: 2rem;
-    animation: fadeIn 0.8s ease 0.7s both;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
 }
 
 .btn-download {
@@ -1499,6 +1499,9 @@ body {
     background: var(--neon-green);
     color: #0a0e1a;
     box-shadow: 0 10px 30px rgba(212, 255, 0, 0.3);
+
+    width: 100%;
+    justify-content: center;
 }
 
 .btn-download::before {
@@ -2133,15 +2136,14 @@ body {
     gap: 16px;
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(212, 255, 0, 0.08);
     opacity: 0;
-    transform: translateX(60px) scale(0.95);
+    transform: translateY(-20px);  /* entra desde arriba */
     transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1), transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     pointer-events: none;
 }
 
 #downloadToast.show {
     opacity: 1;
-    transform: translateX(0) scale(1);
-    pointer-events: auto;
+    transform: translateY(0);
 }
 
 .toast-ring-wrap {
@@ -2149,6 +2151,17 @@ body {
     width: 46px;
     height: 46px;
     flex-shrink: 0;
+}
+
+/* Progreso en forma de anillo */
+.ring-progress {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 3;
+    stroke-linecap: round;
+    transform: rotate(-90deg);
+    transform-origin: center;
+    transition: stroke-dashoffset .3s ease;
 }
 
 .toast-ring-wrap svg {
@@ -2339,16 +2352,28 @@ body {
     padding: .75rem;
     background: var(--bg-card);
     border-radius: 0 0 var(--radius-card) var(--radius-card);
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.sidebar-search-wrap * {
+    box-sizing: border-box;
 }
 
 .sidebar-search-input {
+    flex: 1 1 0;         /* explícito: grow, shrink, basis 0 */
+    min-width: 0;        /* Firefox lo necesita sí o sí */
+    width: 0;            /* fuerza a Firefox a calcular desde flex, no desde el ancho intrínseco */
+    height: 40px;
+    
     flex: 1;
+    height: 40px;              /* ← nuevo */
     background: rgba(255, 255, 255, .05);
     border: 1px solid var(--border);
     border-radius: var(--radius-btn);
     color: var(--text-primary);
     font-size: .82rem;
-    padding: .4rem .85rem;
+    padding: 0 .85rem;         /* ← antes .4rem .85rem */
     font-family: 'Poppins', sans-serif;
     transition: var(--transition);
 }
@@ -2367,8 +2392,8 @@ body {
     background: var(--accent);
     border: none;
     border-radius: 50%;
-    width: 32px;
-    height: 32px;
+    width: 40px;               /* ← antes 32px */
+    height: 40px;              /* ← antes 32px */
     color: #0d0f1c;
     display: flex;
     align-items: center;
@@ -3240,7 +3265,7 @@ body {
 }
 .owner-avatar-brand {
     background: #fff;
-    padding: 6px;
+    padding: 3px;
 }
 .owner-avatar-brand img { object-fit: contain; }
 
@@ -3389,4 +3414,80 @@ body {
 /* Solo rebota si hay favoritos guardados */
 .fav-float.has-items {
     animation: favAttention 3s ease-in-out infinite;
+}
+
+.png-download-wrap { position: relative; display: inline-block; }
+
+.png-menu {
+    position: absolute;
+    bottom: calc(100% + 8px);   /* ← hacia arriba en vez de abajo */
+    top: auto;
+    right: 0;
+    left: auto;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: .75rem;
+    min-width: 220px;
+    box-shadow: 0 -8px 32px rgba(0,0,0,.4);
+    z-index: 200;
+    display: none;
+}
+.png-menu.show { display: block; }
+.png-menu-title {
+    font-size: .7rem;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: var(--text-muted);
+    margin-bottom: .6rem;
+}
+
+.png-sizes {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: .35rem;
+    margin-bottom: .6rem;
+}
+.png-sizes button {
+    background: rgba(255,255,255,.04);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    border-radius: 8px;
+    padding: .5rem;
+    font-size: .78rem;
+    cursor: pointer;
+    transition: var(--transition);
+}
+.png-sizes button:hover {
+    background: var(--accent);
+    color: #0d0f1c;
+    border-color: var(--accent);
+}
+
+.png-custom {
+    display: flex;
+    gap: .4rem;
+    border-top: 1px solid var(--border);
+    padding-top: .6rem;
+}
+.png-custom input {
+    flex: 1;
+    background: rgba(255,255,255,.04);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    border-radius: 8px;
+    padding: .5rem;
+    font-size: .8rem;
+    width: 100%;
+}
+.png-custom button {
+    background: var(--accent);
+    color: #0d0f1c;
+    border: none;
+    border-radius: 8px;
+    padding: .5rem .8rem;
+    font-size: .78rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
 }

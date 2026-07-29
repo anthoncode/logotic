@@ -47,7 +47,7 @@ RewriteRule ^page/([^/]+)/?$ custom-page.php?slug=$1 [L]
 RewriteRule ^category/(.*)/ category.php?id=$1 [L]
 
 #RewriteRule tags/(.*)/ tags.php
-RewriteRule tags/(.*)$ tags.php?id=$1
+RewriteRule ^tags/([^/]+)/?$ tags.php?id=$1 [L]
 RewriteRule color/(.*)$ color.php?id=$1
 RewriteRule most-downloaded/$ most-downloaded.php [L]
 RewriteRule ^recently-added/$ recently-added.php [L]
@@ -63,9 +63,9 @@ RewriteRule ^forum/search/sort(.*)$ addons/forum/sort.php [L]
 RewriteRule ^forum/settings(.*)$ addons/forum/settings.php [L]
 RewriteRule ^forum/rules(.*)$ addons/forum/rules.php [L]
 
+RewriteRule ^system/download/([0-9]+) system/download.php?pid=$1 [L]
 
-
-#ErrorDocument 404 https://font.gooova.com/404.php
+ErrorDocument 404 /logotic/404.php
 
 #redirecciona a una url con /
 #RewriteCond %{REQUEST_URI} /+[^\.]+$

@@ -1,6 +1,6 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
+ini_set('display_errors', 0);
+ini_set('display_startup_errors', 0);
 error_reporting(E_ALL);
 
 require_once('system/config-global.php');
@@ -12,11 +12,20 @@ if (isset($_GET['id'])) {
   $tags_free = str_replace('-', ' ', $tags);
 
   $tagPro = $product->getTProducts(null, $_GET['id']);
+
+  // ── Si el tag no existe o no tiene logos → 404 real ──
+  if (empty($tagPro)) {
+    http_response_code(404);
+    include '404.php';
+    exit;
+  }
+
   $metaRobots = "<meta name='robots' content='noindex, nofollow' />\n";
   $UperTag = strtoupper($tags_free);
   $pageTitle = $UperTag . " logo versions and variants" . " - PNG & SVG";
   $pageMeta = "Multiple " . $UperTag . " logo designs, download old and new versions of " . $UperTag . " icons and logos with transparent background";
   require_once('system/assets/header.php');
+  
 
   if (!$tag_w_slash) {
     display_post_not_found($tags);

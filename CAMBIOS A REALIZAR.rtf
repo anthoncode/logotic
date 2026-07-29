@@ -240,3 +240,14 @@ ALTER TABLE logotic_2fa_codes
 ALTER TABLE logotic_logo_views
   ADD CONSTRAINT fk_logoviews_product
   FOREIGN KEY (product_id) REFERENCES logotic_products(id) ON DELETE CASCADE;
+
+
+  -- Ampliar la columna de contraseña para bcrypt
+ALTER TABLE logotic_admins MODIFY password VARCHAR(255) NOT NULL;
+
+-- Añadir columnas de seguridad
+ALTER TABLE logotic_admins
+  ADD COLUMN login_attempts INT(11) NOT NULL DEFAULT 0,
+  ADD COLUMN locked_until DATETIME DEFAULT NULL,
+  ADD COLUMN last_login DATETIME DEFAULT NULL,
+  ADD COLUMN ip_address VARCHAR(45) DEFAULT NULL;

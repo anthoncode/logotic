@@ -1,280 +1,236 @@
 <?php
-header("HTTP/1.0 404 Not Found");
-
 ini_set('display_errors', 0);
 ini_set('display_startup_errors', 0);
 error_reporting(E_ALL);
-$pageTitle = '404';
+
+http_response_code(404);
+
+$pageTitle  = 'Page Not Found';
+$metaRobots = "<meta name='robots' content='noindex, follow' />";
 require_once('system/config-global.php');
 require_once('system/assets/header.php');
 ?>
+
+<main role="main">
+  <section class="nf-wrap">
+
+    <!-- Vectores decorativos de fondo -->
+    <div class="nf-shapes" aria-hidden="true">
+      <span class="nf-shape nf-shape-1"></span>
+      <span class="nf-shape nf-shape-2"></span>
+      <span class="nf-shape nf-shape-3"></span>
+      <span class="nf-shape nf-shape-4"></span>
+    </div>
+
+    <div class="nf-inner">
+
+      <!-- 404 grande con estética de vectores -->
+      <div class="nf-code">
+        <span class="nf-digit">4</span>
+        <span class="nf-zero">
+          <svg viewBox="0 0 120 120" class="nf-zero-svg" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="60" cy="60" r="52" fill="none" stroke="var(--accent)" stroke-width="6" stroke-dasharray="10 8" />
+            <circle cx="60" cy="60" r="30" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="3" />
+            <circle cx="60" cy="60" r="5" fill="var(--accent)" />
+          </svg>
+        </span>
+        <span class="nf-digit">4</span>
+      </div>
+
+      <h1 class="nf-title">This logo got lost in the vectors</h1>
+      <p class="nf-sub">The page you're looking for doesn't exist — but the logo you need might. Try a search.</p>
+
+      <!-- Buscador central -->
+      <form action="<?php echo $setting['website_url']; ?>/search.php" method="GET" class="nf-search-form">
+        <div class="nf-search-wrap">
+          <span class="nf-search-icon"><i class="fa-regular fa-magnifying-glass"></i></span>
+          <input type="text" name="key" class="nf-search-input" placeholder="Search for a logo..." minlength="3" autofocus>
+          <button type="submit" class="nf-search-btn">
+            <i class="fa-regular fa-arrow-right"></i>
+          </button>
+        </div>
+      </form>
+
+      <!-- Acciones -->
+      <div class="nf-actions">
+        <a href="<?php echo $setting['website_url']; ?>/" class="nf-btn nf-btn-primary">
+          <i class="fa-regular fa-house"></i> Go home
+        </a>
+        <a href="<?php echo $setting['website_url']; ?>/category/1/" class="nf-btn nf-btn-ghost">
+          <i class="fa-regular fa-shapes"></i> Browse logos
+        </a>
+      </div>
+
+    </div>
+  </section>
+</main>
+
 <style>
-	body {
-		background: #33cc99;
-		color: #fff;
-		max-height: 700px;
-		overflow: visible !important;
-	}
+.nf-wrap {
+    position: relative;
+    min-height: 72vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1.5rem;
+    overflow: hidden;
+}
 
-	.c {
-		text-align: center;
-		display: block;
-		position: relative;
-		width: 80%;
-		margin: 100px auto;
-	}
+/* Vectores decorativos de fondo */
+.nf-shapes { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+.nf-shape {
+    position: absolute;
+    border-radius: 30%;
+    opacity: .06;
+    filter: blur(2px);
+}
+.nf-shape-1 { width: 180px; height: 180px; background: var(--accent); top: 8%; left: 10%; border-radius: 50%; animation: nfFloat 9s ease-in-out infinite; }
+.nf-shape-2 { width: 120px; height: 120px; border: 8px solid var(--accent); background: transparent; bottom: 12%; right: 14%; border-radius: 24px; animation: nfFloat 11s ease-in-out infinite reverse; }
+.nf-shape-3 { width: 90px;  height: 90px;  background: #fff; opacity: .04; top: 20%; right: 22%; border-radius: 50%; animation: nfFloat 7s ease-in-out infinite; }
+.nf-shape-4 { width: 140px; height: 140px; border: 6px dashed var(--accent); background: transparent; bottom: 18%; left: 16%; border-radius: 50%; animation: nfFloat 13s ease-in-out infinite; }
 
-	._404 {
-		font-size: 220px;
-		position: relative;
-		display: inline-block;
-		z-index: 2;
-		height: 250px;
-		letter-spacing: 15px;
-	}
+@keyframes nfFloat {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50%      { transform: translateY(-22px) rotate(8deg); }
+}
 
-	._1 {
-		text-align: center;
-		display: block;
-		position: relative;
-		letter-spacing: 12px;
-		font-size: 4em;
-		line-height: 80%;
-	}
+.nf-inner {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    max-width: 620px;
+    width: 100%;
+}
 
-	._2 {
-		text-align: center;
-		display: block;
-		position: relative;
-		font-size: 20px;
-	}
+/* 404 grande */
+.nf-code {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+    margin-bottom: 1.5rem;
+}
+.nf-digit {
+    font-size: clamp(6rem, 18vw, 11rem);
+    font-weight: 800;
+    line-height: 1;
+    color: var(--text-primary);
+    letter-spacing: -.03em;
+}
+.nf-zero {
+    width: clamp(6rem, 18vw, 11rem);
+    height: clamp(6rem, 18vw, 11rem);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.nf-zero-svg {
+    width: 100%;
+    height: 100%;
+    animation: nfSpin 18s linear infinite;
+}
+@keyframes nfSpin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
 
-	.text {
-		font-size: 70px;
-		text-align: center;
-		position: relative;
-		display: inline-block;
-		margin: 19px 0px 0px 0px;
-		/* top: 256.301px; */
-		z-index: 3;
-		width: 100%;
-		line-height: 1.2em;
-		display: inline-block;
-	}
+.nf-title {
+    font-size: clamp(1.3rem, 3.5vw, 1.9rem);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 .6rem;
+}
+.nf-sub {
+    font-size: .95rem;
+    color: var(--text-secondary);
+    margin: 0 auto 2rem;
+    max-width: 440px;
+    line-height: 1.6;
+}
 
-	.btn-404{
-	    background-color: rgb( 255, 255, 255 );
-	    position: relative;
-	    display: inline-block;
-	    width: 358px;
-	    padding: 5px;
-	    z-index: 5;
-	    font-size: 25px;
-	    margin:0 auto;
-	    color:#33cc99;
-	    text-decoration: none;
-	    margin-right: 10px;
-	    border-radius: 5px;
-	}
-	.right {
-		float: right;
-		width: 60%;
-	}
+/* Buscador central */
+.nf-search-form { margin-bottom: 1.75rem; }
+.nf-search-wrap {
+    display: flex;
+    align-items: center;
+    max-width: 460px;
+    margin: 0 auto;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    padding: .35rem .35rem .35rem 1.25rem;
+    transition: var(--transition);
+}
+.nf-search-wrap:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px rgba(212,255,0,.08);
+}
+.nf-search-icon { color: var(--text-muted); font-size: .95rem; flex-shrink: 0; }
+.nf-search-input {
+    flex: 1 1 0;
+    min-width: 0;
+    width: 0;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text-primary);
+    font-size: .95rem;
+    padding: .7rem .85rem;
+    font-family: 'Poppins', sans-serif;
+}
+.nf-search-input::placeholder { color: var(--text-muted); }
+.nf-search-btn {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #0d0f1c;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: var(--transition);
+}
+.nf-search-btn:hover { transform: scale(1.06); background: #bfe600; }
 
-	hr {
-		padding: 0;
-		border: none;
-		border-top: 5px solid #fff;
-		color: #fff;
-		text-align: center;
-		margin: 0px auto;
-		width: 420px;
-		height: 10px;
-		z-index: -10;
-	}
+/* Acciones */
+.nf-actions {
+    display: flex;
+    gap: .75rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+.nf-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .7rem 1.4rem;
+    border-radius: 99px;
+    font-size: .88rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: var(--transition);
+}
+.nf-btn-primary {
+    background: var(--accent);
+    color: #0d0f1c;
+}
+.nf-btn-primary:hover { transform: translateY(-2px); background: #bfe600; }
+.nf-btn-ghost {
+    background: transparent;
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+}
+.nf-btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
 
-	hr:after {
-		content: "\2022";
-		display: inline-block;
-		position: relative;
-		top: -0.75em;
-		font-size: 2em;
-		padding: 0 0.2em;
-		background: #33cc99;
-	}
-
-	.cloud {
-		width: 350px;
-		height: 120px;
-
-		background: #FFF;
-		background: linear-gradient(top, #FFF 100%);
-		background: -webkit-linear-gradient(top, #FFF 100%);
-		background: -moz-linear-gradient(top, #FFF 100%);
-		background: -ms-linear-gradient(top, #FFF 100%);
-		background: -o-linear-gradient(top, #FFF 100%);
-
-		border-radius: 100px;
-		-webkit-border-radius: 100px;
-		-moz-border-radius: 100px;
-
-		position: absolute;
-		margin: 120px auto 20px;
-		/* z-index:-1;*/
-		transition: ease 1s;
-	}
-
-	.cloud:after,
-	.cloud:before {
-		content: '';
-		position: absolute;
-		background: #FFF;
-		z-index: -1
-	}
-
-	.cloud:after {
-		width: 100px;
-		height: 100px;
-		top: -50px;
-		left: 50px;
-
-		border-radius: 100px;
-		-webkit-border-radius: 100px;
-		-moz-border-radius: 100px;
-	}
-
-	.cloud:before {
-		width: 180px;
-		height: 180px;
-		top: -90px;
-		right: 50px;
-
-		border-radius: 200px;
-		-webkit-border-radius: 200px;
-		-moz-border-radius: 200px;
-	}
-
-	.x1 {
-		top: -50px;
-		left: 100px;
-		-webkit-transform: scale(0.3);
-		-moz-transform: scale(0.3);
-		transform: scale(0.3);
-		opacity: 0.9;
-		-webkit-animation: moveclouds 15s linear infinite;
-		-moz-animation: moveclouds 15s linear infinite;
-		-o-animation: moveclouds 15s linear infinite;
-	}
-
-	.x1_5 {
-		top: -80px;
-		left: 250px;
-		-webkit-transform: scale(0.3);
-		-moz-transform: scale(0.3);
-		transform: scale(0.3);
-		-webkit-animation: moveclouds 17s linear infinite;
-		-moz-animation: moveclouds 17s linear infinite;
-		-o-animation: moveclouds 17s linear infinite;
-	}
-
-	.x2 {
-		left: 250px;
-		top: 30px;
-		-webkit-transform: scale(0.6);
-		-moz-transform: scale(0.6);
-		transform: scale(0.6);
-		opacity: 0.6;
-		-webkit-animation: moveclouds 25s linear infinite;
-		-moz-animation: moveclouds 25s linear infinite;
-		-o-animation: moveclouds 25s linear infinite;
-	}
-
-	.x3 {
-		left: 250px;
-		bottom: -70px;
-
-		-webkit-transform: scale(0.6);
-		-moz-transform: scale(0.6);
-		transform: scale(0.6);
-		opacity: 0.8;
-
-		-webkit-animation: moveclouds 25s linear infinite;
-		-moz-animation: moveclouds 25s linear infinite;
-		-o-animation: moveclouds 25s linear infinite;
-	}
-
-	.x4 {
-		left: 470px;
-		botttom: 20px;
-
-		-webkit-transform: scale(0.75);
-		-moz-transform: scale(0.75);
-		transform: scale(0.75);
-		opacity: 0.75;
-
-		-webkit-animation: moveclouds 18s linear infinite;
-		-moz-animation: moveclouds 18s linear infinite;
-		-o-animation: moveclouds 18s linear infinite;
-	}
-
-	.x5 {
-		left: 200px;
-		top: 300px;
-
-		-webkit-transform: scale(0.5);
-		-moz-transform: scale(0.5);
-		transform: scale(0.5);
-		opacity: 0.8;
-
-		-webkit-animation: moveclouds 20s linear infinite;
-		-moz-animation: moveclouds 20s linear infinite;
-		-o-animation: moveclouds 20s linear infinite;
-	}
-
-	@-webkit-keyframes moveclouds {
-		0% {
-			margin-left: 1000px;
-		}
-
-		100% {
-			margin-left: -1000px;
-		}
-	}
-
-	@-moz-keyframes moveclouds {
-		0% {
-			margin-left: 1000px;
-		}
-
-		100% {
-			margin-left: -1000px;
-		}
-	}
-
-	@-o-keyframes moveclouds {
-		0% {
-			margin-left: 1000px;
-		}
-
-		100% {
-			margin-left: -1000px;
-		}
-	}
+@media (max-width: 500px) {
+    .nf-code { gap: .2rem; }
+    .nf-actions { flex-direction: column; }
+    .nf-btn { width: 100%; justify-content: center; }
+}
 </style>
-<div id="clouds">
-	<div class="cloud x1"></div>
-	<div class="cloud x1_5"></div>
-	<div class="cloud x2"></div>
-	<div class="cloud x3"></div>
-	<div class="cloud x4"></div>
-	<div class="cloud x5"></div>
-</div>
-<div class='c'>
-	<div class='_404'>404</div>
-	<hr>
-	<div class='_2'>404 Page not found</div>
-	<a class='btn-404' href='<?php echo $setting['website_url']; ?>'>Home</a>
-</div>
-<?php
-require_once('system/assets/footer.php');
-?>
+
+<?php require_once('system/assets/footer.php'); ?>

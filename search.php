@@ -24,100 +24,141 @@ $s = new Search($DB_con);
     $keyword = substr($keyword, 0, 20);
     $found   = $s->search($keyword);
     $count   = count($found);
+
+    // ── Registrar la búsqueda (una vez por sesión y término) ──
+    $termClean = strtolower(trim($keyword));
+
+    if (mb_strlen($termClean) >= 3) {
+        // Clave única de esta búsqueda en la sesión
+        if (!isset($_SESSION['searched_terms'])) {
+            $_SESSION['searched_terms'] = [];
+        }
+
+        // Solo contar si NO se ha registrado este término en esta sesión
+        // en los últimos 30 minutos (evita refrescos y repeticiones)
+        $termKey = md5($termClean);
+        $now = time();
+        $alreadyCounted = isset($_SESSION['searched_terms'][$termKey])
+                          && ($now - $_SESSION['searched_terms'][$termKey]) < 1800; // 30 min
+
+        if (!$alreadyCounted) {
+            $_SESSION['searched_terms'][$termKey] = $now;  // marcar como contado
+
+            try {
+                $chkS = $DB_con->prepare("SELECT id FROM " . PFX . "search_logs WHERE term = :t LIMIT 1");
+                $chkS->execute([':t' => $termClean]);
+                $sid = $chkS->fetchColumn();
+
+                if ($sid) {
+                    $DB_con->prepare("UPDATE " . PFX . "search_logs
+                        SET search_count = search_count + 1,
+                            results_count = :rc,
+                            last_searched = NOW()
+                        WHERE id = :id")
+                        ->execute([':rc' => $count, ':id' => $sid]);
+                } else {
+                    $DB_con->prepare("INSERT INTO " . PFX . "search_logs
+                        (term, results_count, search_count, status, first_searched, last_searched)
+                        VALUES (:t, :rc, 1, 'pending', NOW(), NOW())")
+                        ->execute([':t' => $termClean, ':rc' => $count]);
+                }
+            } catch (Throwable $e) {
+                // No romper la búsqueda si falla el registro
+            }
+        } else {
+            // Aunque no cuente, actualiza el results_count por si cambió
+            try {
+                $DB_con->prepare("UPDATE " . PFX . "search_logs
+                    SET results_count = :rc, last_searched = NOW()
+                    WHERE term = :t")
+                    ->execute([':rc' => $count, ':t' => $termClean]);
+            } catch (Throwable $e) {}
+        }
+    }
   }
   ?>
   <!-- Masthead -->
-  <header class="masthead text-white text-center mb-3 mt-0 rounded-0 box-shadow">
-    <div class="overlay rounded-0 box-shadow"></div>
-    <div class="container">
-      <div class="row">
-        <div class="col-xl-9 mx-auto">
-          <h1 class="mb-1 font-weight-bold"><?php echo $count; ?> <?php echo $l['results_for'] ?> [<?php echo $keyword; ?>]</h1>
-        </div>
+  <header class="bg-dark text-light text-left mb-3 mt-0 p-4 rounded-0 box-shadow">
+      <div class="overlay rounded-0 box-shadow"></div>
+      <div class="container">
+        <h1 class="mb-1 font-weight-bold"><?php echo $count; ?> <?php echo $l['results_for'] ?> [<?php echo $keyword; ?>]</h1>
       </div>
-    </div>
-  </header>
-  <br>
+    </header>
+    <br>
 
   <div class="container">
     <div class="row p-15">
-      <div class="col-lg-3 mb-3">
-        <div class="card box-shadow">
-          <div class="card-header font-weight-bold bg-light">
-            <?php echo $l['all_category'] ?>
-          </div>
+      <?php require_once 'system/assets/sidebar.php'; ?>
 
-          <div class="list-group bg-light">
-            <?php
-            $category = $product->get_categories();
-            foreach ($category as $cat) {
-            ?>
-              <a href="<?php echo $setting['website_url']; ?>/category/<?php echo $cat['id']; ?>/" class="list-group-item list-group-item-action">
-                <span class="ml-2 font-weight-bold"><i class="fa-solid fa-folders"></i> <?php echo $cat['name']; ?></span>
-              </a>
-            <?php } ?>
-          </div>
+      <div class="col-lg-9">
+        <div id="dynamic-posts3"></div>
+        <div id="ajax-loader-search" style="display:none;">
+          <img src="<?php echo $setting['website_url'] . "/system/assets/uploads/img/loader.gif" ?>" width="30px" style="display: block; margin: 0px auto;">
+        </div>
+        <div style="text-align: center; margin: 1.5rem 0;">
+          <button id="load-search" class="btn-upload" style="display:none; margin: 0 auto;">
+            <i class="fa-regular fa-arrow-down"></i> Load more
+          </button>
         </div>
       </div>
-      <!-- /.col-lg-3 -->
-      <script type="text/javascript">
-               $(document).ready(function() {
-                   var page_num = 1;
-                   load_page_5(page_num, false);
-
-                   var lastScrollTop = 0;
-                   $(window).scroll(function(event){
-                      var st = $(this).scrollTop();
-                      if (st > lastScrollTop){
-                          // downscroll code
-                           page_num++;
-                           load_page_5(page_num, false)
-                      } else {
-                         // upscroll code
-                      }
-                      lastScrollTop = st;
-                   });
-
-               });
-
-               function load_page_5(page_num, loading) {
-                   if (loading == false) {
-                       loading = true;
-                       $.ajax({
-                           url: "<?php echo $setting['website_url']; ?>" + "/search-logo.php?key=" + "<?php echo $keyword; ?>", //url de paginación infinita
-                           type: "post",
-                           data: {
-                               page_num: page_num
-                           },
-                           beforeSend: function() {
-                               $('#ajax-loader-se').show();
-                               //alert(window.location.href + 'logo-post.php');
-                               return;
-                           }
-                       }).done(function(data) {
-                           $('#ajax-loader-se').hide();
-                           loading = false;
-                           $("#dynamic-posts3").append(data);
-
-                       }).fail(function(jqXHR, ajaxOptions, thrownError) {
-                           $('#ajax-loader-se').hide();
-                       });
-                   }
-               }
-             </script>
-             
-             <div class="col-lg-9">
-               <div id="dynamic-posts3"></div>
-               <div id="ajax-loader-se">
-                 <img src="<?php echo $setting['website_url'] . "/system/assets/uploads/img/loader.gif"?>" width="30px" style="display: block; margin: 0px auto;">
-               </div>
-             </div>
-      <!-- /.col-lg-9 -->
     </div>
   </div>
-
-
 </main>
-<?php
-require_once('system/assets/footer.php');
-?>
+
+<script type="text/javascript">
+  $(document).ready(function() {
+    var page_num = 1;
+    var loading = false;
+    var no_more = false;
+
+    var offset = 0;
+
+    load_popular(page_num);
+
+    $(document).on('click', '#load-search', function() {
+      if (loading || no_more) return;
+      page_num++;
+      load_popular(page_num);
+    });
+
+
+
+    function load_popular(page_num) {
+      loading = true;
+      $('#load-search').hide();
+      $('#ajax-loader-search').show();
+
+      $.ajax({
+        url: "<?php echo $setting['website_url']; ?>" + "/search-logo.php?key=" + "<?php echo $keyword; ?>",
+        type: "post",
+        data: {
+          page_num: page_num,
+          offset: offset
+        }
+      }).done(function(data) {
+        loading = false;
+        $('#ajax-loader-search').hide();
+
+        if ($.trim(data) === '') {
+          no_more = true;
+          $('#load-search').hide();
+        } else {
+          $("#dynamic-posts3").append(data);
+          offset += 24;
+          if (offset >= 100) {
+            no_more = true;
+            $('#load-search').hide();
+          } else {
+            $('#load-search').show();
+          }
+        }
+      }).fail(function() {
+        loading = false;
+        $('#ajax-loader-search').hide();
+        $('#load-search').show();
+      });
+    }
+  });
+</script>
+
+<?php require_once('system/assets/footer.php'); ?>

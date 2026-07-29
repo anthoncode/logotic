@@ -87,6 +87,26 @@ if (isset($_GET['id'])) {
 
   $canonical = $setting['website_url'] . '/item/' . $details['id'] . '/' . $slugItem . '/';
 
+  // ── Open Graph / Twitter para este logo ──
+  $ogTitle = $details['name'] . ' Logo - Download SVG & PNG | ' . $setting['site_name'];
+  $ogDesc  = 'Download the ' . $details['name'] . ' logo in SVG and PNG formats. Free, high quality, transparent background.';
+  $ogUrl   = $canonical;
+  $ogType  = 'website';
+  $ogImage = $setting['website_url'] . '/og-image.php?pid=' . $productid . '&size=600';
+
+  // ── Schema.org del logo (rich snippet para Google) ──
+  $schemaJsonLd = '<script type="application/ld+json">' . json_encode([
+      "@context"     => "https://schema.org",
+      "@type"        => "ImageObject",
+      "name"         => $details['name'] . " Logo",
+      "description"  => $ogDesc,
+      "contentUrl"   => $setting['website_url'] . '/system/assets/uploads/vector-files/' . $details['icon_img'],
+      "thumbnailUrl" => $ogImage,
+      "uploadDate"   => !empty($details['created']) ? date('Y-m-d', strtotime($details['created'])) : date('Y-m-d'),
+      "license"      => $setting['website_url'],
+      "acquireLicensePage" => $canonical,
+  ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . '</script>';
+
   require_once 'system/assets/header.php';
 
   if (isset($_POST['addtowishlist'])) {
@@ -229,10 +249,32 @@ if (isset($_GET['id'])) {
           </div>
 
           <div class="download-buttons">
-            <button class="btn-download btn-svg" onclick="simulateDownload('SVG', '<?php echo $setting['website_url'] . '/system/download.php?pid=' . $productid ?>')">
+            <button class="btn-download btn-svg" onclick="downloadLogo('svg')">
               <span>SVG</span>
             </button>
-            <button class="btn-download btn-png" onclick="simulateDownload('PNG')"><span>PNG</span></button>
+
+            <div class="png-download-wrap">
+              <button class="btn-download btn-png" onclick="togglePngMenu(event)">
+                <span>PNG</span>
+                <i class="fa-solid fa-chevron-down" style="font-size:.7rem;margin-left:.4rem;"></i>
+              </button>
+              <div class="png-menu" id="pngMenu">
+                <div class="png-menu-title">Choose size</div>
+                <div class="png-sizes">
+                  <button onclick="downloadPng(16)">16px</button>
+                  <button onclick="downloadPng(24)">24px</button>
+                  <button onclick="downloadPng(32)">32px</button>
+                  <button onclick="downloadPng(64)">64px</button>
+                  <button onclick="downloadPng(128)">128px</button>
+                  <button onclick="downloadPng(256)">256px</button>
+                  <button onclick="downloadPng(512)">512px</button>
+                </div>
+                <div class="png-custom">
+                  <input type="number" id="pngCustomSize" placeholder="Custom" min="16" max="3000">
+                  <button onclick="downloadPngCustom()">Download</button>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div class="url-display">
@@ -529,9 +571,10 @@ if (isset($_GET['id'])) {
           //en caso de no cargar el rederizado mostrar el svg (original)
           //en firefox algunos archivos no rederizan a png
           var image = document.getElementById("output");
-          image.src = `<?php echo $svg_icon_url ?>`;
+          if (image) image.src = `<?php echo $svg_icon_url ?>`;
           //esconde boton si no renderiza en png
-          document.getElementById("btn-logo-png").style.display = "none";
+          var pngBtn = document.getElementById("btn-logo-png");
+          if (pngBtn) pngBtn.style.display = "none";
 
         });
 
@@ -584,12 +627,6 @@ if (isset($_GET['id'])) {
           }, mimeType, quality);
         };
 
-        document.getElementById('btn-logo-png').onclick = function() {
-          canvas.toBlob(function(blob) {
-            saveAs(blob, "<?php echo $str_name . "-" . strtolower($setting['site_name']); ?>.png");
-          });
-        }
-
 
         // Load the DataURL of the SVG
         img.src = SVGDataURL;
@@ -615,92 +652,92 @@ if (isset($_GET['id'])) {
     }
   </script>
 
+
   <script>
-    < script >
-      (function() {
-        var svgBaseUrl = '<?php echo $setting['website_url'] . '/system/assets/uploads/vector-files/' . $details['icon_img']; ?>';
-        var logoName = '<?php echo htmlspecialchars($details['name'], ENT_QUOTES); ?>';
+    (function() {
+      var svgBaseUrl = '<?php echo $setting['website_url'] . '/system/assets/uploads/vector-files/' . $details['icon_img']; ?>';
+      var logoName = '<?php echo htmlspecialchars($details['name'], ENT_QUOTES); ?>';
 
-        var sizeInput = document.getElementById('sizeInput');
-        var urlText = document.getElementById('urlText');
-        var sizeUp = document.getElementById('sizeUp');
-        var sizeDown = document.getElementById('sizeDown');
-        var urlCopyBtn = document.getElementById('urlCopyBtn');
+      var sizeInput = document.getElementById('sizeInput');
+      var urlText = document.getElementById('urlText');
+      var sizeUp = document.getElementById('sizeUp');
+      var sizeDown = document.getElementById('sizeDown');
+      var urlCopyBtn = document.getElementById('urlCopyBtn');
 
-        function getSize() {
-          var size = parseInt(sizeInput.value) || 50;
-          if (size < 10) size = 10;
-          if (size > 1000) size = 1000;
-          return size;
+      function getSize() {
+        var size = parseInt(sizeInput.value) || 50;
+        if (size < 10) size = 10;
+        if (size > 1000) size = 1000;
+        return size;
+      }
+
+      // Solo la URL con parámetros
+      function buildUrl() {
+        var size = getSize();
+        return svgBaseUrl + '?width=' + size + '&height=' + size;
+      }
+
+      // Tag <img> completo con alt (para copiar)
+      function buildImgTag() {
+        var size = getSize();
+        return '<img src="' + buildUrl() + '" alt="' + logoName + '" width="' + size + '" height="' + size + '">';
+      }
+
+      function updateUrl() {
+        urlText.textContent = buildUrl();
+      }
+
+      sizeInput.addEventListener('input', updateUrl);
+
+      sizeUp.addEventListener('click', function() {
+        var v = parseInt(sizeInput.value) || 50;
+        if (v < 1000) {
+          sizeInput.value = v + 10;
+          updateUrl();
         }
-
-        // Solo la URL con parámetros
-        function buildUrl() {
-          var size = getSize();
-          return svgBaseUrl + '?width=' + size + '&height=' + size;
+      });
+      sizeDown.addEventListener('click', function() {
+        var v = parseInt(sizeInput.value) || 50;
+        if (v > 10) {
+          sizeInput.value = v - 10;
+          updateUrl();
         }
+      });
 
-        // Tag <img> completo con alt (para copiar)
-        function buildImgTag() {
-          var size = getSize();
-          return '<img src="' + buildUrl() + '" alt="' + logoName + '" width="' + size + '" height="' + size + '">';
-        }
-
-        function updateUrl() {
-          urlText.textContent = buildUrl();
-        }
-
-        sizeInput.addEventListener('input', updateUrl);
-
-        sizeUp.addEventListener('click', function() {
-          var v = parseInt(sizeInput.value) || 50;
-          if (v < 1000) {
-            sizeInput.value = v + 10;
-            updateUrl();
-          }
+      // Copia el tag <img> completo con alt
+      urlCopyBtn.addEventListener('click', function() {
+        navigator.clipboard.writeText(buildImgTag()).then(function() {
+          var icon = urlCopyBtn.querySelector('i');
+          var original = icon.className;
+          icon.className = 'fa-regular fa-check';
+          urlCopyBtn.style.color = 'var(--accent)';
+          setTimeout(function() {
+            icon.className = original;
+            urlCopyBtn.style.color = '';
+          }, 1500);
         });
-        sizeDown.addEventListener('click', function() {
-          var v = parseInt(sizeInput.value) || 50;
-          if (v > 10) {
-            sizeInput.value = v - 10;
-            updateUrl();
-          }
-        });
+      });
 
-        // Copia el tag <img> completo con alt
-        urlCopyBtn.addEventListener('click', function() {
-          navigator.clipboard.writeText(buildImgTag()).then(function() {
-            var icon = urlCopyBtn.querySelector('i');
-            var original = icon.className;
-            icon.className = 'fa-regular fa-check';
-            urlCopyBtn.style.color = 'var(--accent)';
-            setTimeout(function() {
-              icon.className = original;
-              urlCopyBtn.style.color = '';
-            }, 1500);
-          });
-        });
-
-        updateUrl();
-      })();
+      updateUrl();
+    })();
   </script>
-<script>
-// ── Botón de favoritos ──
-(function() {
-    var btn = document.getElementById('bookmarkBtn');
-    if (!btn) return;
+  <script>
+    // ── Botón de favoritos ──
+    (function() {
+      var btn = document.getElementById('bookmarkBtn');
+      if (!btn) return;
 
-    var isLoggedIn = <?php echo $user->is_loggedin() ? 'true' : 'false'; ?>;
-    var productId  = <?php echo (int)$productid; ?>;
-    var loginUrl   = '<?php echo $setting['website_url']; ?>/user/login.php';
-    var currentUrl = window.location.href;
+      var isLoggedIn = <?php echo $user->is_loggedin() ? 'true' : 'false'; ?>;
+      var productId = <?php echo (int)$productid; ?>;
+      var loginUrl = '<?php echo $setting['website_url']; ?>/user/login.php';
+      var currentUrl = window.location.href;
 
-    btn.addEventListener('click', function(e) {
+      btn.addEventListener('click', function(e) {
         e.preventDefault();
 
         if (!isLoggedIn) {
-            window.location.href = loginUrl + '?redirect=' + encodeURIComponent(currentUrl);
-            return;
+          window.location.href = loginUrl + '?redirect=' + encodeURIComponent(currentUrl);
+          return;
         }
 
         btn.disabled = true;
@@ -708,52 +745,256 @@ if (isset($_GET['id'])) {
         fetch('<?php echo $setting['website_url']; ?>/ajax-wishlist.php', {
             method: 'POST',
             credentials: 'same-origin',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded'
+            },
             body: 'action=toggle&product_id=' + productId
-        })
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
+          })
+          .then(function(r) {
+            return r.json();
+          })
+          .then(function(data) {
             btn.disabled = false;
             if (!data.success) {
-                if (data.reason === 'auth') {
-                    window.location.href = loginUrl + '?redirect=' + encodeURIComponent(currentUrl);
-                }
-                return;
+              if (data.reason === 'auth') {
+                window.location.href = loginUrl + '?redirect=' + encodeURIComponent(currentUrl);
+              }
+              return;
             }
 
             var icon = btn.querySelector('i');
             if (data.saved) {
-                btn.classList.add('saved');
-                icon.className = 'fa-solid fa-bookmark';
-                btn.title = 'Quitar de favoritos';
-                showFavToast('Saved to favorites', true);
+              btn.classList.add('saved');
+              icon.className = 'fa-solid fa-bookmark';
+              btn.title = 'Quitar de favoritos';
+              showFavToast('Saved to favorites', true);
             } else {
-                btn.classList.remove('saved');
-                icon.className = 'fa-regular fa-bookmark';
-                btn.title = 'Guardar en favoritos';
-                showFavToast('Removed from favorites', false);
+              btn.classList.remove('saved');
+              icon.className = 'fa-regular fa-bookmark';
+              btn.title = 'Guardar en favoritos';
+              showFavToast('Removed from favorites', false);
             }
 
             if (window.updateFavCount) window.updateFavCount(data.count, data.saved);
-        })
-        .catch(function() { btn.disabled = false; });
-    });
-})();
+          })
+          .catch(function() {
+            btn.disabled = false;
+          });
+      });
+    })();
 
-function showFavToast(message, saved) {
-    var t = document.getElementById('favToast');
-    if (!t) {
+    function showFavToast(message, saved) {
+      var t = document.getElementById('favToast');
+      if (!t) {
         t = document.createElement('div');
         t.id = 'favToast';
         t.className = 'fav-toast';
         document.body.appendChild(t);
+      }
+      t.innerHTML = '<i class="fa-solid ' + (saved ? 'fa-bookmark' : 'fa-circle-check') + '"></i> ' + message;
+      t.classList.add('show');
+      clearTimeout(window._favToastTimer);
+      window._favToastTimer = setTimeout(function() {
+        t.classList.remove('show');
+      }, 2500);
     }
-    t.innerHTML = '<i class="fa-solid ' + (saved ? 'fa-bookmark' : 'fa-circle-check') + '"></i> ' + message;
-    t.classList.add('show');
-    clearTimeout(window._favToastTimer);
-    window._favToastTimer = setTimeout(function() { t.classList.remove('show'); }, 2500);
+  </script>
+
+  <script>
+    // ── Sistema de descarga SVG/PNG ──
+    var DL_PRODUCT_ID = <?php echo (int)$productid; ?>;
+    var DL_LOGGED_IN = <?php echo $user->is_loggedin() ? 'true' : 'false'; ?>;
+    var DL_LOGIN_URL = '<?php echo $setting['website_url']; ?>/user/login.php';
+    var DL_BASE = '<?php echo $setting['website_url']; ?>/system/download.php';
+    var DL_NAME = '<?php echo preg_replace('/[^a-zA-Z0-9_\-]/', '-', $details['slug_lg'] ?: $details['name']); ?>';
+
+    function downloadLogo(format) {
+      // Solo SVG usa esta ruta directa ahora
+      checkAndDownload(format, 1000);
+    }
+
+    function togglePngMenu(e) {
+      e.stopPropagation();
+      document.getElementById('pngMenu').classList.toggle('show');
+    }
+
+    function downloadPng(size) {
+      document.getElementById('pngMenu').classList.remove('show');
+      checkAndDownload('png', size);
+    }
+
+    function downloadPngCustom() {
+    var input = document.getElementById('pngCustomSize');
+    var raw = input.value.trim();
+
+    // Solo dígitos, nada más
+    if (!/^\d+$/.test(raw)) {
+        input.value = '';
+        input.focus();
+        showDownloadError('Enter a valid size (16–3000).');
+        return;
+    }
+
+    var size = parseInt(raw, 10);
+
+    // Rango válido
+    if (isNaN(size) || size < 16) {
+        input.focus();
+        showDownloadError('Minimum size is 16px.');
+        return;
+    }
+    if (size > 3000) {
+        size = 3000;
+        input.value = 3000; // avisa al usuario que se capó
+    }
+
+    document.getElementById('pngMenu').classList.remove('show');
+    checkAndDownload('png', size);
 }
-</script>
+
+    // Cerrar el menú al hacer clic fuera
+    document.addEventListener('click', function(e) {
+      var menu = document.getElementById('pngMenu');
+      if (menu && !e.target.closest('.png-download-wrap')) {
+        menu.classList.remove('show');
+      }
+    });
+
+    var downloadInProgress = false;
+
+    function checkAndDownload(format, size) {
+      if (downloadInProgress) return;      // evita clics/peticiones múltiples
+      downloadInProgress = true;
+
+      var checkUrl = DL_BASE + '?pid=' + DL_PRODUCT_ID + '&check=1';
+      fetch(checkUrl, {
+          credentials: 'same-origin'
+        })
+        .then(function(res) {
+          return res.json();
+        })
+        .then(function(data) {
+          if (data.success) {
+            doDownload(format, size);
+          } else if (data.reason === 'limit') {
+            downloadInProgress = false;
+            if (confirm(data.message + '\n\nSign in now?')) {
+              window.location.href = DL_LOGIN_URL + '?redirect=' + encodeURIComponent(window.location.href);
+            }
+          } else {
+            downloadInProgress = false;
+            showDownloadError(data.message || 'Download not available.');
+          }
+        })
+        .catch(function() {
+          // Si el check falla, NO forzar descarga (evita cascada de peticiones)
+          downloadInProgress = false;
+          showDownloadError('Could not start the download. Please try again.');
+        });
+    }
+
+    function doDownload(format, size) {
+      var url = DL_BASE + '?pid=' + DL_PRODUCT_ID + '&format=' + format + (format === 'png' ? '&size=' + size : '');
+      showDownloadToast(format);
+
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', url, true);
+      xhr.responseType = 'blob';
+      xhr.withCredentials = true;
+
+      xhr.onprogress = function(e) {
+        if (e.lengthComputable) {
+          updateDownloadToast(Math.round((e.loaded / e.total) * 100));
+        }
+      };
+
+      xhr.onload = function() {
+        downloadInProgress = false;      // liberar al terminar
+        var ct = xhr.getResponseHeader('Content-Type') || '';
+        if (xhr.status === 200 && ct.indexOf('application/json') === -1) {
+          var link = document.createElement('a');
+          link.href = window.URL.createObjectURL(xhr.response);
+          link.download = DL_NAME + '-logotic.' + format;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(link.href);
+          completeDownloadToast();
+        } else {
+          var reader = new FileReader();
+          reader.onload = function() {
+            try {
+              showDownloadError(JSON.parse(reader.result).message || 'Download failed.');
+            } catch (e) {
+              showDownloadError('Download failed.');
+            }
+          };
+          reader.readAsText(xhr.response);
+        }
+      };
+
+      xhr.onerror = function() {
+        downloadInProgress = false;      // liberar en error
+        showDownloadError('Connection error.');
+      };
+      xhr.send();
+    }
+
+    function showDownloadToast(format) {
+      var t = document.getElementById('downloadToast');
+      if (!t) return;
+      document.getElementById('toastTitle').textContent = 'Downloading ' + format.toUpperCase();
+      document.getElementById('toastSub').textContent = 'Preparing file…';
+      document.getElementById('toastPercent').textContent = '0%';
+      document.getElementById('toastIcon').className = 'fa-solid fa-arrow-down';
+      setRingProgress(0);
+      t.classList.add('show');
+    }
+
+    function updateDownloadToast(pct) {
+      document.getElementById('toastPercent').textContent = pct + '%';
+      document.getElementById('toastSub').textContent = 'Downloading…';
+      setRingProgress(pct);
+    }
+
+    function completeDownloadToast() {
+      document.getElementById('toastPercent').textContent = '100%';
+      document.getElementById('toastTitle').textContent = 'Downloaded';
+      document.getElementById('toastSub').textContent = 'File saved';
+      document.getElementById('toastIcon').className = 'fa-solid fa-check';
+      setRingProgress(100);
+      setTimeout(function() {
+        document.getElementById('downloadToast')?.classList.remove('show');
+      }, 2000);
+    }
+
+    function showDownloadError(msg) {
+      var t = document.getElementById('downloadToast');
+      if (!t) {
+        alert(msg);
+        return;
+      }
+      document.getElementById('toastTitle').textContent = 'Error';
+      document.getElementById('toastSub').textContent = msg;
+      document.getElementById('toastIcon').className = 'fa-solid fa-triangle-exclamation';
+      t.classList.add('show');
+      setTimeout(function() {
+        t.classList.remove('show');
+      }, 3500);
+    }
+
+    function setRingProgress(pct) {
+      var ring = document.getElementById('ringProgress');
+      if (!ring) return;
+      var c = 2 * Math.PI * 20;
+      ring.style.strokeDasharray = c;
+      ring.style.strokeDashoffset = c - (pct / 100) * c;
+    }
+
+    document.getElementById('toastClose')?.addEventListener('click', function() {
+      document.getElementById('downloadToast')?.classList.remove('show');
+    });
+  </script>
 
   <?php require_once 'system/assets/footer.php'; ?>
 

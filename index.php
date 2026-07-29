@@ -3,9 +3,18 @@ ini_set('display_errors', 0);
 ini_set('display_startup_errors', 0);
 error_reporting(E_ALL);
 
-$metaRobots = "<meta name='robots' content='index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1' />
-";
+
 $pageTitle = 'Free Vector Logos, Icons and Templates';
+$metaRobots = "<meta name='robots' content='index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1' />";
+
+// ── Open Graph de la home ──
+$ogTitle = $setting['site_name'] . ' - Download Free Vector Logos in SVG & PNG';
+$ogDesc  = 'Browse and download thousands of brand logos and templates in SVG and PNG. Free, high quality, transparent background.';
+$ogUrl   = $setting['website_url'] . '/';
+$ogType  = 'website';
+// Imagen: usa la genérica del sitio (asegúrate de que exista y sea 1200×630)
+$ogImage = $setting['website_url'] . '/system/assets/uploads/img/logotic.jpg';
+
 require_once 'system/config-global.php';
 require_once 'system/assets/header.php';
 
@@ -19,7 +28,13 @@ $popp      = $product->getPopularProducts();
 
 <section class="hero">
   <div class="container">
-    <div class="hero-icon mx-auto"><i class="bi bi-lightning-fill" style="color:#0d0f1c"></i></div>
+    <div class="hero-icon mx-auto"><i class="bi bi-lightning-fill" style="color:#0d0f1c"><?php if (!empty($setting['site_favicon'])): ?>
+          <img src="<?php echo $setting['website_url'] . '/system/assets/uploads/img/' . $setting['site_favicon']; ?>"
+            alt="<?php echo htmlspecialchars($setting['site_name']); ?>"
+            style="width:100%; height:100%; object-fit:contain; padding:6px;">
+        <?php else: ?>
+          <?php echo strtoupper(mb_substr($setting['site_name'], 0, 1)); ?>
+        <?php endif; ?></i></div>
     <h1><?php echo $setting['homepage_header']; ?> <br><span class="gradient-text">Brand Logos Instantly</span></h1>
     <p><?php echo $setting['homepage_subheader']; ?></p>
     <div class="hero-search position-relative">

@@ -1,6 +1,6 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
+ini_set('display_errors', 0);
+ini_set('display_startup_errors', 0);
 error_reporting(E_ALL);
 
 $pageTitle = 'Settings';
@@ -147,6 +147,28 @@ if (isset($_REQUEST['save'])) {
       $settings->update($newsettings);
       $activeTab = 'ads';
       break;
+
+      case 'downloads':
+      $guestLimit  = (int)($_POST['dl_guest_limit']  ?? 10);
+      $guestPeriod = (int)($_POST['dl_guest_period'] ?? 24);
+      $rateMax     = (int)($_POST['dl_rate_max']     ?? 8);
+
+      // Rangos sensatos
+      if ($guestLimit < 0)   $guestLimit = 0;
+      if ($guestLimit > 500) $guestLimit = 500;
+      if ($guestPeriod < 1)  $guestPeriod = 1;
+      if ($rateMax < 1)      $rateMax = 1;
+      if ($rateMax > 100)    $rateMax = 100;
+
+      $newsettings = [
+        'dl_limit_enabled' => isset($_POST['dl_limit_enabled']) ? '1' : '0',
+        'dl_guest_limit'   => (string)$guestLimit,
+        'dl_guest_period'  => (string)$guestPeriod,
+        'dl_rate_max'      => (string)$rateMax,
+      ];
+      $settings->update($newsettings);
+      $activeTab = 'downloads';
+      break;
   }
 
   $setting = $settings->get_all();
@@ -189,6 +211,7 @@ require_once('includes/header1.php');
     <a class="adm-tab <?php echo $activeTab === 'appearance' ? 'active' : '' ?>" href="?tab=appearance"><i class="fa-regular fa-palette"></i> Appearance</a>
     <a class="adm-tab <?php echo $activeTab === 'features'   ? 'active' : '' ?>" href="?tab=features"><i class="fa-regular fa-toggle-on"></i> Features</a>
     <a class="adm-tab <?php echo $activeTab === 'ads'        ? 'active' : '' ?>" href="?tab=ads"><i class="fa-regular fa-code"></i> Ads & Code</a>
+    <a class="adm-tab <?php echo $activeTab === 'downloads'  ? 'active' : '' ?>" href="?tab=downloads"><i class="fa-regular fa-download"></i> Downloads</a>
   </div>
 
   <!-- ── GENERAL ── -->
@@ -635,7 +658,59 @@ function toggleGoogleSecret() {
       </div>
     </div>
 
+<!-- ── DOWNLOADS ── -->
+  <?php elseif ($activeTab === 'downloads'): ?>
+    <form action="settings.php?tab=downloads" method="POST">
+      <input type="hidden" name="save" value="downloads">
 
+      <div class="adm-card">
+        <div class="adm-card-title"><i class="fa-regular fa-download"></i> Download Limits</div>
+
+        <div class="adm-toggle" style="margin-bottom:1.25rem;">
+          <div>
+            <div class="adm-toggle-label">Enable guest download limit</div>
+            <div class="adm-toggle-sub">When off, everyone downloads without limits</div>
+          </div>
+          <label class="adm-switch">
+            <input type="checkbox" name="dl_limit_enabled" <?php echo ($setting['dl_limit_enabled'] ?? '1') == '1' ? 'checked' : ''; ?>>
+            <span class="adm-slider"></span>
+          </label>
+        </div>
+
+        <div class="adm-field">
+          <label class="adm-label">Guest download limit</label>
+          <input class="adm-input" type="number" name="dl_guest_limit" min="0" max="500"
+                 value="<?php echo (int)($setting['dl_guest_limit'] ?? 10); ?>">
+          <span style="font-size:.72rem;color:var(--adm-muted);margin-top:.3rem;display:block;">
+            How many logos a visitor without an account can download per period. Logged-in users are unlimited.
+          </span>
+        </div>
+
+        <div class="adm-field">
+          <label class="adm-label">Reset period (hours)</label>
+          <input class="adm-input" type="number" name="dl_guest_period" min="1" max="720"
+                 value="<?php echo (int)($setting['dl_guest_period'] ?? 24); ?>">
+          <span style="font-size:.72rem;color:var(--adm-muted);margin-top:.3rem;display:block;">
+            After this many hours the guest counter resets. 24 = daily, 168 = weekly.
+          </span>
+        </div>
+      </div>
+
+      <div class="adm-card">
+        <div class="adm-card-title"><i class="fa-regular fa-shield-halved"></i> Anti-Bot Protection</div>
+
+        <div class="adm-field">
+          <label class="adm-label">Max downloads per minute (per IP)</label>
+          <input class="adm-input" type="number" name="dl_rate_max" min="1" max="100"
+                 value="<?php echo (int)($setting['dl_rate_max'] ?? 8); ?>">
+          <span style="font-size:.72rem;color:var(--adm-muted);margin-top:.3rem;display:block;">
+            Blocks rapid-fire downloads from bots. A real user rarely downloads more than a few per minute.
+          </span>
+        </div>
+      </div>
+
+      <button class="adm-save" type="submit"><i class="fa-regular fa-floppy-disk"></i> Save Download Settings</button>
+    </form>
 
     <!-- ── ADS & CODE ── -->
   <?php elseif ($activeTab === 'ads'): ?>

@@ -162,6 +162,8 @@ $allPending  = $product->countPending();
 
         <!-- Tools -->
         <div class="adm-nav-section">Tools</div>
+        <a href="<?php echo $setting['website_url']; ?>/admin/search-insights.php" class="adm-nav-item <?php echo $currentPage === 'search-insights.php' ? 'active' : ''; ?>">
+            <i class="fa-regular fa-magnifying-glass"></i> Search Insights
 
         <a href="<?php echo $setting['website_url']; ?>/admin/generate-sitemap.php" class="adm-nav-item <?php echo $currentPage === 'generate-sitemap.php' ? 'active' : ''; ?>">
             <i class="fa-regular fa-sitemap"></i> Generate Sitemap
@@ -169,6 +171,10 @@ $allPending  = $product->countPending();
 
         <a href="<?php echo $setting['website_url']; ?>/admin/extract-colors.php" class="adm-nav-item <?php echo $currentPage === 'extract-colors.php' ? 'active' : ''; ?>">
             <i class="fa-solid fa-palette"></i> Extract Colors
+        </a>
+
+        <a href="<?php echo $setting['website_url']; ?>/admin/error-logs.php" class="adm-nav-item <?php echo $currentPage === 'error-logs.php' ? 'active' : ''; ?>">
+            <i class="fa-solid fa-bug"></i> Error logs
         </a>
 
         <div class="adm-nav-item has-sub" onclick="toggleSub(this, 'subSoon')">

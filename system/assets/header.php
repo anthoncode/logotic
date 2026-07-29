@@ -41,30 +41,34 @@
   <!-- <script type="text/javascript" src="<?php //echo $setting['website_url']; 
                                             ?>/system/assets/js/bootstrap.bundle.min.js"></script> -->
 
+<?php
+  // Valores por defecto (si la página no define los suyos)
+  $ogTitle = $ogTitle ?? ($pageTitle . " | " . $setting['site_name']);
+  $ogDesc  = $ogDesc  ?? (isset($pageMeta) ? $pageMeta : $setting['description']);
+  $ogImage = $ogImage ?? ($setting['website_url'] . '/system/assets/uploads/img/logotic.jpg');
+  $ogUrl   = $ogUrl   ?? (isset($canonical) ? $canonical : $setting['website_url']);
+  $ogType  = $ogType  ?? 'website';
+  ?>
 
-  <!-- Open Graph para Facebook -->
-  <meta property="og:title" content="<?php echo $setting['site_name']; ?>" />
-  <meta property="og:type" content="website" />
-  <?php if (isset($canonical)) {
-    echo '<meta property="og:url" content="' . $canonical . '" />' . "\n";
-  } else {
-    echo '<meta property="og:url" content="' . $setting['website_url'] . '" />' . "\n";
-  } ?>
-  <meta property="og:image" content="<?php echo $setting['website_url']; ?>/system/assets/uploads/img/logotic.jpg" />
-  <meta property="og:description" content="<?php echo $setting['description']; ?>" />
+  <!-- Open Graph -->
+  <meta property="og:title" content="<?php echo htmlspecialchars($ogTitle); ?>" />
+  <meta property="og:type" content="<?php echo $ogType; ?>" />
+  <meta property="og:url" content="<?php echo htmlspecialchars($ogUrl); ?>" />
+  <meta property="og:image" content="<?php echo htmlspecialchars($ogImage); ?>" />
+  <meta property="og:description" content="<?php echo htmlspecialchars($ogDesc); ?>" />
   <meta property="og:site_name" content="<?php echo $setting['site_name']; ?>" />
 
   <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="<?php echo $setting['site_name']; ?>">
-  <meta name="twitter:description" content="<?php echo $setting['description']; ?>">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="<?php echo htmlspecialchars($ogTitle); ?>">
+  <meta name="twitter:description" content="<?php echo htmlspecialchars($ogDesc); ?>">
   <meta name="twitter:creator" content="<?php echo $setting['author']; ?>">
-  <meta name="twitter:image" content="<?php echo $setting['website_url']; ?>/system/assets/uploads/img/logotic.jpg">
+  <meta name="twitter:image" content="<?php echo htmlspecialchars($ogImage); ?>">
 
-  <!-- Schema.org para Google+ -->
-  <meta itemprop="name" content="<?php echo $setting['site_name']; ?>">
-  <meta itemprop="description" content="<?php echo $setting['description']; ?>">
-  <meta itemprop="image" content="<?php echo $setting['website_url']; ?>/system/assets/uploads/img/logotic.jpg">
+  <!-- Schema.org -->
+  <meta itemprop="name" content="<?php echo htmlspecialchars($ogTitle); ?>">
+  <meta itemprop="description" content="<?php echo htmlspecialchars($ogDesc); ?>">
+  <meta itemprop="image" content="<?php echo htmlspecialchars($ogImage); ?>">
 
   <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
   <script>
@@ -84,7 +88,7 @@
 
   <?php echo $setting['code_header']; ?>
 
-
+  <?php if (isset($schemaJsonLd)) echo $schemaJsonLd; ?>
 
   <script type="application/ld+json">
     {
@@ -132,6 +136,17 @@
         <i class="fa-solid fa-xmark"></i>
       </button>
     </div>
+    
+    <!-- Justo después del </div> del promoBar en el header -->
+<script>
+(function() {
+    if (document.cookie.indexOf('promoBarClosed=1') !== -1) {
+        var bar = document.getElementById('promoBar');
+        if (bar) bar.style.display = 'none';
+    }
+})();
+</script><!-- Justo después del </div> del promoBar en el header -->
+
   <?php } ?>
 
   <div class="bg-mesh"></div>

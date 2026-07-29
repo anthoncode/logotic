@@ -19,7 +19,6 @@ if (isset($_POST['page_num'])) {
     }
 ?>
 
-hols
 <div class="container-logo">
     <?php foreach ($newp as $row) {
         $urlLocal = $setting['website_url'];
