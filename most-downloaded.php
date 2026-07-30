@@ -1,5 +1,5 @@
 <?php
-ini_set('display_errors', 1);
+ini_set('display_errors', 0);
 error_reporting(E_ALL);
 
 require_once('system/config-global.php');
@@ -18,12 +18,21 @@ require_once('system/assets/header.php');
       <h1 class="mb-1 font-weight-light p-15">
         <i class="fa-solid fa-fire" style="color:#f18d35;"></i> Most Downloaded Logos
       </h1>
-      <p style="color:var(--text-secondary);font-size:.9rem;margin:0;">Top 100 logos ranked by total downloads</p>
+      <p style="color:var(--text-secondary);font-size:.9rem;margin:0;">Top logos ranked by total downloads</p>
     </div>
   </header>
   <br>
 
   <div class="container">
+
+    <!-- Chips de período -->
+    <div class="filter-chips" id="filterChips" style="margin-bottom:1.25rem;">
+      <div class="chip active" data-period="all">All</div>
+      <div class="chip" data-period="year">Year</div>
+      <div class="chip" data-period="month">Month</div>
+      <div class="chip" data-period="day">Day</div>
+    </div>
+
     <div class="row p-15">
       <?php require_once 'system/assets/sidebar.php'; ?>
 
@@ -47,10 +56,25 @@ require_once('system/assets/header.php');
     var page_num = 1;
     var loading = false;
     var no_more = false;
-
     var offset = 0;
+    var currentPeriod = 'all';
+    var SITE = "<?php echo $setting['website_url']; ?>";
 
     load_popular(page_num);
+
+    // ── Chips: cambiar de período ──
+    $('#filterChips .chip').on('click', function() {
+      $('#filterChips .chip').removeClass('active');
+      $(this).addClass('active');
+
+      currentPeriod = $(this).attr('data-period');
+      // Reiniciar estado
+      page_num = 1;
+      offset = 0;
+      no_more = false;
+      $('#dynamic-posts3').empty();
+      load_popular(page_num);
+    });
 
     $(document).on('click', '#load-more-popular', function() {
       if (loading || no_more) return;
@@ -58,19 +82,23 @@ require_once('system/assets/header.php');
       load_popular(page_num);
     });
 
-
-
     function load_popular(page_num) {
       loading = true;
       $('#load-more-popular').hide();
       $('#ajax-loader-popular').show();
 
+      // "All" usa popular-logos.php (sin cambios); los períodos usan popular-period.php
+      var url = (currentPeriod === 'all')
+        ? SITE + '/popular-logos.php'
+        : SITE + '/popular-period.php';
+
       $.ajax({
-        url: "<?php echo $setting['website_url']; ?>/popular-logos.php",
+        url: url,
         type: "post",
         data: {
           page_num: page_num,
-          offset: offset
+          offset: offset,
+          period: currentPeriod
         }
       }).done(function(data) {
         loading = false;

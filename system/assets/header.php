@@ -217,9 +217,15 @@
         </form>
 
         <div class="d-flex align-items-center gap-2">
-          <button class="btn btn-upload" onclick="showToast('Upload feature coming soon!')">
-            <i class="bi bi-cloud-upload-fill"></i> Upload logo
-          </button>
+          <?php if ($user->is_loggedin()): ?>
+            <a href="<?php echo $setting['website_url']; ?>/user/upload-logo.php" class="btn btn-upload">
+              <i class="bi bi-cloud-upload-fill"></i> Upload logo
+            </a>
+          <?php else: ?>
+            <a href="<?php echo $setting['website_url']; ?>/user/login.php?redirect=<?php echo urlencode($setting['website_url'] . '/user/upload-logo.php'); ?>" class="btn btn-upload">
+              <i class="bi bi-cloud-upload-fill"></i> Upload logo
+            </a>
+          <?php endif; ?>
 
           <?php if ($setting['login'] == 1): ?>
             <?php if ($user->is_loggedin()): ?>

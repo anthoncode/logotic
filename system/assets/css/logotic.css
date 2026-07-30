@@ -557,13 +557,8 @@ body {
     background: #bfe600
 }
 
-.hero-hint {
-    margin-top: .8rem;
-    color: var(--text-muted);
-    font-size: .78rem
-}
-
-.hero-hint span {
+.hero-hint span,
+.hero-hint a {
     color: var(--text-secondary);
     background: rgba(255, 255, 255, .05);
     border: 1px solid var(--border);
@@ -572,7 +567,14 @@ body {
     margin: 0 .15rem;
     cursor: pointer;
     transition: var(--transition);
-    display: inline-block
+    display: inline-block;
+    text-decoration: none;
+}
+
+.hero-hint span:hover,
+.hero-hint a:hover {
+    border-color: var(--accent);
+    color: var(--accent);
 }
 
 .hero-hint span:hover {
