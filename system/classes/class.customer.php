@@ -429,8 +429,11 @@ class Customer
             return false;
         }
 
-        // Verificar email verificado
-        if ($user['verified'] != 1) {
+        // Verificar email verificado — SOLO si la verificación está activada en ajustes
+        global $setting;
+        $verificationRequired = ($setting['email_verification'] ?? '0') == '1';
+
+        if ($verificationRequired && $user['verified'] != 1) {
             $this->logEvent($user['id'], $email, 'failed', 'Email not verified');
             $this->error = 'Please verify your email address before logging in.';
             return false;
@@ -601,10 +604,14 @@ class Customer
         $hash     = $this->hashPassword($password);
         $profile  = '../system/assets/uploads/user-img/default.png';
 
+        // Si la verificación por email NO está activada, el usuario queda verificado de una vez
+        $verificationRequired = ($setting['email_verification'] ?? '0') == '1';
+        $verifiedValue = $verificationRequired ? 0 : 1;
+
         $add = $this->db->prepare("
             INSERT INTO " . PFX . "users
             (fname, username, email, password, active, created, profile, allow_email, purchases, balance, verified, password_recover, moderator)
-            VALUES (:fname, :username, :email, :password, 1, :date, :profile, 1, 0, 0, 0, 0, 0)
+            VALUES (:fname, :username, :email, :password, 1, :date, :profile, 1, 0, 0, :verified, 0, 0)
         ");
         $add->execute([
             ':fname'    => $fname = htmlspecialchars(strip_tags(trim($name))),
@@ -613,6 +620,7 @@ class Customer
             ':password' => $hash,
             ':date'     => $date,
             ':profile'  => $profile,
+            ':verified' => $verifiedValue,
         ]);
 
         if ($add) {

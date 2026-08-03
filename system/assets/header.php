@@ -118,7 +118,7 @@
 
 <body>
 
-  <?php if (!empty($setting['global_message'])) { ?>
+  <?php if (($setting['notification_header'] ?? 0) == 1 && !empty($setting['global_message'])) { ?>
     <div class="promo-bar promo-<?php echo $setting['alert_type'] ?? 'info'; ?>" id="promoBar">
       <div class="promo-bar-inner">
         <span class="promo-bar-icon"><i class="fa-solid fa-bolt"></i></span>
@@ -150,15 +150,6 @@
   <?php } ?>
 
   <div class="bg-mesh"></div>
-  <?php if ($setting['notification_header'] == 1) { ?>
-    <li class="nav-item">
-      <a class="nav-link" href="<?php echo $setting['url_msg']; ?>" target="_blank">
-        <div class="not-msg">
-          <?php echo $setting['notification_msg']; ?> <span class="badge badge-warning">NEW</span>
-        </div>
-      </a>
-    </li>
-  <?php } ?>
 
 
 

@@ -40,6 +40,14 @@
 <?php
 $currentPage = basename($_SERVER['PHP_SELF']);
 $allPending  = $product->countPending();
+
+// Conteo de errores sin resolver (para el badge rojo)
+$errorCount = 0;
+try {
+    $errorCount = (int)$DB_con->query("SELECT COUNT(*) FROM " . PFX . "error_logs WHERE resolved = 0")->fetchColumn();
+} catch (Throwable $e) {
+    $errorCount = 0; // si la tabla no existe aún, no romper
+}
 ?>
 
 <!-- ── Sidebar ── -->
@@ -164,6 +172,7 @@ $allPending  = $product->countPending();
         <div class="adm-nav-section">Tools</div>
         <a href="<?php echo $setting['website_url']; ?>/admin/search-insights.php" class="adm-nav-item <?php echo $currentPage === 'search-insights.php' ? 'active' : ''; ?>">
             <i class="fa-regular fa-magnifying-glass"></i> Search Insights
+        </a>
 
         <a href="<?php echo $setting['website_url']; ?>/admin/generate-sitemap.php" class="adm-nav-item <?php echo $currentPage === 'generate-sitemap.php' ? 'active' : ''; ?>">
             <i class="fa-regular fa-sitemap"></i> Generate Sitemap
@@ -175,6 +184,9 @@ $allPending  = $product->countPending();
 
         <a href="<?php echo $setting['website_url']; ?>/admin/error-logs.php" class="adm-nav-item <?php echo $currentPage === 'error-logs.php' ? 'active' : ''; ?>">
             <i class="fa-solid fa-bug"></i> Error logs
+            <?php if ($errorCount > 0): ?>
+                <span class="adm-nav-badge" style="background:var(--adm-danger);color:#fff;"><?php echo $errorCount; ?></span>
+            <?php endif; ?>
         </a>
 
         <div class="adm-nav-item has-sub" onclick="toggleSub(this, 'subSoon')">
@@ -210,6 +222,11 @@ $allPending  = $product->countPending();
     </button>
     <div class="adm-topbar-title"><?php echo $pageTitle; ?></div>
     <div class="adm-topbar-actions">
+        <?php if ($errorCount > 0): ?>
+        <a href="<?php echo $setting['website_url']; ?>/admin/error-logs.php" class="adm-topbar-btn" style="border-color:rgba(255,77,77,.4);color:var(--adm-danger);">
+            <i class="fa-solid fa-bug"></i> <?php echo $errorCount; ?> error<?php echo $errorCount != 1 ? 's' : ''; ?>
+        </a>
+        <?php endif; ?>
         <?php if ($allPending > 0): ?>
         <a href="<?php echo $setting['website_url']; ?>/admin/pending.php" class="adm-topbar-btn" style="border-color:rgba(244,208,63,.4);color:var(--adm-warning);">
             <i class="fa-regular fa-clock"></i> <?php echo $allPending; ?> pending
@@ -227,17 +244,6 @@ $allPending  = $product->countPending();
 <!-- ── Main Content ── -->
 <main class="adm-main">
 
-<?php if (isset($success)): ?>
-    <div class="adm-alert adm-alert-success" style="margin:1rem 1.5rem 0;">
-        <i class="fa-solid fa-circle-check"></i> <?php echo $success; ?>
-    </div>
-<?php endif; ?>
-
-<?php if (isset($error)): ?>
-    <div class="adm-alert adm-alert-error" style="margin:1rem 1.5rem 0;">
-        <i class="fa-solid fa-circle-xmark"></i> <?php echo $error; ?>
-    </div>
-<?php endif; ?>
 
 <script>
 // Submenus

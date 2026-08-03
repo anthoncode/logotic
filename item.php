@@ -1,6 +1,6 @@
 <?php
-ini_set('display_errors', 0);
-ini_set('display_startup_errors', 0);
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
 ob_start(); //para que redireccione header location
 
 error_reporting(E_ALL);
@@ -14,7 +14,6 @@ if (is_array($details)) {
 
 $po = $id;
 $views = explode("/", $po);
-$viewsOne = $views[1];
 $productid = intval($views[0]); // ✅ solo el número
 
 // ¿Este logo ya está en los favoritos del usuario?
@@ -96,15 +95,15 @@ if (isset($_GET['id'])) {
 
   // ── Schema.org del logo (rich snippet para Google) ──
   $schemaJsonLd = '<script type="application/ld+json">' . json_encode([
-      "@context"     => "https://schema.org",
-      "@type"        => "ImageObject",
-      "name"         => $details['name'] . " Logo",
-      "description"  => $ogDesc,
-      "contentUrl"   => $setting['website_url'] . '/system/assets/uploads/vector-files/' . $details['icon_img'],
-      "thumbnailUrl" => $ogImage,
-      "uploadDate"   => !empty($details['created']) ? date('Y-m-d', strtotime($details['created'])) : date('Y-m-d'),
-      "license"      => $setting['website_url'],
-      "acquireLicensePage" => $canonical,
+    "@context"     => "https://schema.org",
+    "@type"        => "ImageObject",
+    "name"         => $details['name'] . " Logo",
+    "description"  => $ogDesc,
+    "contentUrl"   => $setting['website_url'] . '/system/assets/uploads/vector-files/' . $details['icon_img'],
+    "thumbnailUrl" => $ogImage,
+    "uploadDate"   => !empty($details['created']) ? date('Y-m-d', strtotime($details['created'])) : date('Y-m-d'),
+    "license"      => $setting['website_url'],
+    "acquireLicensePage" => $canonical,
   ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . '</script>';
 
   require_once 'system/assets/header.php';
@@ -440,7 +439,11 @@ if (isset($_GET['id'])) {
               ?>/system/assets/uploads/products/<?php //echo $details['preview_img']; 
                                                 ?>"
      -->
-
+    <?php if (($setting['show_ads'] ?? 0) == 1 && !empty($setting['ads_2'])): ?>
+      <div class="ad-slot">
+        <?php echo $setting['ads_2']; ?>
+      </div>
+    <?php endif; ?>
 
     <!--Similar Products-->
     <div class="container mt-5">
@@ -824,33 +827,33 @@ if (isset($_GET['id'])) {
     }
 
     function downloadPngCustom() {
-    var input = document.getElementById('pngCustomSize');
-    var raw = input.value.trim();
+      var input = document.getElementById('pngCustomSize');
+      var raw = input.value.trim();
 
-    // Solo dígitos, nada más
-    if (!/^\d+$/.test(raw)) {
+      // Solo dígitos, nada más
+      if (!/^\d+$/.test(raw)) {
         input.value = '';
         input.focus();
         showDownloadError('Enter a valid size (16–3000).');
         return;
-    }
+      }
 
-    var size = parseInt(raw, 10);
+      var size = parseInt(raw, 10);
 
-    // Rango válido
-    if (isNaN(size) || size < 16) {
+      // Rango válido
+      if (isNaN(size) || size < 16) {
         input.focus();
         showDownloadError('Minimum size is 16px.');
         return;
-    }
-    if (size > 3000) {
+      }
+      if (size > 3000) {
         size = 3000;
         input.value = 3000; // avisa al usuario que se capó
-    }
+      }
 
-    document.getElementById('pngMenu').classList.remove('show');
-    checkAndDownload('png', size);
-}
+      document.getElementById('pngMenu').classList.remove('show');
+      checkAndDownload('png', size);
+    }
 
     // Cerrar el menú al hacer clic fuera
     document.addEventListener('click', function(e) {
@@ -863,7 +866,7 @@ if (isset($_GET['id'])) {
     var downloadInProgress = false;
 
     function checkAndDownload(format, size) {
-      if (downloadInProgress) return;      // evita clics/peticiones múltiples
+      if (downloadInProgress) return; // evita clics/peticiones múltiples
       downloadInProgress = true;
 
       var checkUrl = DL_BASE + '?pid=' + DL_PRODUCT_ID + '&check=1';
@@ -909,7 +912,7 @@ if (isset($_GET['id'])) {
       };
 
       xhr.onload = function() {
-        downloadInProgress = false;      // liberar al terminar
+        downloadInProgress = false; // liberar al terminar
         var ct = xhr.getResponseHeader('Content-Type') || '';
         if (xhr.status === 200 && ct.indexOf('application/json') === -1) {
           var link = document.createElement('a');
@@ -934,7 +937,7 @@ if (isset($_GET['id'])) {
       };
 
       xhr.onerror = function() {
-        downloadInProgress = false;      // liberar en error
+        downloadInProgress = false; // liberar en error
         showDownloadError('Connection error.');
       };
       xhr.send();

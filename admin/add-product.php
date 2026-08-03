@@ -22,9 +22,6 @@ require_once 'includes/header1.php';
             <a href="<?php echo $setting['website_url']; ?>/admin/all-logos.php" class="adm-topbar-btn">
                 <i class="fa-regular fa-list"></i> All Logos
             </a>
-            <a href="<?php echo $setting['website_url']; ?>/admin/best-selling-products.php" class="adm-topbar-btn">
-                <i class="fa-solid fa-fire"></i> Top Downloads
-            </a>
         </div>
     </div>
 

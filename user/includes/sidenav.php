@@ -58,13 +58,13 @@ $isContributor = $upCount > 0;
                 <span class="usidenav-count"><?php echo $totalFavs; ?></span>
             <?php endif; ?>
         </a>
-        <?php if ($isContributor): ?>
-        <a href="<?php echo $setting['website_url']; ?>/user/uploads.php"
+        <a href="<?php echo $setting['website_url']; ?>/user/my-logos.php"
            class="usidenav-item <?php echo $pg == '4' ? 'active' : ''; ?>">
             <i class="fa-regular fa-images"></i> My Logos
-            <span class="usidenav-count"><?php echo $upCount; ?></span>
+            <?php if ($upCount > 0): ?>
+                <span class="usidenav-count"><?php echo $upCount; ?></span>
+            <?php endif; ?>
         </a>
-        <?php endif; ?>
 
         <div class="usidenav-divider"></div>
 

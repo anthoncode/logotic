@@ -1,6 +1,6 @@
 <?php
  error_reporting(E_ALL);
-  ini_set('display_errors', 1);
+  ini_set('display_errors', 0);
 if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
   require_once('../system/config-admin.php');
   $productDetails = $product->details($_REQUEST['id']); //para llamar los atributos de producto

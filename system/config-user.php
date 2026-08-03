@@ -74,7 +74,6 @@ header('Referrer-Policy: strict-origin-when-cross-origin');
 header('Access-Control-Allow-Origin: *');
 
 // ── Clases ──
-include_once 'classes/class.coupon.php';
 include_once 'classes/class.crypt.php';
 include_once 'classes/class.customer.php';
 include_once 'classes/class.product.php';
@@ -86,7 +85,6 @@ include_once 'classes/class.news.php';
 include_once 'classes/class.wishlist.php';
 
 // ── Instancias ──
-$coupon   = new Coupon($DB_con);
 $crypt    = new encryption_class($DB_con);
 $product  = new Product($DB_con);
 $settings = new Settings($DB_con);

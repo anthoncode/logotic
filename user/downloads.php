@@ -14,19 +14,22 @@ $currpage = max(1, (int)($_GET['page'] ?? 1));
 $maxres   = 18;
 $start    = ($currpage - 1) * $maxres;
 
-// Total
-$countStmt = $DB_con->prepare("SELECT COUNT(*) FROM " . PFX . "downloads WHERE user_id = :uid");
+// Total (logos únicos descargados, no repeticiones)
+$countStmt = $DB_con->prepare("SELECT COUNT(DISTINCT products_id) FROM " . PFX . "downloads WHERE user_id = :uid");
 $countStmt->execute([':uid' => $uid]);
 $total = $countStmt->fetchColumn();
 $pages = ceil($total / $maxres);
 
-// Descargas
+// Descargas agrupadas por logo (una fila por logo, con cuántas veces y la última fecha)
 $stmt = $DB_con->prepare("
-    SELECT p.id, p.name, p.slug_lg, p.icon_img, d.date_created
+    SELECT p.id, p.name, p.slug_lg, p.icon_img,
+           COUNT(*) AS dl_times,
+           MAX(d.date_created) AS last_dl
     FROM " . PFX . "downloads d
     INNER JOIN " . PFX . "products p ON d.products_id = p.id
     WHERE d.user_id = :uid
-    ORDER BY d.date_created DESC
+    GROUP BY p.id
+    ORDER BY last_dl DESC
     LIMIT :start, :maxres
 ");
 $stmt->bindValue(':uid', $uid, PDO::PARAM_INT);
@@ -40,7 +43,7 @@ require_once('includes/header.php');
 
 <div class="user-panel-head">
     <h1>My Downloads</h1>
-    <p><?php echo number_format($total); ?> logo<?php echo $total !== 1 ? 's' : ''; ?> downloaded</p>
+    <p><?php echo number_format($total); ?> unique logo<?php echo $total !== 1 ? 's' : ''; ?> downloaded</p>
 </div>
 
 <style>
@@ -109,6 +112,23 @@ require_once('includes/header.php');
 
 .logo-card:hover .logo-card-redl { opacity: 1; }
 
+/* Badge con cuántas veces se descargó */
+.logo-card-times {
+    position: absolute;
+    top: .5rem; left: .5rem;
+    background: rgba(13,15,28,.8);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 3px 8px;
+    color: var(--accent);
+    font-size: .68rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    z-index: 2;
+}
+
 .up-empty {
     text-align: center;
     padding: 4rem 2rem;
@@ -158,13 +178,16 @@ require_once('includes/header.php');
         <?php foreach ($downloads as $d): ?>
             <a href="<?php echo $setting['website_url'] . '/item/' . $d['id'] . '/' . $d['slug_lg'] . '/'; ?>"
                class="logo-card" title="<?php echo htmlspecialchars($d['name']); ?>">
+                <?php if ($d['dl_times'] > 1): ?>
+                    <div class="logo-card-times"><i class="fa-regular fa-download"></i> <?php echo $d['dl_times']; ?>×</div>
+                <?php endif; ?>
                 <div class="logo-card-redl"><i class="fa-regular fa-arrow-down-to-line"></i></div>
                 <img class="logo-card-img"
                      src="<?php echo $setting['website_url']; ?>/system/assets/uploads/vector-files/<?php echo $d['icon_img']; ?>"
                      alt="<?php echo htmlspecialchars($d['name']); ?>">
                 <div class="logo-card-name"><?php echo htmlspecialchars($d['name']); ?></div>
                 <div class="logo-card-date">
-                    <?php echo $d['date_created'] ? date('d M Y', strtotime($d['date_created'])) : ''; ?>
+                    <?php echo $d['last_dl'] ? date('d M Y', strtotime($d['last_dl'])) : ''; ?>
                 </div>
             </a>
         <?php endforeach; ?>

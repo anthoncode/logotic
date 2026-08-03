@@ -50,8 +50,11 @@ if (isset($_REQUEST['save'])) {
         'homepage_subheader' => trim($_POST['homepage_subheader'] ?? ''),
         'global_message'     => trim($_POST['global_message']     ?? ''),
         'alert_type'         => trim($_POST['alert_type']         ?? 'info'),
+        'global_btn_text'    => trim($_POST['global_btn_text']    ?? ''),
+        'global_btn_link'    => trim($_POST['global_btn_link']    ?? ''),
         'notification_msg'   => trim($_POST['notification_msg']   ?? ''),
         'url_msg'            => trim($_POST['url_msg']            ?? ''),
+        'notification_header' => isset($_POST['notification_header']) ? 1 : 0,
       ];
       if (empty($newsettings['homepage_header'])) {
         $settings->error = 'Homepage header is required';
@@ -66,16 +69,18 @@ if (isset($_REQUEST['save'])) {
       break;
 
     case 'security':
-    $newsettings = [
+      $newsettings = [
+        'login'               => isset($_POST['login'])   ? 1 : 0,
+        'captcha'             => isset($_POST['captcha']) ? 1 : 0,
         'site_key_captcha'    => trim($_POST['site_key_captcha']    ?? ''),
         'secret_key_captcha'  => trim($_POST['secret_key_captcha']  ?? ''),
         'google_client_id'    => trim($_POST['google_client_id']    ?? ''),
-        'google_client_secret'=> trim($_POST['google_client_secret']?? ''),
-        'google_oauth_enabled'=> isset($_POST['google_oauth_enabled']) ? '1' : '0',
-    ];
-    $settings->update($newsettings);
-    $activeTab = 'security';
-    break;
+        'google_client_secret' => trim($_POST['google_client_secret'] ?? ''),
+        'google_oauth_enabled' => isset($_POST['google_oauth_enabled']) ? '1' : '0',
+      ];
+      $settings->update($newsettings);
+      $activeTab = 'security';
+      break;
 
     case 'email':
       $smtpHost  = trim($_POST['smtp_host']       ?? '');
@@ -124,22 +129,9 @@ if (isset($_REQUEST['save'])) {
       $activeTab = 'appearance';
       break;
 
-    case 'features':
-      //($_POST); // ← debug temporal
-      $newsettings = [
-        'login'               => isset($_POST['login'])               ? 1 : 0,
-        'captcha'             => isset($_POST['captcha'])             ? 1 : 0,
-        'show_ads'            => isset($_POST['show_ads'])            ? 1 : 0,
-        'wishlist'            => isset($_POST['wishlist'])            ? 1 : 0,
-        'notification_header' => isset($_POST['notification_header']) ? 1 : 0,
-        'show_card_sde'       => isset($_POST['show_card_sde'])       ? 1 : 0,
-      ];
-      $settings->update($newsettings);
-      $activeTab = 'features';
-      break;
-
     case 'ads':
       $newsettings = [
+        'show_ads'    => isset($_POST['show_ads']) ? 1 : 0,
         'ads_1'       => $_POST['ads_1']       ?? '',
         'ads_2'       => $_POST['ads_2']       ?? '',
         'code_header' => $_POST['code_header'] ?? '',
@@ -148,7 +140,7 @@ if (isset($_REQUEST['save'])) {
       $activeTab = 'ads';
       break;
 
-      case 'downloads':
+    case 'downloads':
       $guestLimit  = (int)($_POST['dl_guest_limit']  ?? 10);
       $guestPeriod = (int)($_POST['dl_guest_period'] ?? 24);
       $rateMax     = (int)($_POST['dl_rate_max']     ?? 8);
@@ -209,7 +201,6 @@ require_once('includes/header1.php');
     <a class="adm-tab <?php echo $activeTab === 'security'   ? 'active' : '' ?>" href="?tab=security"><i class="fa-regular fa-shield"></i> Security</a>
     <a class="adm-tab <?php echo $activeTab === 'email'      ? 'active' : '' ?>" href="?tab=email"><i class="fa-regular fa-envelope"></i> Email & SMTP</a>
     <a class="adm-tab <?php echo $activeTab === 'appearance' ? 'active' : '' ?>" href="?tab=appearance"><i class="fa-regular fa-palette"></i> Appearance</a>
-    <a class="adm-tab <?php echo $activeTab === 'features'   ? 'active' : '' ?>" href="?tab=features"><i class="fa-regular fa-toggle-on"></i> Features</a>
     <a class="adm-tab <?php echo $activeTab === 'ads'        ? 'active' : '' ?>" href="?tab=ads"><i class="fa-regular fa-code"></i> Ads & Code</a>
     <a class="adm-tab <?php echo $activeTab === 'downloads'  ? 'active' : '' ?>" href="?tab=downloads"><i class="fa-regular fa-download"></i> Downloads</a>
   </div>
@@ -278,14 +269,27 @@ require_once('includes/header1.php');
         </div>
       </div>
       <div class="adm-card">
-        <div class="adm-card-title"><i class="fa-regular fa-bell"></i> Global Notification</div>
+        <div class="adm-card-title"><i class="fa-regular fa-bell"></i> Notification Bar (promo bar)</div>
+
+        <div id="toggleMsg" style="margin-bottom:.75rem;font-size:.82rem;display:none;"></div>
+        <label class="adm-toggle" style="margin-bottom:1rem;">
+          <div>
+            <div class="adm-toggle-label">Show Notification Bar</div>
+            <div class="adm-toggle-sub">Display the promo bar on top of the site</div>
+          </div>
+          <label class="adm-switch">
+            <input type="checkbox" class="feature-toggle" data-name="notification_header" <?php echo ($setting['notification_header'] ?? 0) == 1 ? 'checked' : ''; ?>>
+            <span class="adm-slider"></span>
+          </label>
+        </label>
+
         <div class="adm-grid-2">
           <div class="adm-field">
-            <label class="adm-label">Message <span style="font-weight:400;color:var(--adm-muted);">(leave empty to disable)</span></label>
+            <label class="adm-label">Message <span style="font-weight:400;color:var(--adm-muted);">(the bar won't show if empty)</span></label>
             <input class="adm-input" type="text" name="global_message" value="<?php echo htmlspecialchars($setting['global_message'] ?? ''); ?>">
           </div>
           <div class="adm-field">
-            <label class="adm-label">Alert Type</label>
+            <label class="adm-label">Alert Type (color)</label>
             <select class="adm-input" name="alert_type">
               <?php foreach (['success', 'info', 'warning', 'primary', 'danger'] as $t): ?>
                 <option value="<?php echo $t; ?>" <?php echo ($setting['alert_type'] ?? 'info') == $t ? 'selected' : ''; ?>><?php echo ucfirst($t); ?></option>
@@ -295,12 +299,12 @@ require_once('includes/header1.php');
         </div>
         <div class="adm-grid-2">
           <div class="adm-field">
-            <label class="adm-label">Notification Message (header bar)</label>
-            <input class="adm-input" type="text" name="notification_msg" value="<?php echo htmlspecialchars($setting['notification_msg'] ?? ''); ?>">
+            <label class="adm-label">Button Text <span style="font-weight:400;color:var(--adm-muted);">(optional)</span></label>
+            <input class="adm-input" type="text" name="global_btn_text" value="<?php echo htmlspecialchars($setting['global_btn_text'] ?? ''); ?>" placeholder="e.g. Learn more">
           </div>
           <div class="adm-field">
-            <label class="adm-label">Notification URL</label>
-            <input class="adm-input" type="url" name="url_msg" value="<?php echo htmlspecialchars($setting['url_msg'] ?? ''); ?>">
+            <label class="adm-label">Button Link <span style="font-weight:400;color:var(--adm-muted);">(optional)</span></label>
+            <input class="adm-input" type="text" name="global_btn_link" value="<?php echo htmlspecialchars($setting['global_btn_link'] ?? ''); ?>" placeholder="https://... or /page">
           </div>
         </div>
       </div>
@@ -309,268 +313,299 @@ require_once('includes/header1.php');
 
     <!-- ── SECURITY ── -->
   <?php elseif ($activeTab === 'security'): ?>
-<form action="settings.php?tab=security" method="POST">
-    <input type="hidden" name="save" value="security">
+    <form action="settings.php?tab=security" method="POST">
+      <input type="hidden" name="save" value="security">
 
-    <!-- reCAPTCHA -->
-    <div class="adm-card" style="margin-bottom:1rem;">
+      <!-- Toggles de seguridad (guardan por AJAX) -->
+      <div class="adm-card" style="margin-bottom:1rem;">
+        <div class="adm-card-title"><i class="fa-regular fa-toggle-on"></i> Security Options</div>
+        <div id="toggleMsg" style="margin-bottom:.75rem;font-size:.82rem;display:none;"></div>
+        <div class="adm-toggles">
+          <label class="adm-toggle">
+            <div>
+              <div class="adm-toggle-label">User Login</div>
+              <div class="adm-toggle-sub">Enable login &amp; registration</div>
+            </div>
+            <label class="adm-switch">
+              <input type="checkbox" class="feature-toggle" data-name="login" <?php echo ($setting['login'] ?? 0) == 1 ? 'checked' : ''; ?>>
+              <span class="adm-slider"></span>
+            </label>
+          </label>
+          <label class="adm-toggle">
+            <div>
+              <div class="adm-toggle-label">reCAPTCHA</div>
+              <div class="adm-toggle-sub">Protect forms with Google reCAPTCHA</div>
+            </div>
+            <label class="adm-switch">
+              <input type="checkbox" class="feature-toggle" data-name="captcha" <?php echo ($setting['captcha'] ?? 0) == 1 ? 'checked' : ''; ?>>
+              <span class="adm-slider"></span>
+            </label>
+          </label>
+        </div>
+      </div>
+
+      <!-- reCAPTCHA -->
+      <div class="adm-card" style="margin-bottom:1rem;">
         <div class="adm-card-title"><i class="fa-regular fa-shield"></i> Google reCAPTCHA v2</div>
         <div class="adm-field">
-            <label class="adm-label">Site Key (public)</label>
-            <input class="adm-input" type="text" name="site_key_captcha"
-                   value="<?php echo htmlspecialchars($setting['site_key_captcha'] ?? ''); ?>"
-                   placeholder="6LeT72gi...">
+          <label class="adm-label">Site Key (public)</label>
+          <input class="adm-input" type="text" name="site_key_captcha"
+            value="<?php echo htmlspecialchars($setting['site_key_captcha'] ?? ''); ?>"
+            placeholder="6LeT72gi...">
         </div>
         <div class="adm-field">
-            <label class="adm-label">Secret Key (private)</label>
-            <input class="adm-input" type="text" name="secret_key_captcha"
-                   value="<?php echo htmlspecialchars($setting['secret_key_captcha'] ?? ''); ?>"
-                   placeholder="6LeT72gi...">
+          <label class="adm-label">Secret Key (private)</label>
+          <input class="adm-input" type="text" name="secret_key_captcha"
+            value="<?php echo htmlspecialchars($setting['secret_key_captcha'] ?? ''); ?>"
+            placeholder="6LeT72gi...">
         </div>
         <p style="font-size:.75rem;color:var(--adm-muted);margin-top:.5rem;">
-            <i class="fa-regular fa-circle-info"></i> Get your keys at
-            <a href="https://www.google.com/recaptcha/admin/create" target="_blank"
-               style="color:var(--adm-accent);">google.com/recaptcha</a>
+          <i class="fa-regular fa-circle-info"></i> Get your keys at
+          <a href="https://www.google.com/recaptcha/admin/create" target="_blank"
+            style="color:var(--adm-accent);">google.com/recaptcha</a>
         </p>
-    </div>
+      </div>
 
-    <!-- Google OAuth -->
-    <div class="adm-card" style="margin-bottom:1rem;">
+      <!-- Google OAuth -->
+      <div class="adm-card" style="margin-bottom:1rem;">
         <div class="adm-card-title"><i class="fa-brands fa-google"></i> Google OAuth</div>
 
         <label class="adm-toggle" style="margin-bottom:1rem;">
-            <div>
-                <div class="adm-toggle-label">Enable Google Sign-In</div>
-                <div class="adm-toggle-sub">Show "Sign in with Google" button on login and register</div>
-            </div>
-            <label class="adm-switch">
-                <input type="checkbox" name="google_oauth_enabled"
-                       <?php echo ($setting['google_oauth_enabled'] ?? '0') == '1' ? 'checked' : ''; ?>>
-                <span class="adm-slider"></span>
-            </label>
+          <div>
+            <div class="adm-toggle-label">Enable Google Sign-In</div>
+            <div class="adm-toggle-sub">Show "Sign in with Google" button on login and register</div>
+          </div>
+          <label class="adm-switch">
+            <input type="checkbox" class="feature-toggle" data-name="google_oauth_enabled"
+              <?php echo ($setting['google_oauth_enabled'] ?? '0') == '1' ? 'checked' : ''; ?>>
+            <span class="adm-slider"></span>
+          </label>
         </label>
 
         <div class="adm-field">
-            <label class="adm-label">Client ID</label>
-            <input class="adm-input" type="text" name="google_client_id"
-                   value="<?php echo htmlspecialchars($setting['google_client_id'] ?? ''); ?>"
-                   placeholder="648071122021-xxx.apps.googleusercontent.com">
+          <label class="adm-label">Client ID</label>
+          <input class="adm-input" type="text" name="google_client_id"
+            value="<?php echo htmlspecialchars($setting['google_client_id'] ?? ''); ?>"
+            placeholder="648071122021-xxx.apps.googleusercontent.com">
         </div>
         <div class="adm-field">
-            <label class="adm-label">Client Secret</label>
-            <div style="position:relative;">
-                <input class="adm-input" type="password" name="google_client_secret"
-                       id="googleSecret"
-                       value="<?php echo htmlspecialchars($setting['google_client_secret'] ?? ''); ?>"
-                       placeholder="GOCSPX-..."
-                       style="padding-right:2.5rem;">
-                <button type="button"
-                        onclick="toggleGoogleSecret()"
-                        style="position:absolute;right:.7rem;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--adm-muted);cursor:pointer;font-size:.85rem;padding:0;">
-                    <i class="fa-regular fa-eye" id="googleSecretIcon"></i>
-                </button>
-            </div>
+          <label class="adm-label">Client Secret</label>
+          <div style="position:relative;">
+            <input class="adm-input" type="password" name="google_client_secret"
+              id="googleSecret"
+              value="<?php echo htmlspecialchars($setting['google_client_secret'] ?? ''); ?>"
+              placeholder="GOCSPX-..."
+              style="padding-right:2.5rem;">
+            <button type="button"
+              onclick="toggleGoogleSecret()"
+              style="position:absolute;right:.7rem;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--adm-muted);cursor:pointer;font-size:.85rem;padding:0;">
+              <i class="fa-regular fa-eye" id="googleSecretIcon"></i>
+            </button>
+          </div>
         </div>
         <div style="background:rgba(212,255,0,.05);border:1px solid rgba(212,255,0,.15);border-radius:10px;padding:.85rem 1rem;font-size:.75rem;color:var(--adm-muted);">
-            <div style="font-weight:600;color:var(--adm-accent);margin-bottom:.4rem;">
-                <i class="fa-regular fa-circle-info"></i> Required Authorized Redirect URIs
-            </div>
-            <div style="font-family:monospace;font-size:.72rem;margin-bottom:.2rem;">
-                <?php echo $setting['website_url']; ?>/user/google-callback.php
-            </div>
-            <div style="font-size:.7rem;margin-top:.4rem;">
-                Add this URL in <a href="https://console.cloud.google.com/apis/credentials"
-                target="_blank" style="color:var(--adm-accent);">Google Cloud Console</a>
-                → Credentials → OAuth Client → Authorized redirect URIs
-            </div>
+          <div style="font-weight:600;color:var(--adm-accent);margin-bottom:.4rem;">
+            <i class="fa-regular fa-circle-info"></i> Required Authorized Redirect URIs
+          </div>
+          <div style="font-family:monospace;font-size:.72rem;margin-bottom:.2rem;">
+            <?php echo $setting['website_url']; ?>/user/google-callback.php
+          </div>
+          <div style="font-size:.7rem;margin-top:.4rem;">
+            Add this URL in <a href="https://console.cloud.google.com/apis/credentials"
+              target="_blank" style="color:var(--adm-accent);">Google Cloud Console</a>
+            &rarr; Credentials &rarr; OAuth Client &rarr; Authorized redirect URIs
+          </div>
         </div>
-    </div>
+      </div>
 
-    <button class="adm-save" type="submit">
+      <button class="adm-save" type="submit">
         <i class="fa-regular fa-floppy-disk"></i> Save Security
-    </button>
-</form>
+      </button>
+    </form>
 
-<script>
-function toggleGoogleSecret() {
-    var inp  = document.getElementById('googleSecret');
-    var icon = document.getElementById('googleSecretIcon');
-    inp.type = inp.type === 'password' ? 'text' : 'password';
-    icon.className = inp.type === 'password' ? 'fa-regular fa-eye' : 'fa-regular fa-eye-slash';
-}
-</script>
+    <script>
+      function toggleGoogleSecret() {
+        var inp = document.getElementById('googleSecret');
+        var icon = document.getElementById('googleSecretIcon');
+        inp.type = inp.type === 'password' ? 'text' : 'password';
+        icon.className = inp.type === 'password' ? 'fa-regular fa-eye' : 'fa-regular fa-eye-slash';
+      }
+    </script>
 
     <!-- ── APPEARANCE ── -->
-     <!-- ── EMAIL & SMTP ── -->
-<?php elseif ($activeTab === 'email'): ?>
+    <!-- ── EMAIL & SMTP ── -->
+  <?php elseif ($activeTab === 'email'): ?>
 
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;align-items:start;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;align-items:start;">
 
-    <!-- Columna izquierda: SMTP -->
-    <div>
+      <!-- Columna izquierda: SMTP -->
+      <div>
+        <!-- Mensaje para toggles AJAX -->
+        <div id="toggleMsg" style="margin-bottom:.75rem;font-size:.82rem;display:none;"></div>
+
+        <!-- Email Verification toggle (AJAX) -->
+        <div class="adm-card" style="margin-bottom:1rem;">
+          <div class="adm-card-title"><i class="fa-regular fa-envelope-circle-check"></i> Email Verification</div>
+          <label class="adm-toggle" style="margin-bottom:0;">
+            <div>
+              <div class="adm-toggle-label">Require Email Verification</div>
+              <div class="adm-toggle-sub">New users must verify their email before logging in</div>
+            </div>
+            <label class="adm-switch">
+              <input type="checkbox" class="feature-toggle" data-name="email_verification"
+                <?php echo ($setting['email_verification'] ?? '0') == '1' ? 'checked' : ''; ?>>
+              <span class="adm-slider"></span>
+            </label>
+          </label>
+        </div>
+
         <form action="settings.php?tab=email" method="POST">
-            <input type="hidden" name="save" value="email">
+          <input type="hidden" name="save" value="email">
 
-            <!-- Email Verification toggle -->
-            <div class="adm-card" style="margin-bottom:1rem;">
-                <div class="adm-card-title"><i class="fa-regular fa-envelope-circle-check"></i> Email Verification</div>
-                <label class="adm-toggle" style="margin-bottom:0;">
-                    <div>
-                        <div class="adm-toggle-label">Require Email Verification</div>
-                        <div class="adm-toggle-sub">New users must verify their email before logging in</div>
-                    </div>
-                    <label class="adm-switch">
-                        <input type="checkbox" name="email_verification"
-                               <?php echo ($setting['email_verification'] ?? '0') == '1' ? 'checked' : ''; ?>>
-                        <span class="adm-slider"></span>
-                    </label>
-                </label>
+          <!-- SMTP Config -->
+          <div class="adm-card" style="margin-bottom:1rem;">
+            <div class="adm-card-title">
+              <i class="fa-regular fa-server"></i> SMTP Configuration
             </div>
 
-            <!-- SMTP Config -->
-            <div class="adm-card" style="margin-bottom:1rem;">
-                <div class="adm-card-title">
-                    <i class="fa-regular fa-server"></i> SMTP Configuration
+            <label class="adm-toggle" style="margin-bottom:1rem;">
+              <div>
+                <div class="adm-toggle-label">Use SMTP</div>
+                <div class="adm-toggle-sub">Use custom SMTP instead of PHP mail()</div>
+              </div>
+              <label class="adm-switch">
+                <input type="checkbox" class="feature-toggle" data-name="smtp_enabled" id="smtpToggle"
+                  <?php echo ($setting['smtp_enabled'] ?? '0') == '1' ? 'checked' : ''; ?>>
+                <span class="adm-slider"></span>
+              </label>
+            </label>
+
+            <div id="smtpFields" style="<?php echo ($setting['smtp_enabled'] ?? '0') != '1' ? 'opacity:.4;pointer-events:none;' : ''; ?>">
+              <div class="adm-grid-2">
+                <div class="adm-field">
+                  <label class="adm-label">SMTP Host *</label>
+                  <input class="adm-input" type="text" name="smtp_host"
+                    value="<?php echo htmlspecialchars($setting['smtp_host'] ?? ''); ?>"
+                    placeholder="smtp.gmail.com">
                 </div>
-
-                <label class="adm-toggle" style="margin-bottom:1rem;">
-                    <div>
-                        <div class="adm-toggle-label">Use SMTP</div>
-                        <div class="adm-toggle-sub">Use custom SMTP instead of PHP mail()</div>
-                    </div>
-                    <label class="adm-switch">
-                        <input type="checkbox" name="smtp_enabled" id="smtpToggle"
-                               <?php echo ($setting['smtp_enabled'] ?? '0') == '1' ? 'checked' : ''; ?>>
-                        <span class="adm-slider"></span>
-                    </label>
-                </label>
-
-                <div id="smtpFields" style="<?php echo ($setting['smtp_enabled'] ?? '0') != '1' ? 'opacity:.4;pointer-events:none;' : ''; ?>">
-                    <div class="adm-grid-2">
-                        <div class="adm-field">
-                            <label class="adm-label">SMTP Host *</label>
-                            <input class="adm-input" type="text" name="smtp_host"
-                                   value="<?php echo htmlspecialchars($setting['smtp_host'] ?? ''); ?>"
-                                   placeholder="smtp.gmail.com">
-                        </div>
-                        <div class="adm-field">
-                            <label class="adm-label">Port *</label>
-                            <input class="adm-input" type="number" name="smtp_port"
-                                   value="<?php echo (int)($setting['smtp_port'] ?? 587); ?>"
-                                   min="1" max="65535" placeholder="587">
-                        </div>
-                    </div>
-
-                    <div class="adm-field">
-                        <label class="adm-label">Encryption</label>
-                        <select class="adm-input" name="smtp_encryption">
-                            <?php foreach (['tls' => 'TLS (recommended)', 'ssl' => 'SSL', 'none' => 'None'] as $val => $label): ?>
-                                <option value="<?php echo $val; ?>"
-                                    <?php echo ($setting['smtp_encryption'] ?? 'tls') === $val ? 'selected' : ''; ?>>
-                                    <?php echo $label; ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-
-                    <div class="adm-grid-2">
-                        <div class="adm-field">
-                            <label class="adm-label">SMTP Username</label>
-                            <input class="adm-input" type="text" name="smtp_user"
-                                   value="<?php echo htmlspecialchars($setting['smtp_user'] ?? ''); ?>"
-                                   placeholder="your@email.com"
-                                   autocomplete="username">
-                        </div>
-                        <div class="adm-field">
-                            <label class="adm-label">
-                                SMTP Password
-                                <span style="font-weight:400;font-size:.7rem;color:var(--adm-muted);">(leave empty to keep current)</span>
-                            </label>
-                            <div style="position:relative;">
-                                <input class="adm-input" type="password" name="smtp_pass"
-                                       placeholder="••••••••"
-                                       autocomplete="new-password"
-                                       id="smtpPass"
-                                       style="padding-right:2.5rem;">
-                                <button type="button" onclick="toggleSmtpPass()"
-                                        style="position:absolute;right:.7rem;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--adm-muted);cursor:pointer;font-size:.85rem;padding:0;">
-                                    <i class="fa-regular fa-eye" id="smtpPassIcon"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="adm-grid-2">
-                        <div class="adm-field">
-                            <label class="adm-label">From Name</label>
-                            <input class="adm-input" type="text" name="smtp_from_name"
-                                   value="<?php echo htmlspecialchars($setting['smtp_from_name'] ?? ''); ?>"
-                                   placeholder="<?php echo htmlspecialchars($setting['site_name']); ?>"
-                                   maxlength="100">
-                        </div>
-                        <div class="adm-field">
-                            <label class="adm-label">From Email *</label>
-                            <input class="adm-input" type="email" name="smtp_from_email"
-                                   value="<?php echo htmlspecialchars($setting['smtp_from_email'] ?? ''); ?>"
-                                   placeholder="noreply@yourdomain.com"
-                                   maxlength="150">
-                        </div>
-                    </div>
+                <div class="adm-field">
+                  <label class="adm-label">Port *</label>
+                  <input class="adm-input" type="number" name="smtp_port"
+                    value="<?php echo (int)($setting['smtp_port'] ?? 587); ?>"
+                    min="1" max="65535" placeholder="587">
                 </div>
+              </div>
+
+              <div class="adm-field">
+                <label class="adm-label">Encryption</label>
+                <select class="adm-input" name="smtp_encryption">
+                  <?php foreach (['tls' => 'TLS (recommended)', 'ssl' => 'SSL', 'none' => 'None'] as $val => $label): ?>
+                    <option value="<?php echo $val; ?>"
+                      <?php echo ($setting['smtp_encryption'] ?? 'tls') === $val ? 'selected' : ''; ?>>
+                      <?php echo $label; ?>
+                    </option>
+                  <?php endforeach; ?>
+                </select>
+              </div>
+
+              <div class="adm-grid-2">
+                <div class="adm-field">
+                  <label class="adm-label">SMTP Username</label>
+                  <input class="adm-input" type="text" name="smtp_user"
+                    value="<?php echo htmlspecialchars($setting['smtp_user'] ?? ''); ?>"
+                    placeholder="your@email.com"
+                    autocomplete="username">
+                </div>
+                <div class="adm-field">
+                  <label class="adm-label">
+                    SMTP Password
+                    <span style="font-weight:400;font-size:.7rem;color:var(--adm-muted);">(leave empty to keep current)</span>
+                  </label>
+                  <div style="position:relative;">
+                    <input class="adm-input" type="password" name="smtp_pass"
+                      placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;"
+                      autocomplete="new-password"
+                      id="smtpPass"
+                      style="padding-right:2.5rem;">
+                    <button type="button" onclick="toggleSmtpPass()"
+                      style="position:absolute;right:.7rem;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--adm-muted);cursor:pointer;font-size:.85rem;padding:0;">
+                      <i class="fa-regular fa-eye" id="smtpPassIcon"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="adm-grid-2">
+                <div class="adm-field">
+                  <label class="adm-label">From Name</label>
+                  <input class="adm-input" type="text" name="smtp_from_name"
+                    value="<?php echo htmlspecialchars($setting['smtp_from_name'] ?? ''); ?>"
+                    placeholder="<?php echo htmlspecialchars($setting['site_name']); ?>"
+                    maxlength="100">
+                </div>
+                <div class="adm-field">
+                  <label class="adm-label">From Email *</label>
+                  <input class="adm-input" type="email" name="smtp_from_email"
+                    value="<?php echo htmlspecialchars($setting['smtp_from_email'] ?? ''); ?>"
+                    placeholder="noreply@yourdomain.com"
+                    maxlength="150">
+                </div>
+              </div>
             </div>
+          </div>
 
-            <button class="adm-save" type="submit">
-                <i class="fa-regular fa-floppy-disk"></i> Save Email Settings
-            </button>
+          <button class="adm-save" type="submit">
+            <i class="fa-regular fa-floppy-disk"></i> Save Email Settings
+          </button>
         </form>
-    </div>
+      </div>
 
-    <!-- Columna derecha: Test + Info -->
-    <div>
+      <!-- Columna derecha: Test + Info -->
+      <div>
         <!-- Test SMTP -->
         <div class="adm-card" style="margin-bottom:1rem;">
-            <div class="adm-card-title"><i class="fa-regular fa-paper-plane"></i> Test Connection</div>
-            <div class="adm-field">
-                <label class="adm-label">Send test email to</label>
-                <input class="adm-input" type="email" id="testEmail"
-                       placeholder="test@example.com"
-                       value="<?php echo htmlspecialchars($setting['mail_admin'] ?? ''); ?>">
-            </div>
-            <button type="button" class="adm-save" style="margin-top:.5rem;" onclick="testSmtp()">
-                <i class="fa-regular fa-paper-plane"></i> Send Test Email
-            </button>
-            <div id="smtpTestResult" style="margin-top:.75rem;font-size:.82rem;display:none;"></div>
+          <div class="adm-card-title"><i class="fa-regular fa-paper-plane"></i> Test Connection</div>
+          <div class="adm-field">
+            <label class="adm-label">Send test email to</label>
+            <input class="adm-input" type="email" id="testEmail"
+              placeholder="test@example.com"
+              value="<?php echo htmlspecialchars($setting['mail_admin'] ?? ''); ?>">
+          </div>
+          <button type="button" class="adm-save" style="margin-top:.5rem;" onclick="testSmtp()">
+            <i class="fa-regular fa-paper-plane"></i> Send Test Email
+          </button>
+          <div id="smtpTestResult" style="margin-top:.75rem;font-size:.82rem;display:none;"></div>
         </div>
 
         <!-- Providers info -->
         <div class="adm-card">
-            <div class="adm-card-title"><i class="fa-regular fa-circle-info"></i> Common SMTP Providers</div>
-            <div style="font-size:.78rem;color:var(--adm-muted);">
-                <?php
-                $providers = [
-                    ['Gmail',     'smtp.gmail.com',     587, 'TLS', 'Use App Password, not your regular password'],
-                    ['Outlook',   'smtp.office365.com', 587, 'TLS', 'Use your Microsoft account credentials'],
-                    ['Yahoo',     'smtp.mail.yahoo.com',587, 'TLS', 'Requires App Password'],
-                    ['Mailgun',   'smtp.mailgun.org',   587, 'TLS', 'Use SMTP credentials from Mailgun dashboard'],
-                    ['SendGrid',  'smtp.sendgrid.net',  587, 'TLS', 'Use apikey as username and API key as password'],
-                ];
-                foreach ($providers as $p): ?>
-                <div style="display:flex;align-items:flex-start;gap:.75rem;padding:.6rem 0;border-bottom:1px solid var(--adm-border);">
-                    <div style="width:70px;font-weight:600;color:var(--adm-text);flex-shrink:0;"><?php echo $p[0]; ?></div>
-                    <div>
-                        <div style="color:var(--adm-accent);font-size:.75rem;"><?php echo $p[1]; ?>:<?php echo $p[2]; ?> (<?php echo $p[3]; ?>)</div>
-                        <div style="font-size:.72rem;margin-top:.15rem;"><?php echo $p[4]; ?></div>
-                    </div>
+          <div class="adm-card-title"><i class="fa-regular fa-circle-info"></i> Common SMTP Providers</div>
+          <div style="font-size:.78rem;color:var(--adm-muted);">
+            <?php
+            $providers = [
+              ['Gmail',     'smtp.gmail.com',     587, 'TLS', 'Use App Password, not your regular password'],
+              ['Outlook',   'smtp.office365.com', 587, 'TLS', 'Use your Microsoft account credentials'],
+              ['Yahoo',     'smtp.mail.yahoo.com', 587, 'TLS', 'Requires App Password'],
+              ['Mailgun',   'smtp.mailgun.org',   587, 'TLS', 'Use SMTP credentials from Mailgun dashboard'],
+              ['SendGrid',  'smtp.sendgrid.net',  587, 'TLS', 'Use apikey as username and API key as password'],
+            ];
+            foreach ($providers as $p): ?>
+              <div style="display:flex;align-items:flex-start;gap:.75rem;padding:.6rem 0;border-bottom:1px solid var(--adm-border);">
+                <div style="width:70px;font-weight:600;color:var(--adm-text);flex-shrink:0;"><?php echo $p[0]; ?></div>
+                <div>
+                  <div style="color:var(--adm-accent);font-size:.75rem;"><?php echo $p[1]; ?>:<?php echo $p[2]; ?> (<?php echo $p[3]; ?>)</div>
+                  <div style="font-size:.72rem;margin-top:.15rem;"><?php echo $p[4]; ?></div>
                 </div>
-                <?php endforeach; ?>
-                <div style="padding:.6rem 0;">
-                    <div style="font-weight:600;color:var(--adm-text);margin-bottom:.25rem;">Gmail App Password:</div>
-                    Google Account → Security → 2-Step Verification → App Passwords
-                </div>
+              </div>
+            <?php endforeach; ?>
+            <div style="padding:.6rem 0;">
+              <div style="font-weight:600;color:var(--adm-text);margin-bottom:.25rem;">Gmail App Password:</div>
+              Google Account &rarr; Security &rarr; 2-Step Verification &rarr; App Passwords
             </div>
+          </div>
         </div>
+      </div>
     </div>
-</div>
 
   <?php elseif ($activeTab === 'appearance'): ?>
 
@@ -625,40 +660,7 @@ function toggleGoogleSecret() {
       </button>
     </form>
 
-    <!-- ── FEATURES ── -->
-  <?php elseif ($activeTab === 'features'): ?>
-    <div class="adm-card">
-      <div class="adm-card-title"><i class="fa-regular fa-toggle-on"></i> Feature Toggles</div>
-      <div id="toggleMsg" style="margin-bottom:.75rem;font-size:.82rem;display:none;"></div>
-      <div class="adm-toggles">
-        <?php
-        $toggles = [
-          ['name' => 'login',               'label' => 'User Login',          'sub' => 'Enable login & registration'],
-          ['name' => 'captcha',              'label' => 'reCAPTCHA',           'sub' => 'Protect forms with Google reCAPTCHA'],
-          ['name' => 'show_ads',             'label' => 'Show Ads',            'sub' => 'Display ad blocks on the site'],
-          ['name' => 'wishlist',             'label' => 'Wishlist',            'sub' => 'Allow users to save favorites'],
-          ['name' => 'notification_header',  'label' => 'Header Notification', 'sub' => 'Show notification bar on top'],
-          ['name' => 'show_card_sde',        'label' => 'Card Description',    'sub' => 'Show short desc on logo cards'],
-        ];
-        foreach ($toggles as $t): ?>
-          <label class="adm-toggle">
-            <div>
-              <div class="adm-toggle-label"><?php echo $t['label']; ?></div>
-              <div class="adm-toggle-sub"><?php echo $t['sub']; ?></div>
-            </div>
-            <label class="adm-switch">
-              <input type="checkbox"
-                class="feature-toggle"
-                data-name="<?php echo $t['name']; ?>"
-                <?php echo ($setting[$t['name']] ?? 0) == 1 ? 'checked' : ''; ?>>
-              <span class="adm-slider"></span>
-            </label>
-          </label>
-        <?php endforeach; ?>
-      </div>
-    </div>
-
-<!-- ── DOWNLOADS ── -->
+    <!-- ── DOWNLOADS ── -->
   <?php elseif ($activeTab === 'downloads'): ?>
     <form action="settings.php?tab=downloads" method="POST">
       <input type="hidden" name="save" value="downloads">
@@ -680,7 +682,7 @@ function toggleGoogleSecret() {
         <div class="adm-field">
           <label class="adm-label">Guest download limit</label>
           <input class="adm-input" type="number" name="dl_guest_limit" min="0" max="500"
-                 value="<?php echo (int)($setting['dl_guest_limit'] ?? 10); ?>">
+            value="<?php echo (int)($setting['dl_guest_limit'] ?? 10); ?>">
           <span style="font-size:.72rem;color:var(--adm-muted);margin-top:.3rem;display:block;">
             How many logos a visitor without an account can download per period. Logged-in users are unlimited.
           </span>
@@ -689,7 +691,7 @@ function toggleGoogleSecret() {
         <div class="adm-field">
           <label class="adm-label">Reset period (hours)</label>
           <input class="adm-input" type="number" name="dl_guest_period" min="1" max="720"
-                 value="<?php echo (int)($setting['dl_guest_period'] ?? 24); ?>">
+            value="<?php echo (int)($setting['dl_guest_period'] ?? 24); ?>">
           <span style="font-size:.72rem;color:var(--adm-muted);margin-top:.3rem;display:block;">
             After this many hours the guest counter resets. 24 = daily, 168 = weekly.
           </span>
@@ -702,7 +704,7 @@ function toggleGoogleSecret() {
         <div class="adm-field">
           <label class="adm-label">Max downloads per minute (per IP)</label>
           <input class="adm-input" type="number" name="dl_rate_max" min="1" max="100"
-                 value="<?php echo (int)($setting['dl_rate_max'] ?? 8); ?>">
+            value="<?php echo (int)($setting['dl_rate_max'] ?? 8); ?>">
           <span style="font-size:.72rem;color:var(--adm-muted);margin-top:.3rem;display:block;">
             Blocks rapid-fire downloads from bots. A real user rarely downloads more than a few per minute.
           </span>
@@ -716,6 +718,22 @@ function toggleGoogleSecret() {
   <?php elseif ($activeTab === 'ads'): ?>
     <form action="settings.php?tab=ads" method="POST">
       <input type="hidden" name="save" value="ads">
+
+      <div class="adm-card" style="margin-bottom:1rem;">
+        <div class="adm-card-title"><i class="fa-regular fa-toggle-on"></i> Ads Display</div>
+        <div id="toggleMsg" style="margin-bottom:.75rem;font-size:.82rem;display:none;"></div>
+        <label class="adm-toggle">
+          <div>
+            <div class="adm-toggle-label">Show Ads</div>
+            <div class="adm-toggle-sub">Display ad blocks on the site</div>
+          </div>
+          <label class="adm-switch">
+            <input type="checkbox" class="feature-toggle" data-name="show_ads" <?php echo ($setting['show_ads'] ?? 0) == 1 ? 'checked' : ''; ?>>
+            <span class="adm-slider"></span>
+          </label>
+        </label>
+      </div>
+
       <div class="adm-card">
         <div class="adm-card-title"><i class="fa-regular fa-rectangle-ad"></i> Advertisement Blocks</div>
         <div class="adm-field">
@@ -742,54 +760,55 @@ function toggleGoogleSecret() {
 </div>
 
 <script>
-
   // SMTP toggle
-const smtpToggle = document.getElementById('smtpToggle');
-const smtpFields = document.getElementById('smtpFields');
-if (smtpToggle && smtpFields) {
+  const smtpToggle = document.getElementById('smtpToggle');
+  const smtpFields = document.getElementById('smtpFields');
+  if (smtpToggle && smtpFields) {
     smtpToggle.addEventListener('change', function() {
-        smtpFields.style.opacity        = this.checked ? '1' : '.4';
-        smtpFields.style.pointerEvents  = this.checked ? 'auto' : 'none';
+      smtpFields.style.opacity = this.checked ? '1' : '.4';
+      smtpFields.style.pointerEvents = this.checked ? 'auto' : 'none';
     });
-}
+  }
 
-// Toggle SMTP password
-function toggleSmtpPass() {
-    var inp  = document.getElementById('smtpPass');
+  // Toggle SMTP password
+  function toggleSmtpPass() {
+    var inp = document.getElementById('smtpPass');
     var icon = document.getElementById('smtpPassIcon');
     inp.type = inp.type === 'password' ? 'text' : 'password';
     icon.className = inp.type === 'password' ? 'fa-regular fa-eye' : 'fa-regular fa-eye-slash';
-}
+  }
 
-// Test SMTP
-function testSmtp() {
-    var email  = document.getElementById('testEmail').value.trim();
+  // Test SMTP
+  function testSmtp() {
+    var email = document.getElementById('testEmail').value.trim();
     var result = document.getElementById('smtpTestResult');
     if (!email) {
-        result.style.display = 'block';
-        result.style.color   = 'var(--adm-danger)';
-        result.innerHTML     = '<i class="fa-solid fa-circle-xmark"></i> Enter a valid email address.';
-        return;
+      result.style.display = 'block';
+      result.style.color = 'var(--adm-danger)';
+      result.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Enter a valid email address.';
+      return;
     }
     result.style.display = 'block';
-    result.style.color   = 'var(--adm-muted)';
-    result.innerHTML     = '<i class="fa-regular fa-spinner fa-spin"></i> Sending test email...';
+    result.style.color = 'var(--adm-muted)';
+    result.innerHTML = '<i class="fa-regular fa-spinner fa-spin"></i> Sending test email...';
 
     $.ajax({
-        url: '<?php echo $setting['website_url']; ?>/admin/ajax-test-smtp.php',
-        type: 'POST',
-        data: { email: email },
-        success: function(res) {
-            var data = JSON.parse(res);
-            result.style.color = data.success ? 'var(--adm-success)' : 'var(--adm-danger)';
-            result.innerHTML   = '<i class="fa-solid fa-' + (data.success ? 'circle-check' : 'circle-xmark') + '"></i> ' + data.msg;
-        },
-        error: function() {
-            result.style.color = 'var(--adm-danger)';
-            result.innerHTML   = '<i class="fa-solid fa-circle-xmark"></i> Request failed.';
-        }
+      url: '<?php echo $setting['website_url']; ?>/admin/ajax-test-smtp.php',
+      type: 'POST',
+      data: {
+        email: email
+      },
+      success: function(res) {
+        var data = JSON.parse(res);
+        result.style.color = data.success ? 'var(--adm-success)' : 'var(--adm-danger)';
+        result.innerHTML = '<i class="fa-solid fa-' + (data.success ? 'circle-check' : 'circle-xmark') + '"></i> ' + data.msg;
+      },
+      error: function() {
+        result.style.color = 'var(--adm-danger)';
+        result.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Request failed.';
+      }
     });
-}
+  }
 
 
 

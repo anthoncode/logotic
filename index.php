@@ -181,6 +181,12 @@ $topCats = [
 
     <div class="section-divider"></div>
 
+    <?php if (($setting['show_ads'] ?? 0) == 1 && !empty($setting['ads_1'])): ?>
+    <div class="ad-slot">
+        <?php echo $setting['ads_1']; ?>
+    </div>
+    <?php endif; ?>
+
     <div class="section-header">
       <h2><span class="section-dot"></span> <?php echo $l['popular_items'] ?></h2>
       <a href="<?php echo $setting['website_url']; ?>/recently-added/" class="btn-see-all">See all <i class="bi bi-arrow-right"></i></a>

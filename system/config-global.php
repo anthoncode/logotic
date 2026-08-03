@@ -134,16 +134,54 @@ function sanitize_output($buffer)
 //ob_start("sanitize_output");
 
 header("Access-Control-Allow-Origin: *");
+
+// ── Sesión persistente (misma config que config-user.php para consistencia) ──
+$sessionLifetime = 2592000; // 30 días
+
+ini_set('session.gc_maxlifetime', $sessionLifetime);
+ini_set('session.cookie_lifetime', $sessionLifetime);
+ini_set('session.use_strict_mode', 1);
+ini_set('session.use_only_cookies', 1);
+ini_set('session.use_trans_sid', 0);
+ini_set('session.cookie_httponly', 1);
+ini_set('session.cookie_samesite', 'Lax');
+
+// Secure solo en HTTPS
+if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') {
+    ini_set('session.cookie_secure', 1);
+}
+
+// Carpeta propia de sesiones (evita que macOS/XAMPP limpie /tmp)
+$sessionPath = __DIR__ . '/sessions';
+if (!is_dir($sessionPath)) {
+    @mkdir($sessionPath, 0700, true);
+}
+if (is_dir($sessionPath) && is_writable($sessionPath)) {
+    ini_set('session.save_path', $sessionPath);
+}
+
 session_name('DSP');
 
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Renovar la cookie en cada visita: el mes cuenta desde la última actividad
+if (isset($_SESSION['uid'])) {
+    setcookie(session_name(), session_id(), [
+        'expires'  => time() + $sessionLifetime,
+        'path'     => '/',
+        'httponly' => true,
+        'samesite' => 'Lax',
+        'secure'   => (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on'),
+    ]);
+}
 
 
 
 //Important classes
 #include_once 'classes/class.crud.php';
 #include_once 'classes/class.auth.php';
-include_once 'classes/class.coupon.php';
 include_once 'classes/class.crypt.php';
 include_once 'classes/class.customer.php';
 include_once 'classes/class.product.php';
@@ -156,7 +194,6 @@ include_once 'classes/class.pages.php';
 
 #$crud = new crud($DB_con);
 #$auth = new Auth($DB_con);
-$coupon = new Coupon($DB_con);
 $crypt = new encryption_class($DB_con);
 $product = new Product($DB_con);
 $settings = new Settings($DB_con);

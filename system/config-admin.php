@@ -63,7 +63,6 @@ session_start();
 //Important classes
 #include_once 'classes/class.crud.php';
 include_once 'classes/class.auth.php';
-include_once 'classes/class.coupon.php';
 include_once 'classes/class.crypt.php';
 include_once 'classes/class.customer.php';
 include_once 'classes/class.product.php';
@@ -76,7 +75,6 @@ include_once 'classes/class.pages.php';
 
 #$crud = new crud($DB_con);
 $auth = new Auth($DB_con);
-$coupon = new Coupon($DB_con);
 $crypt = new encryption_class($DB_con);
 $product = new Product($DB_con);
 $settings = new Settings($DB_con);

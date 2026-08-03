@@ -38,13 +38,16 @@ if ($isContributor) {
     $contribDownloads = $cdStmt->fetchColumn();
 }
 
-// ── Descargas recientes ──
+// ── Descargas recientes (agrupadas por logo, sin repetir) ──
 $recentStmt = $DB_con->prepare("
-    SELECT p.id, p.name, p.slug_lg, p.icon_img, d.date_created
+    SELECT p.id, p.name, p.slug_lg, p.icon_img,
+           COUNT(*) AS dl_times,
+           MAX(d.date_created) AS last_dl
     FROM " . PFX . "downloads d
     INNER JOIN " . PFX . "products p ON d.products_id = p.id
     WHERE d.user_id = :uid
-    ORDER BY d.date_created DESC
+    GROUP BY p.id
+    ORDER BY last_dl DESC
     LIMIT 6
 ");
 $recentStmt->execute([':uid' => $uid]);

@@ -5,41 +5,65 @@ error_reporting(E_ALL);
 $pageTitle = "Pending Approval";
 require_once '../system/config-admin.php';
 
-// Aprobar logo (active = 1)
+// ── Limpieza oportunista: borrar rechazados con más de 30 días ──
+// (se ejecuta al cargar la página; borra registro + archivo SVG)
+try {
+    $oldRejected = $DB_con->query("
+        SELECT id, icon_img FROM " . PFX . "products
+        WHERE status = 'rejected' AND modified < (CURDATE() - INTERVAL 30 DAY)
+    ")->fetchAll(PDO::FETCH_ASSOC);
+
+    foreach ($oldRejected as $old) {
+        $fp = '../system/assets/uploads/vector-files/' . $old['icon_img'];
+        if (!empty($old['icon_img']) && file_exists($fp)) {
+            @unlink($fp);
+        }
+        $DB_con->prepare("DELETE FROM " . PFX . "products WHERE id = :id")->execute([':id' => $old['id']]);
+    }
+} catch (Throwable $e) {
+    // Si falla la limpieza, no romper la página
+}
+
+// Aprobar logo (status approved → active 1)
 if (isset($_GET['action']) && $_GET['action'] === 'approve' && isset($_GET['id'])) {
-    $uid = (int)$_GET['id'];
-    $DB_con->prepare("UPDATE " . PFX . "products SET active = 1 WHERE id = :id")->execute([':id' => $uid]);
+    $pid = (int)$_GET['id'];
+    $DB_con->prepare("UPDATE " . PFX . "products SET status = 'approved', active = 1, modified = CURDATE() WHERE id = :id")->execute([':id' => $pid]);
     header('Location: pending.php?msg=Logo approved and published');
     exit;
 }
 
-// Rechazar logo (eliminar + borrar archivo)
+// Rechazar logo (status rejected → active 0). NO borra; guarda fecha en modified.
 if (isset($_GET['action']) && $_GET['action'] === 'reject' && isset($_GET['id'])) {
-    $uid  = (int)$_GET['id'];
-    $stmt = $DB_con->prepare("SELECT icon_img FROM " . PFX . "products WHERE id = :id");
-    $stmt->execute([':id' => $uid]);
-    $logo = $stmt->fetch(PDO::FETCH_ASSOC);
-    if ($logo) {
-        $filePath = '../system/assets/uploads/vector-files/' . $logo['icon_img'];
-        if (file_exists($filePath)) unlink($filePath);
-        $DB_con->prepare("DELETE FROM " . PFX . "products WHERE id = :id")->execute([':id' => $uid]);
-    }
-    header('Location: pending.php?msg=Logo rejected and removed');
+    $pid = (int)$_GET['id'];
+    $DB_con->prepare("UPDATE " . PFX . "products SET status = 'rejected', active = 0, modified = CURDATE() WHERE id = :id")->execute([':id' => $pid]);
+    header('Location: pending.php?msg=Logo rejected (kept for 30 days, then auto-deleted)');
     exit;
 }
 
-// Aprobar todos
+// Bloquear al usuario que subió el logo
+if (isset($_GET['action']) && $_GET['action'] === 'block_user' && isset($_GET['user'])) {
+    $blockUid = (int)$_GET['user'];
+    if ($blockUid > 0) {
+        $DB_con->prepare("UPDATE " . PFX . "users SET active = 0 WHERE id = :id")->execute([':id' => $blockUid]);
+        // Rechazar sus logos pendientes
+        $DB_con->prepare("UPDATE " . PFX . "products SET status = 'rejected', active = 0, modified = CURDATE() WHERE submit_user_id = :id AND status = 'pending'")->execute([':id' => $blockUid]);
+    }
+    header('Location: pending.php?msg=User blocked and their pending logos rejected');
+    exit;
+}
+
+// Aprobar todos los pendientes
 if (isset($_GET['action']) && $_GET['action'] === 'approve_all') {
-    $DB_con->query("UPDATE " . PFX . "products SET active = 1 WHERE active = 0");
+    $DB_con->query("UPDATE " . PFX . "products SET status = 'approved', active = 1, modified = CURDATE() WHERE status = 'pending'");
     header('Location: pending.php?msg=All pending logos approved');
     exit;
 }
 
 // Stats
-$totalPending  = $DB_con->query("SELECT COUNT(*) FROM " . PFX . "products WHERE active = 0")->fetchColumn();
-$totalActive   = $DB_con->query("SELECT COUNT(*) FROM " . PFX . "products WHERE active = 1")->fetchColumn();
-$fromUsers     = $DB_con->query("SELECT COUNT(*) FROM " . PFX . "products WHERE active = 0 AND submit_user_id > 0")->fetchColumn();
-$todayPending  = $DB_con->query("SELECT COUNT(*) FROM " . PFX . "products WHERE active = 0 AND DATE(created) = CURDATE()")->fetchColumn();
+$totalPending  = $DB_con->query("SELECT COUNT(*) FROM " . PFX . "products WHERE status = 'pending'")->fetchColumn();
+$totalActive   = $DB_con->query("SELECT COUNT(*) FROM " . PFX . "products WHERE status = 'approved' AND active = 1")->fetchColumn();
+$fromUsers     = $DB_con->query("SELECT COUNT(*) FROM " . PFX . "products WHERE status = 'pending' AND submit_user_id > 0")->fetchColumn();
+$todayPending  = $DB_con->query("SELECT COUNT(*) FROM " . PFX . "products WHERE status = 'pending' AND DATE(created) = CURDATE()")->fetchColumn();
 
 if (isset($_GET['msg'])) $success = $_GET['msg'];
 
@@ -114,15 +138,17 @@ require_once 'includes/header1.php';
             <thead>
                 <tr>
                     <th>Logo</th>
-                    <th>Tags</th>
                     <th>Submitted by</th>
+                    <th>Category</th>
+                    <th>Tags</th>
+                    <th>Stats</th>
                     <th>Date</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody id="adm-tbody">
                 <tr>
-                    <td colspan="5" style="text-align:center;padding:2rem;color:var(--adm-muted);">
+                    <td colspan="7" style="text-align:center;padding:2rem;color:var(--adm-muted);">
                         <i class="fa-regular fa-spinner fa-spin"></i> Loading...
                     </td>
                 </tr>
@@ -152,7 +178,7 @@ let currentPage   = 1;
 
 function loadPending() {
     $('#adm-tbody').html(`
-        <tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--adm-muted);">
+        <tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--adm-muted);">
             <i class="fa-regular fa-spinner fa-spin"></i> Loading...
         </td></tr>
     `);
@@ -164,6 +190,42 @@ function loadPending() {
         success: function(res) {
             const data = JSON.parse(res);
             $('#adm-tbody').html(data.tbody ||
-                '<tr><td colspan="5" style="text-align:center;padding:3rem;color:var(--adm-muted);"><i class="fa-regular fa-circle-check" style="font-size:2rem;display:block;margin-bottom:.75rem;color:var(--adm-success);"></i>No pending logos — all caught up!</td></tr>');
+                '<tr><td colspan="7" style="text-align:center;padding:3rem;color:var(--adm-muted);"><i class="fa-regular fa-circle-check" style="font-size:2rem;display:block;margin-bottom:.75rem;color:var(--adm-success);"></i>No pending logos — all caught up!</td></tr>');
             $('#adm-pagination').html(data.pagination);
             $('#adm-total').text(data.total.toLocaleString() + ' pending');
+        },
+        error: function() {
+            $('#adm-tbody').html('<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--adm-danger);">Error loading logos.</td></tr>');
+        }
+    });
+}
+
+$(document).ready(function() {
+    loadPending();
+
+    // Búsqueda con debounce
+    let searchTimer;
+    $('#adm-search').on('input', function() {
+        clearTimeout(searchTimer);
+        const val = $(this).val();
+        searchTimer = setTimeout(function() {
+            currentSearch = val;
+            currentPage = 1;
+            loadPending();
+        }, 350);
+    });
+
+    // Paginación (delegada)
+    $('#adm-pagination').on('click', '.adm-page-btn', function(e) {
+        e.preventDefault();
+        const p = $(this).data('page');
+        if (p) {
+            currentPage = parseInt(p, 10);
+            loadPending();
+            $('html,body').animate({ scrollTop: 0 }, 200);
+        }
+    });
+});
+</script>
+
+<?php require_once 'includes/footer.php'; ?>

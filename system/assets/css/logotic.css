@@ -3493,3 +3493,11 @@ body {
     cursor: pointer;
     white-space: nowrap;
 }
+
+.ad-slot {
+    margin: 1.5rem auto;
+    max-width: 100%;
+    text-align: center;
+    overflow: hidden;
+}
+.ad-slot:empty { display: none; }

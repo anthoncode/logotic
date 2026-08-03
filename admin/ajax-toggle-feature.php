@@ -2,9 +2,19 @@
 require_once('../system/config-admin.php');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['name'])) {
-    $allowed = ['login','captcha','show_ads','wishlist','notification_header','show_card_sde'];
-    $name    = $_POST['name'];
-    $value   = $_POST['value'] == '1' ? 1 : 0;
+    // Lista blanca de toggles que se pueden guardar por AJAX
+    $allowed = [
+        'login',
+        'captcha',
+        'show_ads',
+        'notification_header',
+        'google_oauth_enabled',
+        'smtp_enabled',
+        'email_verification',
+        'dl_limit_enabled',
+    ];
+    $name  = $_POST['name'];
+    $value = $_POST['value'] == '1' ? 1 : 0;
 
     if (!in_array($name, $allowed)) {
         echo json_encode(['success' => false, 'msg' => 'Invalid feature']);
