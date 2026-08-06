@@ -42,6 +42,24 @@ if ($action === 'reset_photo') {
     exit;
 }
 
+// ── Toggle instantáneo: active (cuenta activa/baneada) ──
+if ($action === 'toggle_active') {
+    $val = ($_POST['value'] ?? '0') == '1' ? 1 : 0;
+    $DB_con->prepare("UPDATE " . PFX . "users SET active = :v WHERE id = :id")
+           ->execute([':v' => $val, ':id' => $id]);
+    echo json_encode(['success' => true, 'message' => $val ? 'Account activated' : 'Account deactivated']);
+    exit;
+}
+
+// ── Toggle instantáneo: verified (email verificado) ──
+if ($action === 'toggle_verified') {
+    $val = ($_POST['value'] ?? '0') == '1' ? 1 : 0;
+    $DB_con->prepare("UPDATE " . PFX . "users SET verified = :v WHERE id = :id")
+           ->execute([':v' => $val, ':id' => $id]);
+    echo json_encode(['success' => true, 'message' => $val ? 'Email marked verified' : 'Email marked unverified']);
+    exit;
+}
+
 // ── Guardado principal ──
 $fname    = htmlspecialchars(strip_tags(trim($_POST['fname'] ?? '')));
 $username = strtolower(preg_replace('/[^a-zA-Z0-9_\-]/', '', trim($_POST['username'] ?? '')));
@@ -72,23 +90,28 @@ if ($chk->fetchColumn()) {
     exit;
 }
 
+// Username único (case-insensitive, para evitar suplantación)
+$chkUser = $DB_con->prepare("SELECT id FROM " . PFX . "users WHERE LOWER(username) = LOWER(:username) AND id != :id");
+$chkUser->execute([':username' => $username, ':id' => $id]);
+if ($chkUser->fetchColumn()) {
+    echo json_encode(['success' => false, 'message' => 'That username is already taken by another account.']);
+    exit;
+}
+
 // Toggles
 $active     = isset($_POST['active'])             ? 1 : 0;
 $verified   = isset($_POST['verified'])           ? 1 : 0;
-$moderator  = isset($_POST['moderator'])          ? 1 : 0;
 $allowEmail = isset($_POST['allow_email'])        ? 1 : 0;
 $forceReset = isset($_POST['password_recover'])   ? 1 : 0;
-$twoFactor  = isset($_POST['two_factor_enabled']) ? 1 : 0;
 
 $sql = "UPDATE " . PFX . "users SET
             fname = :fname, username = :username, email = :email,
-            active = :active, verified = :verified, moderator = :moderator,
-            allow_email = :allow_email, password_recover = :recover,
-            two_factor_enabled = :twofa";
+            active = :active, verified = :verified,
+            allow_email = :allow_email, password_recover = :recover";
 $params = [
     ':fname' => $fname, ':username' => $username, ':email' => $email,
-    ':active' => $active, ':verified' => $verified, ':moderator' => $moderator,
-    ':allow_email' => $allowEmail, ':recover' => $forceReset, ':twofa' => $twoFactor,
+    ':active' => $active, ':verified' => $verified,
+    ':allow_email' => $allowEmail, ':recover' => $forceReset,
     ':id' => $id,
 ];
 

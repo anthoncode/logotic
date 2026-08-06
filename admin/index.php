@@ -143,10 +143,10 @@ require_once('includes/header1.php');
             <div class="adm-stat-label">Total Logos</div>
             <div class="adm-stat-link"><i class="fa-regular fa-arrow-right"></i> <?php echo $newLogosToday; ?> today</div>
         </a>
-        <a href="best-selling-products.php" class="adm-stat">
-            <i class="adm-stat-icon fa-solid fa-download"></i>
+        <a href="analytics.php" class="adm-stat">
+            <i class="adm-stat-icon fa-solid fa-chart-bar"></i>
             <div class="adm-stat-num"><?php echo number_format($totalDownload); ?></div>
-            <div class="adm-stat-label">Total Downloads</div>
+            <div class="adm-stat-label">Analytics</div>
             <div class="adm-stat-link"><i class="fa-regular fa-arrow-right"></i> View ranking</div>
         </a>
         <a href="pending.php" class="adm-stat">
@@ -290,8 +290,8 @@ require_once('includes/header1.php');
         <!-- Top Downloads -->
         <div class="adm-card">
             <div class="adm-card-title">
-                <i class="fa-solid fa-fire"></i> Top Downloaded
-                <a href="best-selling-products.php" style="margin-left:auto;font-size:.72rem;color:var(--adm-accent);text-decoration:none;">View all →</a>
+                <i class="fa-solid fa-chart-bar"></i> Analytics
+                <a href="analytics.php" style="margin-left:auto;font-size:.72rem;color:var(--adm-accent);text-decoration:none;">View all →</a>
             </div>
             <div class="adm-recent-list">
                 <?php foreach ($topDownloads as $i => $logo): ?>

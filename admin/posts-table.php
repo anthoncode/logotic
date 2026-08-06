@@ -93,7 +93,7 @@ foreach ($posts as $p) {
         <td style='color:var(--adm-muted);font-size:.75rem;white-space:nowrap;'>" . date('d M Y', strtotime($p['created'])) . "</td>
         <td>
             <div class='adm-actions'>
-                <a href='edit-post.php?id={$p['id']}' class='adm-btn' title='Edit'>
+                <a href='new-post.php?id={$p['id']}' class='adm-btn' title='Edit'>
                     <i class='fa-regular fa-pen'></i>
                 </a>
                 <a href='{$setting['website_url']}/blog/{$p['slug']}/' class='adm-btn' target='_blank' title='View'>

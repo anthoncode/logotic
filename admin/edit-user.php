@@ -169,7 +169,7 @@ require_once('includes/header1.php');
                             <small>Turn off to ban the user from signing in</small>
                         </div>
                         <label class="adm-switch">
-                            <input type="checkbox" name="active" <?php echo $u['active'] == 1 ? 'checked' : ''; ?>>
+                            <input type="checkbox" class="eu-instant-toggle" data-action="toggle_active" name="active" <?php echo $u['active'] == 1 ? 'checked' : ''; ?>>
                             <span class="adm-slider"></span>
                         </label>
                     </div>
@@ -179,27 +179,7 @@ require_once('includes/header1.php');
                             <small>Unverified users cannot sign in</small>
                         </div>
                         <label class="adm-switch">
-                            <input type="checkbox" name="verified" <?php echo $u['verified'] == 1 ? 'checked' : ''; ?>>
-                            <span class="adm-slider"></span>
-                        </label>
-                    </div>
-
-                    <div class="eu-toggle-row">
-                        <div class="eu-toggle-label">Moderator
-                            <small>Can approve logos and manage content</small>
-                        </div>
-                        <label class="adm-switch">
-                            <input type="checkbox" name="moderator" <?php echo $u['moderator'] == 1 ? 'checked' : ''; ?>>
-                            <span class="adm-slider"></span>
-                        </label>
-                    </div>
-
-                    <div class="eu-toggle-row">
-                        <div class="eu-toggle-label">Two-factor authentication
-                            <small>Email code required on every login</small>
-                        </div>
-                        <label class="adm-switch">
-                            <input type="checkbox" name="two_factor_enabled" <?php echo $u['two_factor_enabled'] == 1 ? 'checked' : ''; ?>>
+                            <input type="checkbox" class="eu-instant-toggle" data-action="toggle_verified" name="verified" <?php echo $u['verified'] == 1 ? 'checked' : ''; ?>>
                             <span class="adm-slider"></span>
                         </label>
                     </div>
@@ -346,6 +326,24 @@ function quickAction(action) {
         else { showAlert('error', d.message); }
     });
 }
+
+// Toggles instantáneos (Account active / Email verified) — guardan al cambiar
+document.querySelectorAll('.eu-instant-toggle').forEach(function(tg) {
+    tg.addEventListener('change', function() {
+        var fd = new FormData();
+        fd.append('user_id', '<?php echo $id; ?>');
+        fd.append('action', this.dataset.action);
+        fd.append('value', this.checked ? '1' : '0');
+        fetch('<?php echo $setting['website_url']; ?>/admin/ajax-save-user.php', {
+            method: 'POST', credentials: 'same-origin', body: fd
+        })
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+            if (d.success) { showAlert('success', d.message); }
+            else { showAlert('error', d.message); }
+        });
+    });
+});
 
 $('#userForm').on('submit', function(e) {
     e.preventDefault();

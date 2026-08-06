@@ -216,7 +216,7 @@ class Customer
 
     public function send2FACode($userId, $email, $fname)
     {
-        global $setting;
+        global $setting, $mailer;
 
         // Limpiar códigos anteriores
         $this->db->prepare("
@@ -251,11 +251,15 @@ class Customer
             </div>
         </body></html>';
 
-        $headers  = "MIME-Version: 1.0\n";
-        $headers .= "From: " . $setting['site_name'] . " <noreply@" . $_SERVER['HTTP_HOST'] . ">\n";
-        $headers .= "Content-type: text/html; charset=utf-8\n";
-
-        $sent = mail($email, $subject, $message, $headers);
+        // Enviar por la clase Mailer (respeta el toggle SMTP)
+        if (isset($mailer)) {
+            $sent = $mailer->send($email, $subject, $message);
+        } else {
+            $headers  = "MIME-Version: 1.0\n";
+            $headers .= "From: " . $setting['site_name'] . " <" . ($setting['smtp_from_email'] ?? ('noreply@' . $_SERVER['HTTP_HOST'])) . ">\n";
+            $headers .= "Content-type: text/html; charset=utf-8\n";
+            $sent = mail($email, $subject, $message, $headers);
+        }
         $this->logEvent($userId, $email, '2fa_sent');
         return $sent;
     }
@@ -635,7 +639,7 @@ class Customer
 
     private function sendWelcomeEmail($email, $name)
     {
-        global $setting;
+        global $setting, $mailer;
         $subject  = 'Welcome to ' . $setting['site_name'];
         $message  = '<html><body style="font-family:sans-serif;background:#0d0f1c;color:#f0f2ff;padding:2rem;">
             <div style="max-width:480px;margin:0 auto;background:#13152a;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:2rem;text-align:center;">
@@ -645,10 +649,16 @@ class Customer
                 <a href="' . $setting['website_url'] . '" style="display:inline-block;margin-top:1rem;background:#d4ff00;color:#0d0f1c;padding:.6rem 1.5rem;border-radius:99px;text-decoration:none;font-weight:700;">Explore Logos</a>
             </div>
         </body></html>';
-        $headers  = "MIME-Version: 1.0\n";
-        $headers .= "From: " . $setting['site_name'] . " <noreply@" . $_SERVER['HTTP_HOST'] . ">\n";
-        $headers .= "Content-type: text/html; charset=utf-8\n";
-        mail($email, $subject, $message, $headers);
+
+        // Enviar por la clase Mailer (respeta el toggle SMTP)
+        if (isset($mailer)) {
+            $mailer->send($email, $subject, $message);
+        } else {
+            $headers  = "MIME-Version: 1.0\n";
+            $headers .= "From: " . $setting['site_name'] . " <" . ($setting['smtp_from_email'] ?? ('noreply@' . $_SERVER['HTTP_HOST'])) . ">\n";
+            $headers .= "Content-type: text/html; charset=utf-8\n";
+            mail($email, $subject, $message, $headers);
+        }
     }
 
     public function is_new_user($email, $username)

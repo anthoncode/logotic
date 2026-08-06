@@ -98,6 +98,10 @@ require_once 'includes/header1.php';
             <a class="adm-chip" data-filter="featured">
                 <i class="fa-solid fa-star" style="font-size:.7rem;"></i> Featured
             </a>
+            <a class="adm-chip adm-chip-dup" data-filter="duplicates">
+                <i class="fa-solid fa-clone" style="font-size:.7rem;"></i> Duplicates
+                <span id="dupBadge" class="dup-badge" style="display:none;">0</span>
+            </a>
         </div>
         <span id="adm-total" style="font-size:.78rem;color:var(--adm-muted);margin-left:auto;"></span>
     </div>
@@ -132,6 +136,90 @@ require_once 'includes/header1.php';
 
 </div>
 
+<!-- Modal de confirmación de borrado -->
+<div id="delModal" class="del-modal-overlay">
+    <div class="del-modal">
+        <div class="del-modal-icon"><i class="fa-regular fa-trash-can"></i></div>
+        <div class="del-modal-title">Delete logo?</div>
+        <div class="del-modal-text">
+            You're about to permanently delete <strong id="delModalName">this logo</strong>.
+            The SVG file will also be removed. This action cannot be undone.
+        </div>
+        <div class="del-modal-actions">
+            <button type="button" class="del-btn-cancel" id="delCancel">Cancel</button>
+            <button type="button" class="del-btn-confirm" id="delConfirm">
+                <i class="fa-regular fa-trash"></i> Delete
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+.dup-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    margin-left: .35rem;
+    border-radius: 99px;
+    background: var(--adm-danger);
+    color: #fff;
+    font-size: .68rem;
+    font-weight: 700;
+    line-height: 1;
+    animation: dupBlink 1.2s ease-in-out infinite;
+}
+@keyframes dupBlink {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: .35; }
+}
+.del-modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.6);
+    backdrop-filter: blur(3px);
+    z-index: 9999;
+    align-items: center; justify-content: center;
+    padding: 1rem;
+}
+.del-modal-overlay.show { display: flex; }
+.del-modal {
+    background: var(--adm-card);
+    border: 1px solid var(--adm-border);
+    border-radius: 16px;
+    padding: 1.75rem;
+    max-width: 400px; width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,.5);
+    animation: delModalIn .18s ease;
+}
+@keyframes delModalIn { from { opacity: 0; transform: translateY(10px) scale(.97); } to { opacity: 1; transform: none; } }
+.del-modal-icon {
+    width: 52px; height: 52px; margin: 0 auto 1rem;
+    border-radius: 50%;
+    background: rgba(255,77,77,.12);
+    color: var(--adm-danger);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem;
+}
+.del-modal-title { font-size: 1.1rem; font-weight: 700; color: var(--adm-text); margin-bottom: .5rem; }
+.del-modal-text { font-size: .85rem; color: var(--adm-muted); line-height: 1.5; margin-bottom: 1.5rem; }
+.del-modal-text strong { color: var(--adm-text); }
+.del-modal-actions { display: flex; gap: .75rem; }
+.del-btn-cancel, .del-btn-confirm {
+    flex: 1; padding: .7rem; border-radius: 10px; font-size: .88rem; font-weight: 600;
+    cursor: pointer; border: 1px solid transparent; transition: all .15s;
+}
+.del-btn-cancel { background: transparent; border-color: var(--adm-border); color: var(--adm-text); }
+.del-btn-cancel:hover { background: rgba(255,255,255,.05); }
+.del-btn-confirm { background: var(--adm-danger); color: #fff; }
+.del-btn-confirm:hover { filter: brightness(1.1); }
+.del-btn-confirm:disabled { opacity: .6; cursor: default; }
+tr.row-removing { opacity: 0; transform: translateX(20px); transition: all .3s ease; }
+</style>
+
 <script>
 let currentSearch = '';
 let currentFilter = 'all';
@@ -154,6 +242,17 @@ function loadLogos() {
                 '<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--adm-muted);">No logos found</td></tr>');
             $('#adm-pagination').html(data.pagination);
             $('#adm-total').text(data.total.toLocaleString() + ' logos found');
+
+            // Actualizar el marcador de duplicados
+            if (typeof data.dupCount !== 'undefined') {
+                const badge = document.getElementById('dupBadge');
+                if (data.dupCount > 0) {
+                    badge.textContent = data.dupCount;
+                    badge.style.display = 'inline-flex';
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
 
             // Rebind paginación
             $('#adm-pagination .adm-page-btn').off('click').on('click', function(e) {
@@ -237,11 +336,78 @@ $(document).on('click', '.savebutton', function() {
     });
 });
 
-// ── Eliminar logo ──
-function deleteLogo(id) {
-    if (!confirm('Delete this logo permanently? The SVG file will also be removed.')) return;
-    window.location.href = 'all-logos.php?action=delete&id=' + id;
+// ── Eliminar logo (modal oscuro + AJAX) ──
+let delTargetId = null;
+
+function deleteLogo(id, name) {
+    delTargetId = id;
+    document.getElementById('delModalName').textContent = name || 'this logo';
+    document.getElementById('delModal').classList.add('show');
 }
+
+// Cerrar modal
+document.getElementById('delCancel').addEventListener('click', function() {
+    document.getElementById('delModal').classList.remove('show');
+    delTargetId = null;
+});
+// Cerrar al hacer clic fuera del modal
+document.getElementById('delModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        this.classList.remove('show');
+        delTargetId = null;
+    }
+});
+
+// Confirmar borrado
+document.getElementById('delConfirm').addEventListener('click', function() {
+    if (!delTargetId) return;
+    const btn = this;
+    const id  = delTargetId;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-regular fa-spinner fa-spin"></i> Deleting...';
+
+    $.ajax({
+        url: '<?php echo $setting['website_url']; ?>/admin/ajax-delete-logo.php',
+        type: 'POST',
+        data: { id: id },
+        dataType: 'json',
+        success: function(res) {
+            document.getElementById('delModal').classList.remove('show');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-regular fa-trash"></i> Delete';
+
+            if (res.success) {
+                // Quitar la fila con animación
+                const row = document.getElementById('row-' + id);
+                if (row) {
+                    row.classList.add('row-removing');
+                    setTimeout(function() {
+                        row.remove();
+                        // Si la tabla quedó vacía, recargar (para traer la siguiente página)
+                        if ($('#adm-tbody tr').length === 0) {
+                            loadLogos();
+                        }
+                    }, 300);
+                }
+                if (typeof toastr !== 'undefined') {
+                    toastr.success('Logo deleted');
+                }
+            } else {
+                if (typeof toastr !== 'undefined') toastr.error(res.message || 'Could not delete');
+                else alert(res.message || 'Could not delete');
+            }
+            delTargetId = null;
+        },
+        error: function() {
+            document.getElementById('delModal').classList.remove('show');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-regular fa-trash"></i> Delete';
+            if (typeof toastr !== 'undefined') toastr.error('Server error');
+            else alert('Server error');
+            delTargetId = null;
+        }
+    });
+});
 
 // Carga inicial
 loadLogos();

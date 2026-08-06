@@ -19,6 +19,13 @@ if ($search) {
 if ($filter === 'active')   { $where .= " AND active = 1"; }
 if ($filter === 'inactive') { $where .= " AND active = 0"; }
 if ($filter === 'featured') { $where .= " AND featured = 1"; }
+if ($filter === 'duplicates') {
+    // Logos cuyo nombre (case-insensitive) aparece más de una vez
+    $where .= " AND LOWER(name) IN (
+        SELECT LOWER(name) FROM " . PFX . "products
+        GROUP BY LOWER(name) HAVING COUNT(*) > 1
+    )";
+}
 
 $countStmt = $DB_con->prepare("SELECT COUNT(*) FROM " . PFX . "products WHERE $where");
 $countStmt->execute($params);
@@ -27,7 +34,9 @@ $pages = ceil($num / $maxres);
 
 $params[':start']  = $start;
 $params[':maxres'] = $maxres;
-$stmt = $DB_con->prepare("SELECT * FROM " . PFX . "products WHERE $where ORDER BY id DESC LIMIT :start, :maxres");
+// Si es filtro de duplicados, ordenar por nombre para que los repetidos queden juntos
+$orderBy = ($filter === 'duplicates') ? "ORDER BY LOWER(name) ASC, id DESC" : "ORDER BY id DESC";
+$stmt = $DB_con->prepare("SELECT * FROM " . PFX . "products WHERE $where $orderBy LIMIT :start, :maxres");
 foreach ($params as $key => $val) {
     $stmt->bindValue($key, $val, is_int($val) ? PDO::PARAM_INT : PDO::PARAM_STR);
 }
@@ -53,6 +62,12 @@ foreach ($logos as $p) {
     $tags    = htmlspecialchars($p['tags'] ?? '');
     $website = htmlspecialchars($p['website'] ?? '');
     $tagsShort = mb_strlen($tags) > 45 ? mb_substr($tags, 0, 45) . '...' : $tags;
+    // Nombre seguro para el onclick JS: escapa backslash, apóstrofe y quita saltos de línea
+    $nameEsc = str_replace(
+        ['\\', "'", "\r", "\n", '<', '>'],
+        ['\\\\', "\\'", '', '', '', ''],
+        $p['name'] ?? ''
+    );
 
     $tbody .= "
     <tr id='row-{$p['id']}' class='id_table'>
@@ -103,7 +118,7 @@ foreach ($logos as $p) {
                 <a href='{$setting['website_url']}/item/{$p['id']}/{$p['slug_lg']}/' class='adm-btn' target='_blank' title='View on site'>
                     <i class='fa-regular fa-eye'></i>
                 </a>
-                <button class='adm-btn adm-btn-del' onclick='deleteLogo({$p['id']})' title='Delete'>
+                <button class='adm-btn adm-btn-del' onclick=\"deleteLogo({$p['id']}, '{$nameEsc}')\" title='Delete'>
                     <i class='fa-regular fa-trash'></i>
                 </button>
             </div>
@@ -132,9 +147,19 @@ if ($pages > 1) {
     }
 }
 
+// Conteo total de logos con nombre duplicado (para el marcador del chip)
+$dupCount = (int)$DB_con->query("
+    SELECT COUNT(*) FROM " . PFX . "products
+    WHERE LOWER(name) IN (
+        SELECT LOWER(name) FROM " . PFX . "products
+        GROUP BY LOWER(name) HAVING COUNT(*) > 1
+    )
+")->fetchColumn();
+
 echo json_encode([
     'tbody'      => $tbody,
     'pagination' => $paginationHtml,
     'total'      => $num,
     'pages'      => $pages,
+    'dupCount'   => $dupCount,
 ]);

@@ -234,8 +234,8 @@ $(function() {
                 '<img class="ul-uploaded-img" src="' + data.preview + '" alt="logo">' +
                 '<input class="ul-input ul-name" value="' + safeName + '" maxlength="99" placeholder="Logo name">' +
                 '<input class="ul-input ul-tags" placeholder="tags, separated, by, commas">' +
-                '<button class="ul-save-btn">Save</button>' +
-                '<span class="ul-saved-badge"><i class="fa-solid fa-circle-check"></i> Saved</span>' +
+                '<button class="ul-save-btn">Update</button>' +
+                '<span class="ul-saved-badge"><i class="fa-solid fa-circle-check"></i> Updated</span>' +
             '</div>'
         );
         $('#uploadedList').append(card);

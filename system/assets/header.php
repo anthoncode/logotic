@@ -6,7 +6,7 @@
   <?php if (isset($pageContent)) {
     $meta_desc = mb_substr($pageContent, 0, 141, "UTF-8");
   } ?>
-  <?php if ($metaRobots) {
+  <?php if (isset($metaRobots)) {
     echo $metaRobots;
   } ?>
   <?php if (isset($canonical)) {
@@ -153,7 +153,7 @@
 
 
 
-  <nav class="navbar navbar-expand-lg" style="background-color: <?php echo $setting['bg_color']; ?>;">
+  <nav class="navbar navbar-expand-lg">
     <div class="container-fluid px-lg-4">
 
       <a class="navbar-brand" href="<?php echo $setting['website_url']; ?>">

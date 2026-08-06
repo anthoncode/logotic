@@ -5,7 +5,7 @@
         <div class="footer-brand">Logo<span>tic</span></div>
         <div class="footer-tagline"><?php echo $setting['footer_desc']; ?></div>
         <div class="social-links mt-3">
-          <a class="social-link" href="#"><i class="fa-brands fa-facebook"></i></a>
+          <a class="social-link" href="https://www.facebook.com/logotic.me"><i class="fa-brands fa-facebook"></i></a>
           <a class="social-link" href="#"><i class="fa-brands fa-x-twitter"></i></a>
         </div>
       </div>
@@ -20,12 +20,12 @@
       </div>
       <div class="col-6 col-lg-2">
         <div class="footer-heading">Company</div>
-        <a href="<?php echo $setting['website_url']; ?>/page/about-us/" class="footer-link">About</a><a href="<?php echo $setting['website_url']; ?>/blog/" class="footer-link">Blog</a>
+        <a href="<?php echo $setting['website_url']; ?>/page/about-logotic/" class="footer-link">About</a><a href="<?php echo $setting['website_url']; ?>/blog/" class="footer-link">Blog</a>
       </div>
       <div class="col-6 col-lg-2">
         <div class="footer-heading">Legal</div>
-        <a href="<?php echo $setting['website_url']; ?>/page/privacy/" class="footer-link">Privacy</a><a href="<?php echo $setting['website_url']; ?>/page/terms/" class="footer-link">Terms</a>
-        <a href="<?php echo $setting['website_url']; ?>/page/license/" class="footer-link">License</a><a href="<?php echo $setting['website_url']; ?>/page/dmca/" class="footer-link">DMCA</a>
+        <a href="<?php echo $setting['website_url']; ?>/page/privacy-policy/" class="footer-link">Privacy</a><a href="<?php echo $setting['website_url']; ?>/page/terms-and-conditions/" class="footer-link">Terms</a>
+        <a href="<?php echo $setting['website_url']; ?>/page/license/" class="footer-link">License</a>
       </div>
     </div>
     <div class="footer-bottom">

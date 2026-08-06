@@ -348,6 +348,18 @@ require_once 'includes/header1.php';
     color: var(--adm-success);
     cursor: default;
 }
+
+.logo-save-btn.needs-name {
+    background: rgba(244,208,63,.15);
+    border-color: rgba(244,208,63,.3);
+    color: var(--adm-warning);
+}
+
+.logo-save-btn.error-state {
+    background: rgba(255,77,77,.15);
+    border-color: rgba(255,77,77,.3);
+    color: var(--adm-danger);
+}
 </style>
 
 <script>
@@ -402,6 +414,7 @@ Dropzone.autoDiscover = false;
 
 $(function() {
     var uploadedCount = 0;
+    var skippedCount  = 0;
 
     // Bloquear al inicio
     $("#my-awesome-dropzone").addClass("dz-locked");
@@ -460,9 +473,40 @@ $(function() {
                 toastr.options = { closeButton: true, progressBar: true, positionClass: "toast-top-right", timeOut: "4000" };
                 toastr["error"](file.name, "Upload failed");
             });
+
+            // Resumen final cuando termina toda la tanda
+            dz.on('queuecomplete', function() {
+                if (uploadedCount > 0 || skippedCount > 0) {
+                    var msg = uploadedCount + ' uploaded';
+                    if (skippedCount > 0) msg += ', ' + skippedCount + ' skipped (duplicates)';
+                    toastr.options = { closeButton: true, progressBar: true, positionClass: "toast-top-right", timeOut: "6000" };
+                    if (skippedCount > 0) {
+                        toastr["info"](msg, "Upload complete");
+                    } else {
+                        toastr["success"](msg, "Upload complete");
+                    }
+                }
+            });
         },
 
         success: function(response, data) {
+            var json = JSON.parse(data);
+
+            // ── Si el endpoint rechazó por duplicado (hash o nombre) ──
+            if (json.error === true || json.skipped === true) {
+                skippedCount++;
+                if (response.previewElement) {
+                    response.previewElement.classList.remove('dz-success');
+                    response.previewElement.classList.add('dz-error');
+                    // Mostrar el motivo en el preview
+                    var errEl = response.previewElement.querySelector('.dz-error-message span');
+                    if (errEl) errEl.textContent = json.message || 'Duplicate';
+                }
+                toastr.options = { closeButton: true, progressBar: true, positionClass: "toast-bottom-right", timeOut: "4000" };
+                toastr["warning"](json.message || 'Skipped', "Duplicate skipped");
+                return;
+            }
+
             if (response.previewElement) response.previewElement.classList.add('dz-success');
             function uppercase(str) {
                 return str.split(' ').map(function(w) {
@@ -470,7 +514,6 @@ $(function() {
                 }).join(' ');
             }
 
-            var json = JSON.parse(data);
             var title_vect = response.name;
             var remove_ext = title_vect.split("/").slice(-1).join().split(".").shift();
             var clean_str  = remove_ext.replace(/[&\/\-\#,+()$~_%.'":*?<>@{}]/g, " ");
@@ -485,7 +528,7 @@ $(function() {
                     <img src="${response.dataURL}" alt="${finalTitle}">
                     <input class="name" name="name_val ${json.id}" maxlength="99" value="${finalTitle}" placeholder="Logo name">
                     <input name="tags_val ${json.id}" placeholder="Tags (comma separated)">
-                    <button class="logo-save-btn" id="btn-${json.id}" onclick="upload_logo('${json.id}'); return false;">
+                    <button class="logo-save-btn" id="btn-${json.id}" data-label="Save" onclick="upload_logo('${json.id}'); return false;">
                         <i class="fa-regular fa-floppy-disk"></i> Save
                     </button>
                 </li>`;
@@ -507,23 +550,46 @@ function upload_logo(clicked_id) {
     var btn  = $("#btn-" + clicked_id);
 
     if (!name.trim()) {
-        toastr["warning"]("Please enter a name before saving", "Missing name");
+        // Aviso inline en el botón, sin toast que tape los campos
+        var original = btn.data('label') || 'Save';
+        btn.html('<i class="fa-solid fa-triangle-exclamation"></i> Name?').addClass('needs-name');
+        setTimeout(function() {
+            btn.html('<i class="fa-regular fa-floppy-disk"></i> ' + original).removeClass('needs-name');
+        }, 1500);
         return;
     }
 
-    btn.html('<i class="fa-regular fa-spinner fa-spin"></i> Saving...').prop('disabled', true);
+    // Detectar si ya se guardó antes (para el texto Saving/Updating)
+    var alreadySaved = btn.data('saved') === true;
+    var workingText  = alreadySaved ? 'Updating...' : 'Saving...';
+
+    btn.html('<i class="fa-regular fa-spinner fa-spin"></i> ' + workingText).prop('disabled', true);
 
     $.post("ajax-update-logo.php", { id: clicked_id, name: name, tags: tags },
         function(data) {
             if (data == 'error') {
-                toastr["error"](name, "Error saving");
-                btn.html('<i class="fa-regular fa-floppy-disk"></i> Save').prop('disabled', false);
+                btn.html('<i class="fa-solid fa-triangle-exclamation"></i> Error')
+                   .removeClass('saved').addClass('error-state').prop('disabled', false);
+                setTimeout(function() {
+                    var lbl = btn.data('saved') === true ? 'Update' : 'Save';
+                    btn.html('<i class="fa-regular fa-floppy-disk"></i> ' + lbl)
+                       .removeClass('error-state');
+                }, 1800);
             } else {
-                btn.html('<i class="fa-solid fa-circle-check"></i> Saved')
+                // Confirmación inline: mostrar "Saved/Updated ✓" un momento
+                var doneText = alreadySaved ? 'Updated' : 'Saved';
+                btn.html('<i class="fa-solid fa-circle-check"></i> ' + doneText)
                    .addClass('saved')
-                   .prop('disabled', true);
-                toastr.options = { closeButton: true, progressBar: true, positionClass: "toast-bottom-right", timeOut: "2000" };
-                toastr["success"](name, "Saved!");
+                   .prop('disabled', true)
+                   .data('saved', true);
+
+                // Luego rehabilitar como "Update" activo (para volver a guardar)
+                setTimeout(function() {
+                    btn.html('<i class="fa-regular fa-pen-to-square"></i> Update')
+                       .removeClass('saved')
+                       .prop('disabled', false)
+                       .data('label', 'Update');
+                }, 1500);
             }
         }
     );
