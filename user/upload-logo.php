@@ -206,6 +206,9 @@ $(function() {
                     file.previewElement.classList.add('dz-success');
                     showMsg('success', 'Logo uploaded! It will be reviewed by our team before publishing.');
                     addUploadedCard(data);
+
+                    // Notificar al admin en segundo plano (no bloquea nada)
+                    $.post(SITE + '/user/notify-admin.php', { id: data.id });
                 } else {
                     file.previewElement.classList.add('dz-error');
                     var em = file.previewElement.querySelector('.dz-error-message');

@@ -525,7 +525,7 @@ $(function() {
 
             var row = `
                 <li class="logo-row-item" id="row-${json.id}">
-                    <img src="${response.dataURL}" alt="${finalTitle}">
+                    <img src="${json.preview || response.dataURL}" alt="${finalTitle}">
                     <input class="name" name="name_val ${json.id}" maxlength="99" value="${finalTitle}" placeholder="Logo name">
                     <input name="tags_val ${json.id}" placeholder="Tags (comma separated)">
                     <button class="logo-save-btn" id="btn-${json.id}" data-label="Save" onclick="upload_logo('${json.id}'); return false;">

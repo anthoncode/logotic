@@ -189,6 +189,7 @@ try {
         'name'    => $initialName,
         'preview' => $setting['website_url'] . '/system/assets/uploads/vector-files/' . $fileName,
     ]);
+
 } catch (Throwable $e) {
     @unlink($destPath);
     echo json_encode(['success' => false, 'message' => 'Database error']);
