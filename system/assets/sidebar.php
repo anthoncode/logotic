@@ -1,4 +1,4 @@
-<div class="col-md-3 mb-3">
+<div class="col-md-3 mb-3 hide-tablet-down">
   <?php if (($setting['show_ads'] ?? 0) == 1 && !empty($setting['ads_1'])): ?>
     <div class="sidebar-widget mb-3">
       <div class="ad-slot">

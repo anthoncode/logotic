@@ -170,7 +170,7 @@ require_once('system/assets/header.php');
             </div>
 
             <!-- Sidebar -->
-            <aside class="blog-sidebar">
+            <aside class="blog-sidebar hide-tablet-down">
 
                 <!-- Categorías -->
                 <div class="blog-sidebar-widget">

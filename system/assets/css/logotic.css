@@ -146,7 +146,7 @@ body {
     color: var(--text-muted)
 }
 
-.nav-search .bi-search {
+.nav-search i {
     position: absolute;
     left: .8rem;
     top: 50%;
@@ -3501,3 +3501,208 @@ body {
     overflow: hidden;
 }
 .ad-slot:empty { display: none; }
+/* ═══════════════════════════════════════════════════════════
+   BARRA SIMPLIFICADA — iPad vertical + móviles (≤768px)
+   Look de app: logo + búsqueda + icono upload + icono user
+   ═══════════════════════════════════════════════════════════ */
+
+/* Por defecto (ordenador + iPad horizontal): oculta la barra simple */
+.mobile-simple-bar { display: none; }
+
+@media (max-width: 1200px) {
+    /* Ocultar la navbar completa de Bootstrap */
+    .navbar { display: none !important; }
+    .navbar-toggler,
+    .navbar-collapse,
+    #navMain { display: none !important; }
+    .mega-menu, .mega-overlay { display: none !important; }
+
+    /* Mostrar la barra simplificada */
+    .mobile-simple-bar {
+        display: flex;
+        align-items: center;
+        gap: .6rem;
+        padding: .6rem .85rem;
+        background: var(--bg-nav);
+        border-bottom: 1px solid var(--border);
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+    }
+
+    /* Logo */
+    .msb-logo {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        text-decoration: none;
+        color: var(--text-primary);
+        font-weight: 800;
+        font-size: 1.05rem;
+    }
+    .msb-logo img {
+        height: 28px;
+        width: auto;
+        display: block;
+    }
+
+    /* Barra de búsqueda (ocupa el espacio disponible) */
+    .msb-search {
+        flex: 1 1 auto;
+        min-width: 0;
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+    .msb-search i {
+        position: absolute;
+        left: .7rem;
+        color: var(--text-muted);
+        font-size: .85rem;
+        pointer-events: none;
+    }
+    .msb-search input {
+        width: 100%;
+        padding: .5rem .75rem .5rem 2rem;
+        border-radius: 99px;
+        border: 1px solid var(--border);
+        background: var(--bg-card);
+        color: var(--text-primary);
+        font-size: .85rem;
+        outline: none;
+        transition: border-color .2s;
+    }
+    .msb-search input:focus {
+        border-color: var(--accent);
+    }
+    .msb-search input::placeholder {
+        color: var(--text-muted);
+    }
+
+    /* Acciones (iconos) */
+    .msb-actions {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        gap: .4rem;
+    }
+
+    /* Botón de icono (upload, login) */
+    .msb-icon-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        color: var(--text-primary);
+        font-size: 1.1rem;
+        text-decoration: none;
+        transition: all .2s;
+    }
+    .msb-icon-btn:hover {
+        background: var(--accent);
+        color: #0d0f1c;
+        border-color: var(--accent);
+    }
+
+    /* El botón de upload destacado con el color de acento */
+    .msb-icon-btn[title="Upload logo"] {
+        background: var(--accent);
+        color: #0d0f1c;
+        border-color: var(--accent);
+    }
+    .msb-icon-btn[title="Upload logo"]:hover {
+        filter: brightness(1.1);
+    }
+
+    /* Avatar de usuario en la barra simple */
+    .msb-user .btn-user {
+        width: 40px;
+        height: 40px;
+    }
+
+    /* El panel dropdown del usuario se alinea a la derecha */
+    .msb-user .user-dropdown-panel {
+        right: 0;
+        left: auto;
+    }
+
+    /* En móvil el dropdown se controla por CLIC (clase .open), no por hover */
+    .msb-user .user-dropdown-panel {
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(8px);
+        transition: opacity .2s, visibility .2s, transform .2s;
+    }
+    .msb-user.open .user-dropdown-panel {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+    /* Anular el hover en táctil para que no interfiera */
+    .msb-user:hover .user-dropdown-panel {
+        opacity: 0;
+        visibility: hidden;
+    }
+    .msb-user.open:hover .user-dropdown-panel {
+        opacity: 1;
+        visibility: visible;
+    }
+}
+
+/* Pantallas muy pequeñas: reducir un poco el logo para dar aire a la búsqueda */
+@media (max-width: 400px) {
+    .mobile-simple-bar .msb-logo img { height: 24px; }
+    .mobile-simple-bar { gap: .45rem; padding: .55rem .7rem; }
+    .msb-icon-btn { width: 36px; height: 36px; font-size: 1rem; }
+    .msb-user .btn-user { width: 36px; height: 36px; }
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   UTILIDADES RESPONSIVE — esconder/mostrar por dispositivo
+   Uso: agrega la clase al elemento que quieras controlar.
+   Breakpoints alineados a tu diseño:
+     Ordenador       > 1024px
+     iPad horizontal  769–1024px
+     iPad vertical + móvil  ≤ 768px
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Esconder SOLO en móvil + iPad vertical (≤768px) ── */
+@media (max-width: 768px) {
+    .hide-mobile { display: none !important; }
+}
+
+/* ── Esconder SOLO en iPad vertical + horizontal + móvil (≤1024px) ── */
+@media (max-width: 1024px) {
+    .hide-tablet-down { display: none !important; }
+}
+
+/* ── Esconder SOLO en escritorio (>1024px) ── */
+@media (min-width: 1025px) {
+    .hide-desktop { display: none !important; }
+}
+
+/* ── Esconder SOLO en iPad horizontal (769–1024px) ── */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .hide-tablet { display: none !important; }
+}
+
+/* ── Esconder SOLO en móviles pequeños (≤480px) ── */
+@media (max-width: 480px) {
+    .hide-small { display: none !important; }
+}
+
+/* ── MOSTRAR solo en móvil + iPad vertical (oculto en el resto) ── */
+.show-mobile { display: none !important; }
+@media (max-width: 768px) {
+    .show-mobile { display: block !important; }
+}
+
+/* ── MOSTRAR solo en escritorio (oculto en el resto) ── */
+@media (max-width: 1024px) {
+    .show-desktop-only { display: none !important; }
+}

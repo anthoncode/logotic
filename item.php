@@ -376,7 +376,7 @@ if (isset($_GET['id'])) {
                   $slug = product::formatName($tag);        // "las frutas" → "las-frutas"
                   $links[] = "<a class='tag' href=" . $setting['website_url'] . '/tags/' . $slug . "> " . htmlspecialchars($slug) . "</a>";
                 }
-                echo implode(", ", $links);
+                echo implode($links);
               }
               ?>
             </div>

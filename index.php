@@ -78,12 +78,12 @@ $topCats = [
         </div>
       </div>
     </div>
-    <p class="hero-hint mt-3">Popular:
+    <p class="hero-hint mt-3 hide-tablet-down">Popular:
       <?php foreach ($weekTop as $wt): ?>
         <a href="<?php echo $setting['website_url'] . '/item/' . $wt['id'] . '/' . $wt['slug_lg'] . '/'; ?>"><?php echo htmlspecialchars(strtok($wt['name'], ' ')); ?></a>
       <?php endforeach; ?>
     </p>
-    <div class="stats-bar">
+    <div class="stats-bar hide-tablet-down">
       <div class="stat-item">
         <div class="stat-num" id="stat-0" data-target="<?php echo $statLogos; ?>">0<span class="stat-suffix">+</span></div>
         <div class="stat-label">Logos available</div>

@@ -27,7 +27,6 @@
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
-  <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" /> -->
 
   <link rel="stylesheet" href="<?php echo $setting['website_url']; ?>/system/assets/css/logotic.css">
 
@@ -199,7 +198,7 @@
 
         <form action="<?php echo $setting['website_url']; ?>/search.php" method="GET" class="form-inline my-2 my-lg-0">
           <div class="nav-search me-3 d-none d-lg-block">
-            <i class="bi bi-search"></i>
+            <i class="fa-solid fa-magnifying-glass"></i>
             <input maxlength="20" name="key" minlength="3" pattern=".{3,}" required="" type="text"
               placeholder="Quick search…" value="<?php if (isset($_GET['key'])) {
                                                     echo $_GET['key'];
@@ -210,11 +209,11 @@
         <div class="d-flex align-items-center gap-2">
           <?php if ($user->is_loggedin()): ?>
             <a href="<?php echo $setting['website_url']; ?>/user/upload-logo.php" class="btn btn-upload">
-              <i class="bi bi-cloud-upload-fill"></i> Upload logo
+              <i class="fa-solid fa-cloud-arrow-up"></i> Upload logo
             </a>
           <?php else: ?>
             <a href="<?php echo $setting['website_url']; ?>/user/login.php?redirect=<?php echo urlencode($setting['website_url'] . '/user/upload-logo.php'); ?>" class="btn btn-upload">
-              <i class="bi bi-cloud-upload-fill"></i> Upload logo
+              <i class="fa-solid fa-cloud-arrow-up"></i> Upload logo
             </a>
           <?php endif; ?>
 
@@ -249,7 +248,7 @@
             <?php else: ?>
               <!-- Usuario NO logueado: solo botón de login -->
               <a href="<?php echo $setting['website_url']; ?>/user/login.php" class="btn-login me-1">
-                <i class="bi bi-box-arrow-in-right"></i><span>Login</span>
+                <i class="fa-solid fa-right-to-bracket"></i><span>Login</span>
               </a>
             <?php endif; ?>
           <?php endif; ?>
@@ -258,6 +257,68 @@
     </div>
     </div>
   </nav>
+
+  <!-- ══ Barra simplificada (iPad vertical + móviles ≤768px) ══ -->
+  <div class="mobile-simple-bar">
+    <a class="msb-logo" href="<?php echo $setting['website_url']; ?>">
+      <?php if (empty($setting['site_logo'])): ?>
+        <?php echo $setting['site_name']; ?>
+      <?php else: ?>
+        <img src="<?php echo $setting['website_url'] . '/system/assets/uploads/img/' . $setting['site_logo']; ?>" alt="<?php echo htmlspecialchars($setting['site_name']); ?>">
+      <?php endif; ?>
+    </a>
+
+    <form class="msb-search" action="<?php echo $setting['website_url']; ?>/search.php" method="GET">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input type="text" name="key" maxlength="20" minlength="3" pattern=".{3,}" required
+             placeholder="Search logos…"
+             value="<?php echo isset($_GET['key']) ? htmlspecialchars($_GET['key']) : ''; ?>">
+    </form>
+
+    <div class="msb-actions">
+      <?php if ($user->is_loggedin()): ?>
+        <a href="<?php echo $setting['website_url']; ?>/user/upload-logo.php" class="msb-icon-btn" title="Upload logo" aria-label="Upload logo">
+          <i class="fa-solid fa-cloud-arrow-up"></i>
+        </a>
+      <?php else: ?>
+        <a href="<?php echo $setting['website_url']; ?>/user/login.php?redirect=<?php echo urlencode($setting['website_url'] . '/user/upload-logo.php'); ?>" class="msb-icon-btn" title="Upload logo" aria-label="Upload logo">
+          <i class="fa-solid fa-cloud-arrow-up"></i>
+        </a>
+      <?php endif; ?>
+
+      <?php if ($setting['login'] == 1): ?>
+        <?php if ($user->is_loggedin()): ?>
+          <div class="user-dropdown-wrap msb-user">
+            <div class="btn-user">
+              <?php if (!empty($userDetails['profile']) && $userDetails['profile'] !== '../system/assets/uploads/user-img/default.png'): ?>
+                <img src="<?php echo $userDetails['profile']; ?>" alt="<?php echo htmlspecialchars($userDetails['fname']); ?>">
+              <?php else: ?>
+                <?php echo strtoupper(mb_substr($userDetails['fname'] ?? 'U', 0, 1)); ?>
+              <?php endif; ?>
+            </div>
+            <div class="user-dropdown-panel">
+              <div class="udp-header">
+                <div class="udp-avatar"><?php echo strtoupper(mb_substr($userDetails['fname'] ?? 'U', 0, 1)); ?></div>
+                <div>
+                  <div class="udp-name"><?php echo htmlspecialchars($userDetails['fname']); ?></div>
+                  <div class="udp-email"><?php echo htmlspecialchars($userDetails['email']); ?></div>
+                </div>
+              </div>
+              <a href="<?php echo $setting['website_url']; ?>/user/" class="udp-item"><i class="bi bi-grid-1x2-fill"></i> Overview</a>
+              <a href="<?php echo $setting['website_url']; ?>/user/downloads.php" class="udp-item"><i class="bi bi-download"></i> Downloads</a>
+              <a href="<?php echo $setting['website_url']; ?>/user/favorites.php" class="udp-item"><i class="bi bi-heart"></i> Favorites</a>
+              <div class="udp-divider"></div>
+              <a href="<?php echo $setting['website_url']; ?>/user/login.php?logout" class="udp-item udp-signout"><i class="bi bi-box-arrow-right"></i> Sign out</a>
+            </div>
+          </div>
+        <?php else: ?>
+          <a href="<?php echo $setting['website_url']; ?>/user/login.php" class="msb-icon-btn" title="Login" aria-label="Login">
+            <i class="fa-solid fa-right-to-bracket"></i>
+          </a>
+        <?php endif; ?>
+      <?php endif; ?>
+    </div>
+  </div>
 
   <!-- Mega Menu Panel -->
   <div class="mega-menu" id="megaMenu">
@@ -349,6 +410,24 @@
       el.addEventListener('click', function() {
         megaMenu.classList.remove('open');
         megaOverlay.classList.remove('open');
+      });
+    });
+
+    // ── Dropdown de usuario por CLIC (para móvil/táctil) ──
+    // En la barra simplificada, el hover no funciona; se abre/cierra al tocar el avatar.
+    document.querySelectorAll('.msb-user .btn-user').forEach(function(btn) {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var wrap = btn.closest('.user-dropdown-wrap');
+        wrap.classList.toggle('open');
+      });
+    });
+    // Cerrar el dropdown al tocar fuera
+    document.addEventListener('click', function(e) {
+      document.querySelectorAll('.msb-user.open').forEach(function(wrap) {
+        if (!wrap.contains(e.target)) {
+          wrap.classList.remove('open');
+        }
       });
     });
   </script>
