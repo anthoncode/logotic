@@ -16,8 +16,10 @@ if ($search) {
     $where .= " AND (name LIKE :search OR tags LIKE :search OR slug_lg LIKE :search)";
     $params[':search'] = '%' . $search . '%';
 }
-if ($filter === 'active')   { $where .= " AND active = 1"; }
-if ($filter === 'inactive') { $where .= " AND active = 0"; }
+if ($filter === 'approved') { $where .= " AND status = 'approved'"; }
+if ($filter === 'pending')  { $where .= " AND status = 'pending'"; }
+if ($filter === 'rejected') { $where .= " AND status = 'rejected'"; }
+if ($filter === 'inactive') { $where .= " AND status = 'inactive'"; }
 if ($filter === 'featured') { $where .= " AND featured = 1"; }
 if ($filter === 'duplicates') {
     // Logos cuyo nombre (case-insensitive) aparece más de una vez
@@ -47,12 +49,25 @@ $tbody = '';
 foreach ($logos as $p) {
     $download   = $product->downloadCount($p['id']);
     $dlCount    = $download['doCount'] ?? 0;
-    $isActive   = $p['active'] == 1;
     $isFeatured = $p['featured'] == 1;
 
-    $statusBadge = $isActive
-        ? "<span class='adm-badge adm-badge-active'><i class='fa-solid fa-circle-check'></i> Active</span>"
-        : "<span class='adm-badge adm-badge-banned'><i class='fa-solid fa-circle-xmark'></i> Inactive</span>";
+    $st = $p['status'] ?? 'approved';
+    switch ($st) {
+        case 'approved':
+            $statusBadge = "<span class='adm-badge adm-badge-active'><i class='fa-solid fa-circle-check'></i> Approved</span>";
+            break;
+        case 'pending':
+            $statusBadge = "<span class='adm-badge' style='background:rgba(244,208,63,.15);color:#f4d03f;'><i class='fa-solid fa-clock'></i> Pending</span>";
+            break;
+        case 'rejected':
+            $statusBadge = "<span class='adm-badge' style='background:rgba(255,77,77,.15);color:#ff4d4d;'><i class='fa-solid fa-circle-xmark'></i> Rejected</span>";
+            break;
+        case 'inactive':
+            $statusBadge = "<span class='adm-badge' style='background:rgba(139,143,168,.15);color:#8b8fa8;'><i class='fa-solid fa-eye-slash'></i> Inactive</span>";
+            break;
+        default:
+            $statusBadge = "<span class='adm-badge'>" . htmlspecialchars($st) . "</span>";
+    }
 
     $featuredBadge = $isFeatured
         ? "<span class='adm-badge' style='background:rgba(244,208,63,.15);color:#f4d03f;margin-left:.3rem;'><i class='fa-solid fa-star'></i></span>"

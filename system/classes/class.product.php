@@ -14,7 +14,7 @@ class Product
 
 	public function all()
 	{
-		$result = $this->db->prepare("SELECT * FROM  " . PFX . "products WHERE active = 1 ORDER BY `id` DESC");
+		$result = $this->db->prepare("SELECT * FROM  " . PFX . "products WHERE status = 'approved' ORDER BY `id` DESC");
 		$result->execute();
 		$products = array();
 		while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
@@ -141,7 +141,7 @@ class Product
 
 	public function getProducts($start, $total)
 	{
-		$result = $this->db->prepare("SELECT * FROM  " . PFX . "products WHERE active = 1 OR active = 2 ORDER BY `id` DESC LIMIT $start , $total");
+		$result = $this->db->prepare("SELECT * FROM  " . PFX . "products WHERE status = 'approved' ORDER BY `id` DESC LIMIT $start , $total");
 		$result->execute();
 		$products = array();
 		while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
@@ -152,7 +152,7 @@ class Product
 
 	public function getLogoList($start, $total, $search)
 	{
-		$result = $this->db->prepare("SELECT * FROM  " . PFX . "products WHERE active = 1 AND name LIKE '%$search%' ORDER BY `id` DESC LIMIT $start , $total" );
+		$result = $this->db->prepare("SELECT * FROM  " . PFX . "products WHERE status = 'approved' AND name LIKE '%$search%' ORDER BY `id` DESC LIMIT $start , $total" );
 		$result->execute();
 		$products = array();
 		while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
@@ -178,7 +178,7 @@ class Product
 
 	public function getLogoListPending($start, $total, $search)
 	{
-		$result = $this->db->prepare("SELECT * FROM  " . PFX . "products WHERE active = 0 AND name LIKE '%$search%' ORDER BY `id` DESC LIMIT $start , $total" );
+		$result = $this->db->prepare("SELECT * FROM  " . PFX . "products WHERE status = 'pending' AND name LIKE '%$search%' ORDER BY `id` DESC LIMIT $start , $total" );
 		$result->execute();
 		$products = array();
 		while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
@@ -189,7 +189,7 @@ class Product
 
 	public function getPending($start, $total)
 	{
-		$result = $this->db->prepare("SELECT * FROM  " . PFX . "products WHERE active = 0 ORDER BY `id` DESC LIMIT $start , $total");
+		$result = $this->db->prepare("SELECT * FROM  " . PFX . "products WHERE status = 'pending' ORDER BY `id` DESC LIMIT $start , $total");
 		$result->execute();
 		$products = array();
 		while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
@@ -200,7 +200,7 @@ class Product
 
 	public function getCProducts($id = null, $cat_id = null)
 	{
-		$result = $this->db->prepare("SELECT * FROM  " . PFX . "products WHERE active = 1 AND cat_id = '$cat_id' ORDER BY `id` DESC");
+		$result = $this->db->prepare("SELECT * FROM  " . PFX . "products WHERE status = 'approved' AND cat_id = '$cat_id' ORDER BY `id` DESC");
 		$result->execute();
 		$products = array();
 		while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
@@ -211,7 +211,7 @@ class Product
 
 	public function getCSProducts($id = null, $sub_id = null)
 	{
-		$result = $this->db->prepare("SELECT * FROM  " . PFX . "products WHERE active = 1 AND subc_id = '$sub_id' ORDER BY `id` DESC");
+		$result = $this->db->prepare("SELECT * FROM  " . PFX . "products WHERE status = 'approved' AND subc_id = '$sub_id' ORDER BY `id` DESC");
 		$result->execute();
 		$products = array();
 		while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
@@ -222,7 +222,7 @@ class Product
 
 	public function getFeaturedProducts()
 	{
-		$result = $this->db->prepare("SELECT * FROM  " . PFX . "products WHERE active = 1 AND featured = 1 ORDER BY `id` LIMIT 20");
+		$result = $this->db->prepare("SELECT * FROM  " . PFX . "products WHERE status = 'approved' AND featured = 1 ORDER BY `id` LIMIT 20");
 		$result->execute();
 		$products = array();
 		while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
@@ -239,7 +239,7 @@ class Product
         SELECT p.*, COUNT(d.products_id) AS totalDescargas
         FROM " . PFX . "downloads d
         INNER JOIN " . PFX . "products p ON p.id = d.products_id
-        WHERE p.active = 1
+        WHERE p.status = 'approved'
         GROUP BY d.products_id
         ORDER BY COUNT(d.products_id) DESC
         LIMIT :limit OFFSET :offset
@@ -256,30 +256,10 @@ class Product
     return $products;
 	}
 
-	/*public function getPopularProducts()
-	{
-    $query = "
-        SELECT p.*, COUNT(d.products_id) AS totalDescargas
-        FROM " . PFX . "downloads d
-        INNER JOIN " . PFX . "products p ON p.id = d.products_id
-        WHERE p.active = 1
-        GROUP BY d.products_id
-        ORDER BY COUNT(d.products_id) DESC
-        LIMIT 27
-    ";
-
-    $result = $this->db->prepare($query);
-    $result->execute();
-
-    $products = $result->fetchAll(PDO::FETCH_ASSOC);
-    $result->closeCursor(); // Cierra conexión abierta
-
-    return $products;
-	}*/
 
 	public function getNewProducts()
 	{
-		$result = $this->db->prepare("SELECT * FROM  " . PFX . "products WHERE active = 1 ORDER BY `id` DESC LIMIT 4");
+		$result = $this->db->prepare("SELECT * FROM  " . PFX . "products WHERE status = 'approved' ORDER BY `id` DESC LIMIT 4");
 		$result->execute();
 		$products = array();
 		while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
@@ -300,7 +280,7 @@ class Product
 
     $Page_Start = ($page_num - 1) * $Per_Page;
 
-    $result = $this->db->prepare("SELECT * FROM  " . PFX . "products WHERE active = 1 ORDER BY `id` DESC LIMIT $Page_Start,$Per_Page");
+    $result = $this->db->prepare("SELECT * FROM  " . PFX . "products WHERE status = 'approved' ORDER BY `id` DESC LIMIT $Page_Start,$Per_Page");
 
 		$result->execute();
 		$products = array();
@@ -321,7 +301,7 @@ class Product
     }
     $Page_Start = ($page_num - 1) * $Per_Page;
     //WHERE active = 1 AND subc_id = '$sub_id' ORDER BY `id` DESC
-    $result = $this->db->prepare("SELECT * FROM  " . PFX . "products WHERE active = 1 AND subc_id = '$sub_id' ORDER BY `id` DESC LIMIT $Page_Start,$Per_Page");
+    $result = $this->db->prepare("SELECT * FROM  " . PFX . "products WHERE status = 'approved' AND subc_id = '$sub_id' ORDER BY `id` DESC LIMIT $Page_Start,$Per_Page");
 
 		$result->execute();
 		$products = array();
@@ -341,7 +321,7 @@ class Product
     }
     $Page_Start = ($page_num - 1) * $Per_Page;
 
-    $result = $this->db->prepare("SELECT * FROM  " . PFX . "products WHERE active = 1 AND cat_id = '$cat_id' ORDER BY `id` DESC LIMIT $Page_Start,$Per_Page");
+    $result = $this->db->prepare("SELECT * FROM  " . PFX . "products WHERE status = 'approved' AND cat_id = '$cat_id' ORDER BY `id` DESC LIMIT $Page_Start,$Per_Page");
 
 		$result->execute();
 		$products = array();
@@ -361,7 +341,7 @@ class Product
 	    }
 	    $Page_Start = ($page_num - 1) * $Per_Page;
 
-	    $result = $this->db->prepare("SELECT * FROM  " . PFX . "products WHERE active = 1 AND tags LIKE '%$tags%' ORDER BY `id` DESC LIMIT $Page_Start,$Per_Page");
+	    $result = $this->db->prepare("SELECT * FROM  " . PFX . "products WHERE status = 'approved' AND tags LIKE '%$tags%' ORDER BY `id` DESC LIMIT $Page_Start,$Per_Page");
 
 			$result->execute();
 			$products = array();
@@ -374,7 +354,7 @@ class Product
 
 	public function getAllProducts()
 	{
-		$result = $this->db->prepare("SELECT * FROM  " . PFX . "products WHERE active = 1 ORDER BY `id` DESC");
+		$result = $this->db->prepare("SELECT * FROM  " . PFX . "products WHERE status = 'approved' ORDER BY `id` DESC");
 		$result->execute();
 		$products = array();
 		while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
@@ -387,7 +367,7 @@ class Product
 	public function getSimilarProducts($tags = null)
 	{	
 		//$result = $this->db->prepare("SELECT * FROM  " . PFX . "products WHERE active = 1 AND tags LIKE '%$tags%' LIMIT 9");
-		$result = $this->db->prepare("SELECT * FROM  " . PFX . "products WHERE active = 1 AND tags REGEXP '$tags' LIMIT 32");
+		$result = $this->db->prepare("SELECT * FROM  " . PFX . "products WHERE status = 'approved' AND tags REGEXP '$tags' LIMIT 32");
 		$result->execute();
 		$products = array();
 		while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
@@ -396,27 +376,6 @@ class Product
 		return $products;
 	}
 
-	/*public function getSimilarProducts($sub_cat = null)
-	{	
-		$result = $this->db->prepare("SELECT * FROM  " . PFX . "products WHERE active = 1 AND subc_id = $sub_cat LIMIT 3");
-		$result->execute();
-		$products = array();
-		while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
-			$products[] = $row;
-		}
-		return $products;
-	}*/
-
-	/*public function getFreeProducts()
-	{
-		$result = $this->db->prepare("SELECT * FROM  " . PFX . "products WHERE active = 1 AND free = 1 ORDER BY `id` DESC LIMIT 6");
-		$result->execute();
-		$products = array();
-		while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
-			$products[] = $row;
-		}
-		return $products;
-	}*/
 
 	public function countDownload()
 	{
@@ -429,7 +388,7 @@ class Product
 	public function countAll($search = null) //envia un valor nulo si no existe
 	{
 
-		$result = $this->db->prepare("SELECT count(*) FROM  " . PFX . "products WHERE name LIKE '%$search%' AND active = 1 ORDER BY `id` DESC");
+		$result = $this->db->prepare("SELECT count(*) FROM  " . PFX . "products WHERE name LIKE '%$search%' AND status = 'approved' ORDER BY `id` DESC");
 		$result->execute();
 		$products = $result->fetchColumn();
 		return $products;
@@ -438,7 +397,7 @@ class Product
 	public function countAllPending($search = null) //envia un valor nulo si no existe
 	{
 
-		$result = $this->db->prepare("SELECT count(*) FROM  " . PFX . "products WHERE name LIKE '%$search%' AND active = 0 ORDER BY `id` DESC");
+		$result = $this->db->prepare("SELECT count(*) FROM  " . PFX . "products WHERE name LIKE '%$search%' AND status = 'pending' ORDER BY `id` DESC");
 		$result->execute();
 		$products = $result->fetchColumn();
 		return $products;
@@ -446,7 +405,7 @@ class Product
 
 	public function countPending() //envia un valor nulo si no existe
 	{
-		$result = $this->db->prepare("SELECT count(*) FROM  " . PFX . "products WHERE active = 0 ORDER BY `id` DESC");
+		$result = $this->db->prepare("SELECT count(*) FROM  " . PFX . "products WHERE status = 'pending' ORDER BY `id` DESC");
 		$result->execute();
 		$products = $result->fetchColumn();
 		return $products;
@@ -455,7 +414,7 @@ class Product
 	public function countUpload($id)
 	{
 
-		$result = $this->db->prepare("SELECT count(*) FROM  " . PFX . "products WHERE active = 1 AND submit_user_id = '$id' ORDER BY `id` DESC");
+		$result = $this->db->prepare("SELECT count(*) FROM  " . PFX . "products WHERE status = 'approved' AND submit_user_id = '$id' ORDER BY `id` DESC");
 		$result->execute();
 		$products = $result->fetchColumn();
 		return $products;
@@ -466,7 +425,7 @@ class Product
 	{
 
 		$result = $this->db->prepare("SELECT *, count(products_id) AS totalDescargas FROM " . PFX . "downloads INNER JOIN " . PFX . "products
-ON " . PFX . "products.id = " . PFX . "downloads.products_id WHERE active = 1 GROUP BY products_id ORDER BY SUM(products_id) DESC LIMIT 10");
+ON " . PFX . "products.id = " . PFX . "downloads.products_id WHERE status = 'approved' GROUP BY products_id ORDER BY SUM(products_id) DESC LIMIT 10");
 		$result->execute();
 		$products = array();
 		while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
@@ -478,10 +437,11 @@ ON " . PFX . "products.id = " . PFX . "downloads.products_id WHERE active = 1 GR
 	public function is_product($id)
 	{
 
-		$result = $this->db->prepare("SELECT active FROM  " . PFX . "products WHERE id = '$id' AND  active = 1");
+		$result = $this->db->prepare("SELECT id FROM  " . PFX . "products WHERE id = :id");
+		$result->bindParam(':id', $id);
 		$result->execute();
 
-		if ($result) {
+		if ($result->fetchColumn()) {
 			return true;
 		}
 		$this->error = "No such product exists";
@@ -516,17 +476,7 @@ ON " . PFX . "products.id = " . PFX . "downloads.products_id WHERE active = 1 GR
 		}
 	}
 
-	// public function tagdetailsCate()
-	// {
-		//products WHERE tags LIKE '%$tags%' AND active = 1
-	// 	$result = $this->db->prepare("SELECT * FROM  " . PFX . "categories");
-	// 	$result->bindParam(':id', $id);
-	// 	$result->execute();
 
-	// 	while ($result = $result->fetch(PDO::FETCH_ASSOC)) {
-	// 		return $result;
-	// 	}
-	// }
 
 	public function scatdetails($id)
 	{
@@ -539,25 +489,10 @@ ON " . PFX . "products.id = " . PFX . "downloads.products_id WHERE active = 1 GR
 		}
 	}
 
-	/*limon*/
-	/*public function tagdetails($tags){
-
-				//$parameter = ["%$tags%"];
-				
-			$result = $this->db->prepare("SELECT * FROM " . PFX . "products WHERE tags LIKE '%:tags%'");
-	      $result->bindParam(':tags', $tags);
-			$result->execute();
-			//$result = count($tags);
-				
-				while($result=$result->fetch(PDO::FETCH_ASSOC)){
-				return $result;
-				}
-		}
-*/
 
 	public function getTProducts($id = null, $tags = null)
 	{
-		$result = $this->db->prepare("SELECT * FROM  " . PFX . "products WHERE tags LIKE '%$tags%' AND active = 1");
+		$result = $this->db->prepare("SELECT * FROM  " . PFX . "products WHERE tags LIKE '%$tags%' AND status = 'approved'");
 		$result->execute();
 		$products = array();
 		while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
@@ -1035,7 +970,7 @@ ON " . PFX . "products.id = " . PFX . "downloads.products_id WHERE active = 1 GR
     $start = ($page - 1) * $Per_Page;
     $result = $this->db->prepare("
         SELECT * FROM " . PFX . "products 
-        WHERE dominant_color = :color AND active = 1 
+        WHERE dominant_color = :color AND status = 'approved' 
         ORDER BY views DESC 
         LIMIT :start, :per_page
     ");
@@ -1054,7 +989,7 @@ public function popularLogos($offset) {
             SELECT p.*, COUNT(d.id) AS totalDescargas
             FROM " . PFX . "products p
             INNER JOIN " . PFX . "downloads d ON p.id = d.products_id
-            WHERE p.active = 1
+            WHERE p.status = 'approved'
             GROUP BY p.id
             ORDER BY totalDescargas DESC
             LIMIT 100
@@ -1075,7 +1010,7 @@ public function recentLogos($page_num) {
 
     $result = $this->db->prepare("
         SELECT * FROM " . PFX . "products 
-        WHERE active = 1 
+        WHERE status = 'approved' 
         ORDER BY id DESC 
         LIMIT :start, :per_page
     ");
@@ -1085,22 +1020,5 @@ public function recentLogos($page_num) {
     return $result->fetchAll(PDO::FETCH_ASSOC);
 }
 
-/*	public function add_download($userID,$productID){
-	global $crypt;
-	global $user;
-	global $product;
 
-	    $userID = $crypt->decrypt($userID,'USER');
-	    $add = $this->db->prepare("INSERT INTO " . PFX . "sales (`pro_id`, `user_id`) VALUES (:pid, :uid)");
-	    $add->bindparam(":pid",$productID);
-	$add->bindparam(":uid",$userID);
-	$add->execute();
-	  if($add){
-    	return true;
-		}
-		$this->error = "Failed to add to your wishlist";
-		return false;
-		
-	}*/
 }
-

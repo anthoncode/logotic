@@ -31,15 +31,19 @@ if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQU
 
     $date        = date("Y-m-d");
     $featured    = (isset($_POST['featured'])) ? 1 : 0;
-    $icon        = (isset($_POST['icon'])) ? 1 : 0;
 
     $views_off   = (isset($_POST['views_off'])) ? 1 : 0;
     $download_off = (isset($_POST['download_off'])) ? 1 : 0;
 
     $tags        = strtolower($_POST['tags']);
-    $active = $_POST['active'];
+    // Estado del logo: validar que sea uno de los permitidos
+    $status = $_POST['status'] ?? 'approved';
+    $allowedStatus = ['approved', 'pending', 'rejected', 'inactive'];
+    if (!in_array($status, $allowedStatus, true)) {
+        $status = 'approved';
+    }
 
-    $sql_upload = $DB_con->prepare("UPDATE " . PFX . "products SET name=:name2, slug_lg=:slug, description=:description, cat_id=:cat_id, subc_id=:scat_id, website=:website, tags=:tags, modified=:modified, featured=:featured, icon=:icon, active=:active, views_off=:views_off, download_off=:download_off WHERE id=:id");
+    $sql_upload = $DB_con->prepare("UPDATE " . PFX . "products SET name=:name2, slug_lg=:slug, description=:description, cat_id=:cat_id, subc_id=:scat_id, website=:website, tags=:tags, modified=:modified, featured=:featured, status=:status, views_off=:views_off, download_off=:download_off WHERE id=:id");
 
     $sql_upload->bindparam(":name2", $name2);
     $sql_upload->bindparam(":slug", $slug);
@@ -50,8 +54,7 @@ if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQU
     $sql_upload->bindparam(":website", $website);
     $sql_upload->bindparam(":modified", $date);
     $sql_upload->bindparam(":featured", $featured);
-    $sql_upload->bindparam(":icon", $icon);
-    $sql_upload->bindparam(":active", $active);
+    $sql_upload->bindparam(":status", $status);
     $sql_upload->bindparam(":views_off", $views_off);
     $sql_upload->bindparam(":download_off", $download_off);
 

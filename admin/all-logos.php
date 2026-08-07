@@ -22,10 +22,10 @@ if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['id'])
 
 // Stats
 $totalLogos     = $DB_con->query("SELECT COUNT(*) FROM " . PFX . "products")->fetchColumn();
-$activeLogos    = $DB_con->query("SELECT COUNT(*) FROM " . PFX . "products WHERE active = 1")->fetchColumn();
-$inactiveLogos  = $DB_con->query("SELECT COUNT(*) FROM " . PFX . "products WHERE active = 0")->fetchColumn();
+$activeLogos    = $DB_con->query("SELECT COUNT(*) FROM " . PFX . "products WHERE status = 'approved'")->fetchColumn();
+$inactiveLogos  = $DB_con->query("SELECT COUNT(*) FROM " . PFX . "products WHERE status != 'approved'")->fetchColumn();
 $featuredLogos  = $DB_con->query("SELECT COUNT(*) FROM " . PFX . "products WHERE featured = 1")->fetchColumn();
-$totalViews     = $DB_con->query("SELECT SUM(views) FROM " . PFX . "products WHERE active = 1")->fetchColumn() ?? 0;
+$totalViews     = $DB_con->query("SELECT SUM(views) FROM " . PFX . "products WHERE status = 'approved'")->fetchColumn() ?? 0;
 $totalDownloads = $DB_con->query("SELECT COUNT(*) FROM " . PFX . "downloads")->fetchColumn();
 
 if (isset($_GET['msg'])) $success = $_GET['msg'];
@@ -65,9 +65,9 @@ require_once 'includes/header1.php';
             <div class="adm-stat-num"><?php echo number_format($totalLogos); ?></div>
             <div class="adm-stat-label">Total Logos</div>
             <div class="adm-stat-link">
-                <span style="color:var(--adm-success);"><?php echo number_format($activeLogos); ?> active</span>
+                <span style="color:var(--adm-success);"><?php echo number_format($activeLogos); ?> approved</span>
                 &nbsp;·&nbsp;
-                <span style="color:var(--adm-danger);"><?php echo number_format($inactiveLogos); ?> inactive</span>
+                <span style="color:var(--adm-danger);"><?php echo number_format($inactiveLogos); ?> not published</span>
             </div>
         </div>
         <div class="adm-stat" style="cursor:default;">
@@ -93,8 +93,18 @@ require_once 'includes/header1.php';
                placeholder="🔍 Search by name, tags or slug...">
         <div class="adm-filter">
             <a class="adm-chip active" data-filter="all">All</a>
-            <a class="adm-chip" data-filter="active">Active</a>
-            <a class="adm-chip" data-filter="inactive">Inactive</a>
+            <a class="adm-chip" data-filter="approved">
+                <i class="fa-solid fa-circle-check" style="font-size:.7rem;"></i> Approved
+            </a>
+            <a class="adm-chip" data-filter="pending">
+                <i class="fa-solid fa-clock" style="font-size:.7rem;"></i> Pending
+            </a>
+            <a class="adm-chip" data-filter="rejected">
+                <i class="fa-solid fa-circle-xmark" style="font-size:.7rem;"></i> Rejected
+            </a>
+            <a class="adm-chip" data-filter="inactive">
+                <i class="fa-solid fa-eye-slash" style="font-size:.7rem;"></i> Inactive
+            </a>
             <a class="adm-chip" data-filter="featured">
                 <i class="fa-solid fa-star" style="font-size:.7rem;"></i> Featured
             </a>

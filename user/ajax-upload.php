@@ -19,11 +19,7 @@ if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQU
     echo '<span class="text-danger">This product already exists!</span>';
     die();
   }
-  /*if(empty($_POST['description']))
-{
-  echo '<span class="text-danger">Description is required.</span>';
-  die();
-}*/
+
   if (empty($_POST['tags'])) {
     echo '<span class="text-danger">Product Tags is required!</span>';
     die();
@@ -32,11 +28,7 @@ if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQU
     echo '<span class="text-danger">Category is required.</span>';
     die();
   }
-  /*if($_FILES['previewimgfile']['size'] < 1)
-{
-echo 'The previewimgfile file needs to be uploaded';
-die();
-}*/
+
 
   if (isset($_FILES['previewimgfile'])) {
 
@@ -93,27 +85,6 @@ die();
     }
   }
 
-  /*if(isset($_FILES['mainfile'])){
-  $name = $_FILES['mainfile']['name'];
-  $name = preg_replace("/[^a-zA-Z0-9áéíóúüñÁÉÍÓÚÜÑ.\']/", "-", $name);
-  $tmp_name   = $_FILES['mainfile']['tmp_name'];
-  $file_size = $_FILES['mainfile']['size'];
-if($file_size < 1){
-    echo 'No file selcted try again!';
-    die();
-}
-  $file_type = pathinfo($name);
-  $file_type = $file_type['extension'];
-  $allowed_file = array('zip','jpeg','txt');
-  if(!in_array($file_type, $allowed_file)){
-    echo '<span class="text-danger">Please select a .zip file for the main file</span>';
-  }
-  else
-  {
-    $new_file_name = time().$name;
-    move_uploaded_file(''.$tmp_name.'', '../system/assets/uploads/product-files/'.$new_file_name.'');
-}
-  }*/
 
   $id_admin = 0; //admin
   $name2 = $_POST['name'];

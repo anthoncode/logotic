@@ -7,6 +7,15 @@ error_reporting(E_ALL);
 require_once 'system/config-global.php';
 $id         = $_GET['id']; //id y nombre de slug enviado por get
 $details    = $product->details($id);
+
+// ── Verificar que el logo esté publicado (status = 'approved') ──
+// pending / rejected / inactive → 404 (no visible por enlace directo, no indexable)
+if (!is_array($details) || ($details['status'] ?? '') !== 'approved') {
+  http_response_code(404);
+  include '404.php';
+  exit();
+}
+
 if (is_array($details)) {
   $str_name   = $details['slug_lg']; //url amigable de archivos
 }
@@ -107,6 +116,45 @@ if (isset($_GET['id'])) {
   ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . '</script>';
 
   require_once 'system/assets/header.php';
+?>
+  <style>
+    /* ── Estados desactivados cuando download_off está activo ── */
+    .btn-download.is-disabled,
+    .download-disabled .btn-download {
+      background: #3a3d4a !important;
+      color: #8b8fa8 !important;
+      cursor: not-allowed !important;
+      opacity: .6;
+      pointer-events: none;
+      border-color: #3a3d4a !important;
+    }
+
+    .download-unavailable-msg {
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+      margin-top: .6rem;
+      padding: .55rem .85rem;
+      background: rgba(255, 77, 77, .08);
+      border: 1px solid rgba(255, 77, 77, .2);
+      border-radius: 8px;
+      color: #ff6b6b;
+      font-size: .82rem;
+      font-weight: 600;
+    }
+
+    .url-display.url-disabled {
+      opacity: .45;
+      pointer-events: none;
+      filter: grayscale(1);
+    }
+
+    .url-display.url-disabled input,
+    .url-display.url-disabled button {
+      cursor: not-allowed !important;
+    }
+  </style>
+  <?php
 
   if (isset($_POST['addtowishlist'])) {
     $addtw = $wishlist->add($_SESSION['uid'], $id);
@@ -118,7 +166,7 @@ if (isset($_GET['id'])) {
   //$slugPic = $setting['website_url'] . '/system/assets/uploads/products/' . $details['preview_img'];
 
 
-?>
+  ?>
 
 
   <!-- ─── DOWNLOAD TOAST ─── -->
@@ -190,17 +238,19 @@ if (isset($_GET['id'])) {
         <div class="info-section px-lg-4">
           <h1 class="nft-title"><?php echo $details['name'] . " logo PNG and Vector"; ?></h1>
 
-          <div class="stats">
-            <div class="stat-item">
-              <i class="fa-regular fa-eye"></i>
-              <span class="stat-value"><?php echo number_format($details['views']); ?></span>
+          <?php if (($details['views_off'] ?? 0) != 1): ?>
+            <div class="stats">
+              <div class="stat-item">
+                <i class="fa-regular fa-eye"></i>
+                <span class="stat-value"><?php echo number_format($details['views']); ?></span>
+              </div>
+              <div class="stat-item" id="downloadCount">
+                <i class="fa-solid fa-download"></i>
+                <span class="stat-value" id="dlCountVal"> <?php $downloaded = $download['doCount'];
+                                                          echo $product->formatCount($download['doCount']); ?></span>
+              </div>
             </div>
-            <div class="stat-item" id="downloadCount">
-              <i class="fa-solid fa-download"></i>
-              <span class="stat-value" id="dlCountVal"> <?php $downloaded = $download['doCount'];
-                                                        echo $product->formatCount($download['doCount']); ?></span>
-            </div>
-          </div>
+          <?php endif; ?>
 
 
           <p class="description"><?php echo $details['description']; ?></p>
@@ -247,48 +297,67 @@ if (isset($_GET['id'])) {
             </div>
           </div>
 
-          <div class="download-buttons">
-            <button class="btn-download btn-svg" onclick="downloadLogo('svg')">
-              <span>SVG</span>
-            </button>
+          <?php $dlOff = (($details['download_off'] ?? 0) == 1); ?>
 
-            <div class="png-download-wrap">
-              <button class="btn-download btn-png" onclick="togglePngMenu(event)">
-                <span>PNG</span>
-                <i class="fa-solid fa-chevron-down" style="font-size:.7rem;margin-left:.4rem;"></i>
+          <?php if ($dlOff): ?>
+            <div class="download-buttons download-disabled">
+              <button class="btn-download btn-svg is-disabled" disabled>
+                <span>SVG</span>
               </button>
-              <div class="png-menu" id="pngMenu">
-                <div class="png-menu-title">Choose size</div>
-                <div class="png-sizes">
-                  <button onclick="downloadPng(16)">16px</button>
-                  <button onclick="downloadPng(24)">24px</button>
-                  <button onclick="downloadPng(32)">32px</button>
-                  <button onclick="downloadPng(64)">64px</button>
-                  <button onclick="downloadPng(128)">128px</button>
-                  <button onclick="downloadPng(256)">256px</button>
-                  <button onclick="downloadPng(512)">512px</button>
-                </div>
-                <div class="png-custom">
-                  <input type="number" id="pngCustomSize" placeholder="Custom" min="16" max="3000">
-                  <button onclick="downloadPngCustom()">Download</button>
+              <div class="png-download-wrap">
+                <button class="btn-download btn-png is-disabled" disabled>
+                  <span>PNG</span>
+                  <i class="fa-solid fa-chevron-down" style="font-size:.7rem;margin-left:.4rem;"></i>
+                </button>
+              </div>
+            </div>
+            <div class="download-unavailable-msg">
+              <i class="fa-solid fa-circle-info"></i> Download not available
+            </div>
+          <?php else: ?>
+            <div class="download-buttons">
+              <button class="btn-download btn-svg" onclick="downloadLogo('svg')">
+                <span>SVG</span>
+              </button>
+
+              <div class="png-download-wrap">
+                <button class="btn-download btn-png" onclick="togglePngMenu(event)">
+                  <span>PNG</span>
+                  <i class="fa-solid fa-chevron-down" style="font-size:.7rem;margin-left:.4rem;"></i>
+                </button>
+                <div class="png-menu" id="pngMenu">
+                  <div class="png-menu-title">Choose size</div>
+                  <div class="png-sizes">
+                    <button onclick="downloadPng(16)">16px</button>
+                    <button onclick="downloadPng(24)">24px</button>
+                    <button onclick="downloadPng(32)">32px</button>
+                    <button onclick="downloadPng(64)">64px</button>
+                    <button onclick="downloadPng(128)">128px</button>
+                    <button onclick="downloadPng(256)">256px</button>
+                    <button onclick="downloadPng(512)">512px</button>
+                  </div>
+                  <div class="png-custom">
+                    <input type="number" id="pngCustomSize" placeholder="Custom" min="16" max="3000">
+                    <button onclick="downloadPngCustom()">Download</button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          <?php endif; ?>
 
-          <div class="url-display">
+          <div class="url-display<?php echo $dlOff ? ' url-disabled' : ''; ?>">
             <div class="url-main-row">
               <span class="url-cdn-badge"><i class="fa-solid fa-bolt"></i> CDN</span>
               <span class="url-px-label">px:</span>
               <div class="url-input-wrap">
-                <button class="url-stepper" id="sizeDown" title="Decrease"><i class="fa-solid fa-minus"></i></button>
-                <input type="number" id="sizeInput" class="url-size-input" min="10" max="1000" value="50">
-                <button class="url-stepper" id="sizeUp" title="Increase"><i class="fa-solid fa-plus"></i></button>
+                <button class="url-stepper" id="sizeDown" title="Decrease" <?php echo $dlOff ? ' disabled' : ''; ?>><i class="fa-solid fa-minus"></i></button>
+                <input type="number" id="sizeInput" class="url-size-input" min="10" max="1000" value="50" <?php echo $dlOff ? ' disabled' : ''; ?>>
+                <button class="url-stepper" id="sizeUp" title="Increase" <?php echo $dlOff ? ' disabled' : ''; ?>><i class="fa-solid fa-plus"></i></button>
               </div>
               <div class="url-code-wrap">
                 <code class="url-text" id="urlText"></code>
               </div>
-              <button class="url-copy-btn" id="urlCopyBtn" title="Copiar">
+              <button class="url-copy-btn" id="urlCopyBtn" title="Copiar" <?php echo $dlOff ? ' disabled' : ''; ?>>
                 <i class="fa-regular fa-copy"></i>
               </button>
             </div>
@@ -298,15 +367,16 @@ if (isset($_GET['id'])) {
             <span class="tags-label">Tags:</span>
             <div class="tags">
               <?php
-              if ($details['tags']) {
+              if (!empty($details['tags'])) {
                 $links = array();
                 $tags_key = explode(',', $details['tags']);
-                $count_tags = count($tags_key);
-                //echo $count_tags;
-                for ($i = 0; $i < $count_tags; $i++) {
-                  $links[] = "<a class='tag' href=" . $setting['website_url'] . '/tags/' .  product::formatName($tags_key[$i]) . "> $tags_key[$i]</a>";
+                foreach ($tags_key as $tag) {
+                  $tag = trim($tag);              // quita espacios alrededor
+                  if ($tag === '') continue;      // ignora comas huérfanas / vacíos
+                  $slug = product::formatName($tag);        // "las frutas" → "las-frutas"
+                  $links[] = "<a class='tag' href=" . $setting['website_url'] . '/tags/' . $slug . "> " . htmlspecialchars($slug) . "</a>";
                 }
-                echo implode(" ", $links);
+                echo implode(", ", $links);
               }
               ?>
             </div>
@@ -359,12 +429,14 @@ if (isset($_GET['id'])) {
           <!-- Info Tab -->
           <div class="tab-content" id="info-content"> <!-- style="display:none;" -->
             <div class="info-grid">
-              <div class="info-row">
-                <div class="info-label"> <?php echo 'Downloaded'; ?></div>
-                <div class="info-value"><?php echo $downloaded = $product->formatCount($download['doCount']); ?></div>
+              <?php if (($details['views_off'] ?? 0) != 1): ?>
+                <div class="info-row">
+                  <div class="info-label"> <?php echo 'Downloaded'; ?></div>
+                  <div class="info-value"><?php echo $downloaded = $product->formatCount($download['doCount']); ?></div>
 
 
-              </div>
+                </div>
+              <?php endif; ?>
               <div class="info-row">
                 <div class="info-label"><?php echo $l['category']; ?></div>
                 <div class="info-value"><a href="<?php echo $setting['website_url'] . "/category/" . $cat2 . "/" . $cate . "/" ?>" title=""><?php echo $cat1; ?> </a></div>
@@ -423,7 +495,7 @@ if (isset($_GET['id'])) {
         echo '<div class="alert alert-danger mb-0" role="alert">' . $l['youalreadypurch'] . '</div>';
       }
     }*/ ?>
-    <?php echo ($details['active'] == '2' ? '<div class="alert alert-danger mb-0" role="alert">' . $l['item_paused'] . '</div>' : ''); ?>
+    <?php /* aviso de estado eliminado: con el modelo status, los no-approved dan 404 antes de llegar aquí */ ?>
 
 
 

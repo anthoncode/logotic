@@ -51,7 +51,7 @@ $topLogoMonth = $DB_con->query("
     FROM " . PFX . "downloads d
     INNER JOIN " . PFX . "products p ON d.products_id = p.id
     WHERE d.date_created >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
-      AND p.active = 1 AND p.status = 'approved'
+      AND p.status = 'approved'
     GROUP BY p.id
     ORDER BY dls DESC
     LIMIT 1

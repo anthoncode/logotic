@@ -28,7 +28,7 @@ $stmt = $DB_con->prepare("
     INNER JOIN " . PFX . "downloads d
         ON p.id = d.products_id
         AND d.date_created >= (CURDATE() - INTERVAL :days DAY)
-    WHERE p.active = 1
+    WHERE p.status = 'approved'
     GROUP BY p.id
     ORDER BY period_dl DESC, p.views DESC
     LIMIT $offset, $perPage

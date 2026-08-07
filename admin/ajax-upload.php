@@ -148,7 +148,7 @@ if (file_exists($svgPath)) {
     }
 }
 
-$sql_upload = $DB_con->prepare("INSERT INTO " . PFX . "products (submit_user_id, slug_lg, name, cat_id, subc_id, icon_img, tags, created, modified, active, file_hash, dominant_color) VALUES (:id_admin, :slug, :name2, :cat_id, :scat_id, :icon_img, :tags, :created, :modified, '1', :file_hash, :dominant_color)");
+$sql_upload = $DB_con->prepare("INSERT INTO " . PFX . "products (submit_user_id, slug_lg, name, cat_id, subc_id, icon_img, tags, created, modified, status, file_hash, dominant_color) VALUES (:id_admin, :slug, :name2, :cat_id, :scat_id, :icon_img, :tags, :created, :modified, 'approved', :file_hash, :dominant_color)");
 
 $sql_upload->bindParam(":id_admin", $id_admin);
 $sql_upload->bindParam(":slug",     $slug);

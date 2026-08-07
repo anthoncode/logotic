@@ -18,12 +18,12 @@ $bannedUsers   = $customer->countBanned();
 $activeUsers   = $DB_con->query("SELECT COUNT(*) FROM " . PFX . "users WHERE active = 1")->fetchColumn();
 $unverified    = $DB_con->query("SELECT COUNT(*) FROM " . PFX . "users WHERE verified = 0")->fetchColumn();
 $newUsersToday = $DB_con->query("SELECT COUNT(*) FROM " . PFX . "users WHERE DATE(created) = CURDATE()")->fetchColumn();
-$newLogosToday = $DB_con->query("SELECT COUNT(*) FROM " . PFX . "products WHERE DATE(created) = CURDATE() AND active = 1")->fetchColumn();
-$pendingLogos  = $DB_con->query("SELECT COUNT(*) FROM " . PFX . "products WHERE active = 0")->fetchColumn();
+$newLogosToday = $DB_con->query("SELECT COUNT(*) FROM " . PFX . "products WHERE DATE(created) = CURDATE() AND status = 'approved'")->fetchColumn();
+$pendingLogos  = $DB_con->query("SELECT COUNT(*) FROM " . PFX . "products WHERE status = 'pending'")->fetchColumn();
 $totalViews    = $DB_con->query("SELECT SUM(views) FROM " . PFX . "products")->fetchColumn() ?? 0;
 
 // Logos recientes
-$recentLogos = $DB_con->query("SELECT * FROM " . PFX . "products WHERE active = 1 ORDER BY id DESC LIMIT 6")->fetchAll(PDO::FETCH_ASSOC);
+$recentLogos = $DB_con->query("SELECT * FROM " . PFX . "products WHERE status = 'approved' ORDER BY id DESC LIMIT 6")->fetchAll(PDO::FETCH_ASSOC);
 
 // Usuarios recientes
 $recentUsers = $DB_con->query("SELECT * FROM " . PFX . "users ORDER BY id DESC LIMIT 5")->fetchAll(PDO::FETCH_ASSOC);
@@ -33,7 +33,7 @@ $topDownloads = $DB_con->query("
     SELECT p.*, COUNT(d.id) as dl_count
     FROM " . PFX . "products p
     INNER JOIN " . PFX . "downloads d ON p.id = d.products_id
-    WHERE p.active = 1
+    WHERE p.status = 'approved'
     GROUP BY p.id
     ORDER BY dl_count DESC
     LIMIT 5
@@ -101,7 +101,7 @@ $topChart = $DB_con->query("
     SELECT p.name, COUNT(d.id) as dl_count
     FROM " . PFX . "products p
     INNER JOIN " . PFX . "downloads d ON p.id = d.products_id
-    WHERE p.active = 1
+    WHERE p.status = 'approved'
     GROUP BY p.id
     ORDER BY dl_count DESC
     LIMIT 10
@@ -233,7 +233,7 @@ require_once('includes/header1.php');
 
     <!-- Quick Links -->
     <div class="adm-quick-links">
-        <a href="products.php" class="adm-quick-link">
+        <a href="all-logos.php" class="adm-quick-link">
             <i class="fa-regular fa-images"></i>
             <span>Logos</span>
             <small>Manage all logos</small>
@@ -248,10 +248,10 @@ require_once('includes/header1.php');
             <span>Pending</span>
             <small><?php echo $pendingLogos; ?> waiting</small>
         </a>
-        <a href="categories.php" class="adm-quick-link">
-            <i class="fa-regular fa-folder"></i>
-            <span>Categories</span>
-            <small>Manage categories</small>
+        <a href="all-posts.php" class="adm-quick-link">
+            <i class="fa-regular fa-rss"></i>
+            <span>Blog</span>
+            <small>Manage blog posts</small>
         </a>
         <a href="generate-sitemap.php" class="adm-quick-link">
             <i class="fa-regular fa-sitemap"></i>

@@ -13,7 +13,7 @@ if ($catId <= 0) {
 $stmt = $DB_con->prepare("
     SELECT id, name, slug_lg, icon_img, featured, views
     FROM " . PFX . "products
-    WHERE subc_id = :cat AND active = 1 AND featured = 1
+    WHERE subc_id = :cat AND status = 'approved' AND featured = 1
     ORDER BY id DESC
     LIMIT 20
 ");

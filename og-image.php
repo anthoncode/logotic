@@ -23,11 +23,11 @@ if ($pid <= 0) {
 }
 
 // ── Buscar el logo ──
-$stmt = $DB_con->prepare("SELECT icon_img, active FROM " . PFX . "products WHERE id = :id");
+$stmt = $DB_con->prepare("SELECT icon_img, status FROM " . PFX . "products WHERE id = :id");
 $stmt->execute([':id' => $pid]);
 $logo = $stmt->fetch(PDO::FETCH_ASSOC);
 
-if (!$logo || $logo['active'] == 0) {
+if (!$logo || ($logo['status'] ?? '') !== 'approved') {
     http_response_code(404);
     exit;
 }

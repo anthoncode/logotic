@@ -21,7 +21,7 @@ $pages = ceil($total / $maxres);
 
 // Logos del usuario
 $stmt = $DB_con->prepare("
-    SELECT id, name, slug_lg, icon_img, views, active, status, created
+    SELECT id, name, slug_lg, icon_img, views, status, created
     FROM " . PFX . "products
     WHERE submit_user_id = :uid
     ORDER BY created DESC, id DESC
@@ -144,7 +144,7 @@ require_once('includes/header.php');
                     }
 
                     // Solo enlazar si está aprobado y visible
-                    $isLive = ($lg['status'] === 'approved' && $lg['active'] == 1);
+                    $isLive = ($lg['status'] === 'approved');
                     $itemUrl = $setting['website_url'] . '/item/' . $lg['id'] . '/' . $lg['slug_lg'] . '/';
                 ?>
                     <tr>

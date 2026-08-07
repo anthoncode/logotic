@@ -178,9 +178,12 @@ require_once 'includes/header1.php';
 
                 <div class="adm-field">
                     <label class="adm-label">Status</label>
-                    <select class="adm-input" name="active" id="activeSelect" form="editForm">
-                        <option value="1" <?php echo $productDetails['active'] == 1 ? 'selected' : ''; ?>>Active</option>
-                        <option value="2" <?php echo $productDetails['active'] == 2 ? 'selected' : ''; ?>>Paused</option>
+                    <select class="adm-input" name="status" id="statusSelect" form="editForm">
+                        <?php $curStatus = $productDetails['status'] ?? 'approved'; ?>
+                        <option value="approved" <?php echo $curStatus === 'approved' ? 'selected' : ''; ?>>Approved (visible on site)</option>
+                        <option value="pending"  <?php echo $curStatus === 'pending'  ? 'selected' : ''; ?>>Pending (awaiting review)</option>
+                        <option value="rejected" <?php echo $curStatus === 'rejected' ? 'selected' : ''; ?>>Rejected (hidden, auto-deleted in 30 days)</option>
+                        <option value="inactive" <?php echo $curStatus === 'inactive' ? 'selected' : ''; ?>>Inactive (hidden on purpose)</option>
                     </select>
                 </div>
 
@@ -190,16 +193,6 @@ require_once 'includes/header1.php';
                     </div>
                     <label class="adm-switch">
                         <input type="checkbox" name="featured" form="editForm" <?php echo $productDetails['featured'] == 1 ? 'checked' : ''; ?>>
-                        <span class="adm-slider"></span>
-                    </label>
-                </div>
-
-                <div class="ep2-toggle-row">
-                    <div class="ep2-toggle-label">Icon
-                        <small>Mark as icon type</small>
-                    </div>
-                    <label class="adm-switch">
-                        <input type="checkbox" name="icon" form="editForm" <?php echo $productDetails['icon'] == 1 ? 'checked' : ''; ?>>
                         <span class="adm-slider"></span>
                     </label>
                 </div>

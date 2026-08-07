@@ -96,7 +96,7 @@ function extractDominantColor($svgPath) {
 }
 
 // Obtener logos sin color procesado
-$stmt = $DB_con->prepare("SELECT id, icon_img FROM " . PFX . "products WHERE dominant_color IS NULL AND active = 1 LIMIT 2000");
+$stmt = $DB_con->prepare("SELECT id, icon_img FROM " . PFX . "products WHERE dominant_color IS NULL AND status = 'approved' LIMIT 2000");
 $stmt->execute();
 $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -122,7 +122,7 @@ foreach ($products as $p) {
 }
 
 // Contar pendientes
-$stmtPending = $DB_con->prepare("SELECT COUNT(*) as total FROM " . PFX . "products WHERE dominant_color IS NULL AND active = 1");
+$stmtPending = $DB_con->prepare("SELECT COUNT(*) as total FROM " . PFX . "products WHERE dominant_color IS NULL AND status = 'approved'");
 $stmtPending->execute();
 $pending = $stmtPending->fetch(PDO::FETCH_ASSOC)['total'];
 ?>

@@ -168,8 +168,8 @@ $slugLg = $slugBase . '-' . time();
 try {
     $ins = $DB_con->prepare("
         INSERT INTO " . PFX . "products
-        (submit_user_id, slug_lg, name, icon_img, file_hash, dominant_color, cat_id, subc_id, tags, active, status, created)
-        VALUES (:uid, :slug, :name, :icon, :hash, :color, :cat, :sub, '', 0, 'pending', CURDATE())
+        (submit_user_id, slug_lg, name, icon_img, file_hash, dominant_color, cat_id, subc_id, tags, status, created)
+        VALUES (:uid, :slug, :name, :icon, :hash, :color, :cat, :sub, '', 'pending', CURDATE())
     ");
     $ins->execute([
         ':uid'   => $uid,

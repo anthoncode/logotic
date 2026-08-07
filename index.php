@@ -28,8 +28,8 @@ $popp      = $product->getPopularProducts();
 $weekTop = array_slice($popp, 0, 6);
 
 // ── Stats reales para el hero ──
-$statLogos     = (int)$DB_con->query("SELECT COUNT(*) FROM " . PFX . "products WHERE active = 1")->fetchColumn();
-$statBrands    = (int)$DB_con->query("SELECT COUNT(DISTINCT cat_id) FROM " . PFX . "products WHERE active = 1")->fetchColumn();
+$statLogos     = (int)$DB_con->query("SELECT COUNT(*) FROM " . PFX . "products WHERE status = 'approved'")->fetchColumn();
+$statBrands    = (int)$DB_con->query("SELECT COUNT(DISTINCT cat_id) FROM " . PFX . "products WHERE status = 'approved'")->fetchColumn();
 $statDownloads = (int)$DB_con->query("SELECT COUNT(*) FROM " . PFX . "downloads WHERE date_created >= (CURDATE() - INTERVAL 30 DAY)")->fetchColumn();
 
 // ── Subcategorías fijas para los chips ──

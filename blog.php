@@ -227,7 +227,7 @@ require_once('system/assets/header.php');
                         SELECT p.*, COUNT(d.id) as dl_count
                         FROM " . PFX . "products p
                         INNER JOIN " . PFX . "downloads d ON p.id = d.products_id
-                        WHERE p.active = 1
+                        WHERE p.status = 'approved'
                         GROUP BY p.id
                         ORDER BY dl_count DESC
                         LIMIT 5

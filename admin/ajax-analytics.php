@@ -30,7 +30,7 @@ if ($block === 'top_logos') {
         SELECT p.name, COUNT(*) AS dls
         FROM " . PFX . "downloads d
         INNER JOIN " . PFX . "products p ON d.products_id = p.id
-        WHERE p.active = 1 AND p.status = 'approved'" . $dateFilter . "
+        WHERE p.status = 'approved'" . $dateFilter . "
         GROUP BY p.id
         ORDER BY dls DESC
         LIMIT 12
@@ -66,7 +66,7 @@ if ($block === 'categories') {
         FROM " . PFX . "downloads d
         INNER JOIN " . PFX . "products p ON d.products_id = p.id
         INNER JOIN " . PFX . "subcat s ON p.subc_id = s.id
-        WHERE p.active = 1 AND p.status = 'approved'" . $dateFilter . "
+        WHERE p.status = 'approved'" . $dateFilter . "
         GROUP BY s.id
         ORDER BY dls DESC
         LIMIT 10
@@ -116,7 +116,7 @@ if ($block === 'trending') {
         FROM " . PFX . "downloads d
         INNER JOIN " . PFX . "products p ON d.products_id = p.id
         WHERE d.date_created >= CURDATE() - INTERVAL 7 DAY
-          AND p.active = 1 AND p.status = 'approved'
+          AND p.status = 'approved'
         GROUP BY p.id
         HAVING recent_dls >= 3
         ORDER BY recent_dls DESC
@@ -197,7 +197,7 @@ if ($block === 'cat_demand') {
         FROM " . PFX . "downloads d
         INNER JOIN " . PFX . "products p ON d.products_id = p.id
         INNER JOIN " . PFX . "subcat s ON p.subc_id = s.id
-        WHERE p.active = 1 AND p.status = 'approved'
+        WHERE p.status = 'approved'
         GROUP BY s.id
     ")->fetchAll(PDO::FETCH_ASSOC);
 
@@ -205,7 +205,7 @@ if ($block === 'cat_demand') {
     $countRows = $DB_con->query("
         SELECT subc_id, COUNT(*) AS logos
         FROM " . PFX . "products
-        WHERE active = 1 AND status = 'approved'
+        WHERE status = 'approved'
         GROUP BY subc_id
     ")->fetchAll(PDO::FETCH_KEY_PAIR);
 
@@ -238,7 +238,7 @@ if ($block === 'zero_downloads') {
         SELECT p.id, p.name, p.slug_lg, p.created
         FROM " . PFX . "products p
         LEFT JOIN " . PFX . "downloads d ON d.products_id = p.id
-        WHERE p.active = 1 AND p.status = 'approved'
+        WHERE p.status = 'approved'
         GROUP BY p.id
         HAVING COUNT(d.id) = 0
         ORDER BY p.created DESC
@@ -266,7 +266,7 @@ if ($block === 'few_downloads') {
         SELECT p.id, p.name, p.slug_lg, COUNT(d.id) AS dls
         FROM " . PFX . "products p
         INNER JOIN " . PFX . "downloads d ON d.products_id = p.id
-        WHERE p.active = 1 AND p.status = 'approved'
+        WHERE p.status = 'approved'
         GROUP BY p.id
         HAVING dls BETWEEN 1 AND 4
         ORDER BY dls ASC, p.created DESC
@@ -295,7 +295,7 @@ if ($block === 'worst_subcat') {
         SELECT p.subc_id, COUNT(d.id) AS dls
         FROM " . PFX . "products p
         LEFT JOIN " . PFX . "downloads d ON d.products_id = p.id
-        WHERE p.active = 1 AND p.status = 'approved'
+        WHERE p.status = 'approved'
         GROUP BY p.subc_id
     ")->fetchAll(PDO::FETCH_KEY_PAIR);
 
@@ -304,7 +304,7 @@ if ($block === 'worst_subcat') {
         SELECT s.id, s.name, COUNT(p.id) AS logos
         FROM " . PFX . "subcat s
         INNER JOIN " . PFX . "products p ON p.subc_id = s.id
-        WHERE p.active = 1 AND p.status = 'approved'
+        WHERE p.status = 'approved'
         GROUP BY s.id
         HAVING logos >= 3
     ")->fetchAll(PDO::FETCH_ASSOC);
@@ -343,7 +343,7 @@ if ($block === 'logos_per_subcat') {
         SELECT s.name AS sub_name, COUNT(p.id) AS logos
         FROM " . PFX . "subcat s
         INNER JOIN " . PFX . "products p ON p.subc_id = s.id
-        WHERE p.active = 1 AND p.status = 'approved'
+        WHERE p.status = 'approved'
         GROUP BY s.id
         ORDER BY logos " . $order . "
         LIMIT 15

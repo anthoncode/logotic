@@ -8,9 +8,9 @@ class Search{
 		$this->db = $DB_con;
 	}
 	
-	//SELECT * FROM  `logotic_products` WHERE `name` LIKE ? AND active = 1 || `description` LIKE ? AND active = 1
+	//SELECT * FROM  `logotic_products` WHERE (`name` LIKE ? OR `description` LIKE ?) AND status = 'approved'
   public function search($keyword) {
-	$exc = $this->db->prepare("SELECT * FROM  " . PFX . "products WHERE `name` LIKE ? AND active = 1 || `description` LIKE ? AND active = 1");
+	$exc = $this->db->prepare("SELECT * FROM  " . PFX . "products WHERE (`name` LIKE ? OR `description` LIKE ?) AND status = 'approved'");
 	$exc->execute( ['%' . $keyword . '%', '%' . $keyword . '%']);         // Executes an array |>  <> Require PHP >= 5.4.0
         return $exc->fetchAll();
     }
@@ -28,7 +28,7 @@ class Search{
      }
      $Page_Start = ($page_num - 1) * $Per_Page;
 
-     $exc = $this->db->prepare("SELECT * FROM  " . PFX . "products WHERE `name` LIKE ? AND active = 1 || `description` LIKE ? AND active = 1 ORDER BY `name` DESC LIMIT $Page_Start,$Per_Page");
+     $exc = $this->db->prepare("SELECT * FROM  " . PFX . "products WHERE (`name` LIKE ? OR `description` LIKE ?) AND status = 'approved' ORDER BY `name` DESC LIMIT $Page_Start,$Per_Page");
 
  		$exc->execute( ['%' . $keyword . '%', '%' . $keyword . '%']);         // Executes an array |>  <> Require PHP >= 5.4.0
         return $exc->fetchAll();

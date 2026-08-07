@@ -47,12 +47,17 @@ $guestPeriod  = (int)($setting['dl_guest_period'] ?? 24);   // horas
 $rateMax      = (int)($setting['dl_rate_max']     ?? 8);    // por minuto
 
 // ── 4. Buscar el logo en la DB ──
-$stmt = $DB_con->prepare("SELECT id, name, slug_lg, icon_img, active FROM " . PFX . "products WHERE id = :id");
+$stmt = $DB_con->prepare("SELECT id, name, slug_lg, icon_img, status, download_off FROM " . PFX . "products WHERE id = :id");
 $stmt->execute([':id' => $pid]);
 $logo = $stmt->fetch(PDO::FETCH_ASSOC);
 
-if (!$logo || $logo['active'] == 0) {
+if (!$logo || ($logo['status'] ?? '') !== 'approved') {
     dlError(404, 'notfound', 'Logo not found.');
+}
+
+// Descarga deshabilitada por el admin para este logo
+if (($logo['download_off'] ?? 0) == 1) {
+    dlError(403, 'disabled', 'Download not available for this logo.');
 }
 
 // ── 5. Validar la ruta física (anti path-traversal) ──

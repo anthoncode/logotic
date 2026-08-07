@@ -74,10 +74,10 @@ try {
         <!-- Logos -->
         <div class="adm-nav-section">Logos</div>
 
-        <div class="adm-nav-item has-sub <?php echo in_array($currentPage, ['add-product.php','all-logos.php','analytics.php','duplicate-logos.php']) ? 'open active' : ''; ?>" onclick="toggleSub(this, 'subLogos')">
+        <div class="adm-nav-item has-sub <?php echo in_array($currentPage, ['add-product.php','all-logos.php','analytics.php']) ? 'open active' : ''; ?>" onclick="toggleSub(this, 'subLogos')">
             <i class="fa-regular fa-images"></i> Logos
         </div>
-        <div class="adm-submenu <?php echo in_array($currentPage, ['add-product.php','all-logos.php','analytics.php','duplicate-logos.php']) ? 'open' : ''; ?>" id="subLogos">
+        <div class="adm-submenu <?php echo in_array($currentPage, ['add-product.php','all-logos.php','analytics.php']) ? 'open' : ''; ?>" id="subLogos">
             <a href="<?php echo $setting['website_url']; ?>/admin/add-product.php" class="adm-nav-item <?php echo $currentPage === 'add-product.php' ? 'active' : ''; ?>">
                 <i class="fa-regular fa-plus"></i> Add Logo
             </a>
@@ -86,9 +86,6 @@ try {
             </a>
             <a href="<?php echo $setting['website_url']; ?>/admin/analytics.php" class="adm-nav-item <?php echo $currentPage === 'analytics.php' ? 'active' : ''; ?>">
                 <i class="fa-solid fa-chart-bar"></i> Analytics
-            </a>
-            <a href="<?php echo $setting['website_url']; ?>/admin/duplicate-logos.php" class="adm-nav-item <?php echo $currentPage === 'duplicate-logos.php' ? 'active' : ''; ?>">
-                <i class="fa-regular fa-copy"></i> Duplicates
             </a>
         </div>
 

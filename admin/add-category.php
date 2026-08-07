@@ -78,7 +78,7 @@ if (isset($_GET['action'])) {
         }
 
         // Protección: no eliminar si tiene logos en uso
-        $chk = $DB_con->prepare("SELECT COUNT(*) FROM " . PFX . "products WHERE cat_id = :id AND active = 1");
+        $chk = $DB_con->prepare("SELECT COUNT(*) FROM " . PFX . "products WHERE cat_id = :id AND status = 'approved'");
         $chk->execute([':id' => $id]);
         $count = $chk->fetchColumn();
 
@@ -98,7 +98,7 @@ if (isset($_GET['action'])) {
         $id = (int)$_GET['id'];
 
         // Protección: no eliminar si tiene logos en uso
-        $chk = $DB_con->prepare("SELECT COUNT(*) FROM " . PFX . "products WHERE subc_id = :id AND active = 1");
+        $chk = $DB_con->prepare("SELECT COUNT(*) FROM " . PFX . "products WHERE subc_id = :id AND status = 'approved'");
         $chk->execute([':id' => $id]);
         $count = $chk->fetchColumn();
 

@@ -24,18 +24,18 @@ try {
     // Si falla la limpieza, no romper la página
 }
 
-// Aprobar logo (status approved → active 1)
+// Aprobar logo (status = approved)
 if (isset($_GET['action']) && $_GET['action'] === 'approve' && isset($_GET['id'])) {
     $pid = (int)$_GET['id'];
-    $DB_con->prepare("UPDATE " . PFX . "products SET status = 'approved', active = 1, modified = CURDATE() WHERE id = :id")->execute([':id' => $pid]);
+    $DB_con->prepare("UPDATE " . PFX . "products SET status = 'approved', modified = CURDATE() WHERE id = :id")->execute([':id' => $pid]);
     header('Location: pending.php?msg=Logo approved and published');
     exit;
 }
 
-// Rechazar logo (status rejected → active 0). NO borra; guarda fecha en modified.
+// Rechazar logo (status = rejected). NO borra; guarda fecha en modified para el auto-borrado a 30 días.
 if (isset($_GET['action']) && $_GET['action'] === 'reject' && isset($_GET['id'])) {
     $pid = (int)$_GET['id'];
-    $DB_con->prepare("UPDATE " . PFX . "products SET status = 'rejected', active = 0, modified = CURDATE() WHERE id = :id")->execute([':id' => $pid]);
+    $DB_con->prepare("UPDATE " . PFX . "products SET status = 'rejected', modified = CURDATE() WHERE id = :id")->execute([':id' => $pid]);
     header('Location: pending.php?msg=Logo rejected (kept for 30 days, then auto-deleted)');
     exit;
 }
@@ -46,7 +46,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'block_user' && isset($_GET['u
     if ($blockUid > 0) {
         $DB_con->prepare("UPDATE " . PFX . "users SET active = 0 WHERE id = :id")->execute([':id' => $blockUid]);
         // Rechazar sus logos pendientes
-        $DB_con->prepare("UPDATE " . PFX . "products SET status = 'rejected', active = 0, modified = CURDATE() WHERE submit_user_id = :id AND status = 'pending'")->execute([':id' => $blockUid]);
+        $DB_con->prepare("UPDATE " . PFX . "products SET status = 'rejected', modified = CURDATE() WHERE submit_user_id = :id AND status = 'pending'")->execute([':id' => $blockUid]);
     }
     header('Location: pending.php?msg=User blocked and their pending logos rejected');
     exit;
@@ -54,14 +54,14 @@ if (isset($_GET['action']) && $_GET['action'] === 'block_user' && isset($_GET['u
 
 // Aprobar todos los pendientes
 if (isset($_GET['action']) && $_GET['action'] === 'approve_all') {
-    $DB_con->query("UPDATE " . PFX . "products SET status = 'approved', active = 1, modified = CURDATE() WHERE status = 'pending'");
+    $DB_con->query("UPDATE " . PFX . "products SET status = 'approved', modified = CURDATE() WHERE status = 'pending'");
     header('Location: pending.php?msg=All pending logos approved');
     exit;
 }
 
 // Stats
 $totalPending  = $DB_con->query("SELECT COUNT(*) FROM " . PFX . "products WHERE status = 'pending'")->fetchColumn();
-$totalActive   = $DB_con->query("SELECT COUNT(*) FROM " . PFX . "products WHERE status = 'approved' AND active = 1")->fetchColumn();
+$totalActive   = $DB_con->query("SELECT COUNT(*) FROM " . PFX . "products WHERE status = 'approved'")->fetchColumn();
 $fromUsers     = $DB_con->query("SELECT COUNT(*) FROM " . PFX . "products WHERE status = 'pending' AND submit_user_id > 0")->fetchColumn();
 $todayPending  = $DB_con->query("SELECT COUNT(*) FROM " . PFX . "products WHERE status = 'pending' AND DATE(created) = CURDATE()")->fetchColumn();
 
