@@ -1,6 +1,6 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
+ini_set('display_errors', 0);
+ini_set('display_startup_errors', 0);
 ob_start(); //para que redireccione header location
 
 error_reporting(E_ALL);
@@ -335,6 +335,7 @@ if (isset($_GET['id'])) {
                     <button onclick="downloadPng(128)">128px</button>
                     <button onclick="downloadPng(256)">256px</button>
                     <button onclick="downloadPng(512)">512px</button>
+                    <button onclick="downloadPng(1024)">1024px</button>
                   </div>
                   <div class="png-custom">
                     <input type="number" id="pngCustomSize" placeholder="Custom" min="16" max="3000">

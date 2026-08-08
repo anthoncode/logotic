@@ -156,18 +156,50 @@ if ($format === 'svg') {
     exit;
 }
 
-// ── 12. Servir PNG (convertido con Imagick) ──
+// ── 12. Servir PNG (convertido con Imagick, alta calidad, fondo transparente) ──
 if ($format === 'png') {
     if (!extension_loaded('imagick')) {
         dlError(500, 'server', 'PNG conversion is not available.');
     }
     try {
+        // Leer el contenido del SVG
+        $svgContent = file_get_contents($svgPath);
+        if ($svgContent === false) {
+            dlError(500, 'server', 'Could not read the logo file.');
+        }
+
+        // Averiguar las dimensiones intrínsecas del SVG (para calcular la resolución correcta)
+        $probe = new Imagick();
+        $probe->setBackgroundColor(new ImagickPixel('transparent'));
+        $probe->readImageBlob($svgContent);
+        $natW = $probe->getImageWidth();
+        $natH = $probe->getImageHeight();
+        $probe->clear();
+        $probe->destroy();
+        if ($natW < 1) { $natW = 512; }
+        if ($natH < 1) { $natH = 512; }
+
+        // Calcular la densidad (DPI) necesaria para que el SVG se renderice
+        // directamente al tamaño objetivo — así se rasteriza nítido, sin escalar un raster pequeño.
+        $targetPx = $size;
+        $density  = max(72, ceil(($targetPx / max($natW, $natH)) * 96));
+        // Tope de densidad para no agotar memoria en tamaños enormes
+        $density  = min($density, 2400);
+
         $im = new Imagick();
         $im->setBackgroundColor(new ImagickPixel('transparent'));
-        $im->setResolution(300, 300);   // mayor resolución antes de rasterizar = PNG más nítido
-        $im->readImage($svgPath);
-        $im->setImageFormat('png32');
-        $im->resizeImage($size, 0, Imagick::FILTER_LANCZOS, 1);  // 0 = alto automático
+        $im->setResolution($density, $density);   // ← ANTES de leer: clave para nitidez con SVG
+        $im->readImageBlob($svgContent);
+        $im->setImageFormat('png32');             // png32 = RGBA (transparencia real)
+
+        // Asegurar canal alfa y fondo transparente (aunque el SVG traiga fondo)
+        $im->setImageBackgroundColor(new ImagickPixel('transparent'));
+        if (method_exists($im, 'setImageAlphaChannel')) {
+            $im->setImageAlphaChannel(defined('Imagick::ALPHACHANNEL_ACTIVATE') ? Imagick::ALPHACHANNEL_ACTIVATE : 1);
+        }
+
+        // Ajustar exactamente al ancho objetivo, alto proporcional, con filtro de alta calidad
+        $im->resizeImage($targetPx, 0, Imagick::FILTER_LANCZOS, 1, false);
 
         $pngBlob = $im->getImageBlob();
         $im->clear();
@@ -175,7 +207,7 @@ if ($format === 'png') {
 
         if (ob_get_level()) ob_end_clean();
         header('Content-Type: image/png');
-        header('Content-Disposition: attachment; filename="' . $safeName . '-' . $siteName . '.png"');
+        header('Content-Disposition: attachment; filename="' . $safeName . '-' . $siteName . '-' . $targetPx . 'px.png"');
         header('Content-Length: ' . strlen($pngBlob));
         header('Cache-Control: private');
         echo $pngBlob;

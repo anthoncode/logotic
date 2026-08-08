@@ -78,7 +78,7 @@ $topCats = [
         </div>
       </div>
     </div>
-    <p class="hero-hint mt-3 hide-tablet-down">Popular:
+    <p class="hero-hint mt-3 hide-tablet-down">Example:
       <?php foreach ($weekTop as $wt): ?>
         <a href="<?php echo $setting['website_url'] . '/item/' . $wt['id'] . '/' . $wt['slug_lg'] . '/'; ?>"><?php echo htmlspecialchars(strtok($wt['name'], ' ')); ?></a>
       <?php endforeach; ?>
